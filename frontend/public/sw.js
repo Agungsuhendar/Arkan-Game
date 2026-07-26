@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arkan-game-v21-voice-lullaby';
+const CACHE_NAME = 'arkan-game-v22-fruit-numbers';
 const MEDIA_CACHE_NAME = 'arkan-media-v13';
 
 const ASSETS_TO_CACHE = [

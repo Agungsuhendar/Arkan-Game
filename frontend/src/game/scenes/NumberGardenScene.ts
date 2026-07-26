@@ -23,7 +23,7 @@ export class NumberGardenScene extends BaseGameScene {
   private currentSequenceTarget: number = 1;
   private rounds: GardenRound[] = [
     {
-      prompt: '🌻 Petik buah dari angka terkecil: 1 ➔ 2 ➔ 3 ➔ 4 ➔ 5!',
+      prompt: '🌻 Petik buah berurutan dari angka 1 sampai 5!',
       sequenceMode: true,
       fruits: [
         { value: 1, imageKey: 'icon_apple', name: 'Apel 1' },
@@ -34,23 +34,23 @@ export class NumberGardenScene extends BaseGameScene {
       ]
     },
     {
-      prompt: '🌻 Berapa 2 + 3? Petik buah dengan angka 5!',
+      prompt: '🌻 Berapa 2 + 3? Petik Semangka dengan angka 5!',
       targetValue: 5,
       fruits: [
-        { value: 3, imageKey: 'icon_banana', name: 'Pisang 3' },
+        { value: 3, imageKey: 'icon_strawberry', name: 'Stroberi 3' },
         { value: 5, imageKey: 'icon_watermelon', name: 'Semangka 5' },
         { value: 2, imageKey: 'icon_orange', name: 'Jeruk 2' },
-        { value: 4, imageKey: 'icon_strawberry', name: 'Stroberi 4' }
+        { value: 4, imageKey: 'icon_banana', name: 'Pisang 4' }
       ]
     },
     {
-      prompt: '🌻 Ayo petik buah segar dengan angka 4!',
+      prompt: '🌻 Ayo petik buah Pisang segar dengan angka 4!',
       targetValue: 4,
       fruits: [
         { value: 2, imageKey: 'icon_orange', name: 'Jeruk 2' },
-        { value: 4, imageKey: 'icon_apple', name: 'Apel 4' },
-        { value: 3, imageKey: 'icon_banana', name: 'Pisang 3' },
-        { value: 1, imageKey: 'icon_strawberry', name: 'Stroberi 1' }
+        { value: 4, imageKey: 'icon_banana', name: 'Pisang 4' },
+        { value: 3, imageKey: 'icon_strawberry', name: 'Stroberi 3' },
+        { value: 1, imageKey: 'icon_apple', name: 'Apel 1' }
       ]
     }
   ];
