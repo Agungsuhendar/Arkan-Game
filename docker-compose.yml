@@ -1,0 +1,98 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: arkan_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: arkan_user
+      POSTGRES_PASSWORD: arkan_password
+      POSTGRES_DB: arkan_db
+    ports:
+      - "5440:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: arkan_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  minio:
+    image: quay.io/minio/minio:latest
+    container_name: arkan_minio
+    restart: always
+    environment:
+      MINIO_ROOT_USER: minio_admin
+      MINIO_ROOT_PASSWORD: minio_password
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: arkan_game_backend
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://arkan_user:arkan_password@postgres:5432/arkan_db
+      - REDIS_URL=redis://redis:6379/0
+    ports:
+      - "8005:8000"
+    depends_on:
+      - postgres
+      - redis
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: arkan_game_frontend
+    restart: always
+    ports:
+      - "3005:80"
+    depends_on:
+      - backend
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: arkan_caddy
+    restart: always
+    ports:
+      - "8080:80"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+      - backend
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: arkan_cloudflared
+    restart: unless-stopped
+    entrypoint: ["cloudflared", "--config", "/etc/cloudflared/miniarsaku.yml", "tunnel", "run"]
+    volumes:
+      - ./cloudflared:/etc/cloudflared:ro
+      - ${HOME}/.cloudflared:/home/nonroot/.cloudflared:ro
+    depends_on:
+      - caddy
+      - frontend
+      - backend
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  caddy_data:
+  caddy_config:
+
+

@@ -1,0 +1,14 @@
+# Asset Structure for Arkan Game
+- assets/background/
+- assets/character/
+- assets/npc/
+- assets/avatar/
+- assets/pet/
+- assets/world/
+- assets/effect/
+- assets/icon/
+- assets/button/
+- assets/music/
+- assets/voice/
+- assets/lottie/
+- assets/particle/

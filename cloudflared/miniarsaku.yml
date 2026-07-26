@@ -1,0 +1,12 @@
+tunnel: a4ebb6ff-5c98-472b-83fc-321e0101c2c5
+credentials-file: /home/nonroot/.cloudflared/a4ebb6ff-5c98-472b-83fc-321e0101c2c5.json
+protocol: http2
+
+ingress:
+  - hostname: mini.arsaku.web.id
+    service: http://caddy:80
+  - hostname: miniarsaku.arsaku.web.id
+    service: http://caddy:80
+  - hostname: miniarsaku.web.id
+    service: http://caddy:80
+  - service: http_status:404

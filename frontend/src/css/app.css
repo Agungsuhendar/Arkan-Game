@@ -1,0 +1,127 @@
+:root {
+  --primary-blue: #3a86ff;
+  --secondary-yellow: #ffbe0b;
+  --accent-pink: #ff006e;
+  --accent-purple: #8338ec;
+  --accent-green: #06d6a0;
+  --bg-gradient: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 50%, #e0e7ff 100%);
+  --card-radius: 24px;
+  --soft-shadow: 0 12px 32px rgba(58, 134, 255, 0.15);
+}
+
+body {
+  font-family: 'Fredoka', 'Quicksand', sans-serif;
+  background: var(--bg-gradient);
+  color: #1e293b;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  user-select: none;
+}
+
+/* Glassmorphism & Rounded Cards */
+.rounded-card-premium {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  border-radius: var(--card-radius);
+  box-shadow: var(--soft-shadow);
+  border: 3px solid rgba(255, 255, 255, 0.8);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+}
+
+.rounded-card-premium:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 18px 40px rgba(58, 134, 255, 0.22);
+}
+
+/* Large 3D Cartoon Buttons */
+.btn-3d-cartoon {
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 700;
+  border: none;
+  border-radius: 20px;
+  padding: 14px 28px;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.2);
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.btn-primary-yellow {
+  background: linear-gradient(180deg, #ffd166 0%, #ffb703 100%);
+  box-shadow: 0 8px 0 #d48806;
+}
+
+.btn-primary-yellow:active {
+  transform: translateY(6px);
+  box-shadow: 0 2px 0 #d48806;
+}
+
+.btn-primary-blue {
+  background: linear-gradient(180deg, #4ea8de 0%, #0077b6 100%);
+  box-shadow: 0 8px 0 #023e8a;
+}
+
+.btn-primary-blue:active {
+  transform: translateY(6px);
+  box-shadow: 0 2px 0 #023e8a;
+}
+
+.btn-accent-pink {
+  background: linear-gradient(180deg, #ff4d6d 0%, #c9184a 100%);
+  box-shadow: 0 8px 0 #800f2f;
+}
+
+.btn-accent-pink:active {
+  transform: translateY(6px);
+  box-shadow: 0 2px 0 #800f2f;
+}
+
+/* Floating Animation */
+@keyframes floatAnim {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.floating-element {
+  animation: floatAnim 3.5s ease-in-out infinite;
+}
+
+/* Pulse Bounce */
+@keyframes pulseBounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.pulse-bounce {
+  animation: pulseBounce 2s ease-in-out infinite;
+}
+
+/* Fast Click & Touch Responsiveness Optimizations */
+button,
+.btn-3d-cartoon,
+.cursor-pointer,
+.q-btn,
+.icon-action-btn,
+.family-card-widget,
+.quests-card-widget {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+/* Hardware accelerated smooth scale feedback on press */
+button:active,
+.btn-3d-cartoon:active,
+.cursor-pointer:active {
+  transform: scale(0.96) translateZ(0);
+  transition: transform 0.05s ease-out;
+}
+

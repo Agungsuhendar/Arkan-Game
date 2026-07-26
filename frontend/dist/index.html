@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
+    <title>Petualangan Arkan - Game Edukasi Anak</title>
+    <script>
+      if (window.location.protocol === 'http:' && !['localhost', '127.0.0.1'].includes(window.location.hostname)) {
+        window.location.protocol = 'https:';
+      }
+    </script>
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#4F46E5" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Arkan Game" />
+    <link rel="apple-touch-icon" href="/arkan_avatar_card.png" />
+    <script>
+      if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW registration failed:', err));
+        });
+      }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" as="image" href="/family_photo.png?v=family_v2" />
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+    <script type="module" crossorigin src="/assets/index-CnXLofgQ.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-vue-CdW2F1cS.js">
+    <link rel="modulepreload" crossorigin href="/assets/vendor-quasar-CG0uMsUD.js">
+    <link rel="modulepreload" crossorigin href="/assets/vendor-DhXgJQ-f.js">
+    <link rel="stylesheet" crossorigin href="/assets/vendor-quasar-hlwqDF85.css">
+    <link rel="stylesheet" crossorigin href="/assets/index-CMGuOQt5.css">
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
+</html>

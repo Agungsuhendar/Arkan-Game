@@ -1,0 +1,32 @@
+{
+  "name": "arkan-game-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@quasar/extras": "^1.16.9",
+    "axios": "^1.6.8",
+    "gsap": "^3.12.5",
+    "howler": "^2.2.4",
+    "lottie-web": "^5.12.2",
+    "phaser": "^3.80.1",
+    "pinia": "^2.1.7",
+    "quasar": "^2.15.2",
+    "vue": "^3.4.21",
+    "vue-router": "^4.3.0"
+  },
+  "devDependencies": {
+    "@quasar/vite-plugin": "^1.6.0",
+    "@types/howler": "^2.2.11",
+    "@types/node": "^20.11.30",
+    "@vitejs/plugin-vue": "^5.0.4",
+    "sass-embedded": "^1.100.0",
+    "typescript": "^5.4.3",
+    "vite": "^5.2.2",
+    "vue-tsc": "^2.0.7"
+  }
+}
