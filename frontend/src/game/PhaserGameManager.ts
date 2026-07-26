@@ -5,6 +5,10 @@ import { BikeRaceScene } from './scenes/BikeRaceScene';
 import { MatchLineGameScene } from './scenes/MatchLineGameScene';
 import { NumberGardenScene } from './scenes/NumberGardenScene';
 import { ColorCityScene } from './scenes/ColorCityScene';
+import { CastlePuzzleScene } from './scenes/CastlePuzzleScene';
+import { AnimalIslandScene } from './scenes/AnimalIslandScene';
+import { SpaceScienceScene } from './scenes/SpaceScienceScene';
+import { MountainClimbScene } from './scenes/MountainClimbScene';
 
 export class PhaserGameManager {
   private static instance: Phaser.Game | null = null;
@@ -30,7 +34,7 @@ export class PhaserGameManager {
         roundPixels: true,
         powerPreference: 'high-performance'
       },
-      scene: [ColorCityScene, NumberGardenScene, MatchLineGameScene, BalloonGameScene, FishRescueScene, BikeRaceScene],
+      scene: [MountainClimbScene, SpaceScienceScene, AnimalIslandScene, CastlePuzzleScene, ColorCityScene, NumberGardenScene, MatchLineGameScene, BalloonGameScene, FishRescueScene, BikeRaceScene],
       physics: {
         default: 'arcade',
         arcade: { debug: false }

@@ -9,6 +9,34 @@
       <div class="row q-gutter-x-sm">
         <button
           class="btn-3d-cartoon q-px-sm q-py-xs"
+          :class="activeScene === 'MountainClimbScene' ? 'btn-primary-yellow' : 'btn-primary-blue'"
+          @click="switchScene('MountainClimbScene')"
+        >
+          🏔️ Gunung Prestasi
+        </button>
+        <button
+          class="btn-3d-cartoon q-px-sm q-py-xs"
+          :class="activeScene === 'SpaceScienceScene' ? 'btn-primary-yellow' : 'btn-primary-blue'"
+          @click="switchScene('SpaceScienceScene')"
+        >
+          🚀 Planet Sains
+        </button>
+        <button
+          class="btn-3d-cartoon q-px-sm q-py-xs"
+          :class="activeScene === 'AnimalIslandScene' ? 'btn-primary-yellow' : 'btn-primary-blue'"
+          @click="switchScene('AnimalIslandScene')"
+        >
+          🏝️ Pulau Hewan
+        </button>
+        <button
+          class="btn-3d-cartoon q-px-sm q-py-xs"
+          :class="activeScene === 'CastlePuzzleScene' ? 'btn-primary-yellow' : 'btn-primary-blue'"
+          @click="switchScene('CastlePuzzleScene')"
+        >
+          🏰 Kastil Puzzle
+        </button>
+        <button
+          class="btn-3d-cartoon q-px-sm q-py-xs"
           :class="activeScene === 'ColorCityScene' ? 'btn-primary-yellow' : 'btn-primary-blue'"
           @click="switchScene('ColorCityScene')"
         >
@@ -68,7 +96,7 @@ import { PhaserGameManager } from '../game/PhaserGameManager';
 
 const emit = defineEmits(['exit']);
 const store = useGameStore();
-const activeScene = ref<string>('ColorCityScene');
+const activeScene = ref<string>('MountainClimbScene');
 
 const launchCurrentScene = () => {
   const prompt = store.currentLevel?.questions[0]?.prompt_text || 'Tolong Arkan selamatkan ikan dari jaring!';
