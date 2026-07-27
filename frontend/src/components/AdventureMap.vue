@@ -74,9 +74,21 @@ const getWorldEmoji = (code: string) => {
 
 const handleSelectWorld = (world: World) => {
   store.selectWorld(world);
-  // Default to Level 1 in Hutan Huruf
+
+  // Map world code to Phaser 3 Game Scene Key
+  const sceneMap: Record<string, string> = {
+    hutan_huruf: 'MatchLineGameScene',
+    kebun_angka: 'NumberGardenScene',
+    kota_warna: 'ColorCityScene',
+    pulau_hewan: 'AnimalIslandScene',
+    kastil_puzzle: 'CastlePuzzleScene',
+    planet_sains: 'SpaceScienceScene',
+    gunung_prestasi: 'MountainClimbScene',
+  };
+
+  const targetScene = sceneMap[world.code] || 'NumberGardenScene';
   store.startLevel('lvl_1');
-  emit('select-level');
+  emit('select-level', targetScene);
 };
 </script>
 

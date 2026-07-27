@@ -7,7 +7,7 @@
       <GameplayCanvas v-if="store.isGameActive" @exit="store.isGameActive = false" />
 
       <!-- Mode 2: Adventure Map (7 Worlds) -->
-      <AdventureMap v-else-if="currentTab === 'petualangan'" @back="currentTab = 'beranda'" @select-level="store.isGameActive = true" />
+      <AdventureMap v-else-if="currentTab === 'petualangan'" @back="currentTab = 'beranda'" @select-level="() => store.isGameActive = true" />
 
       <!-- Mode 3: Home Base Room (Beranda) -->
       <HomeBase
