@@ -87,16 +87,16 @@ export class BikeRaceScene extends BaseGameScene {
     // Create Racers (All Facing RIGHT → towards Finish Line)
     // -------------------------------------------------------------
 
-    // 1. Ayah Racer (Top Lane: y = trackY + 40)
-    this.ayahBike = this.createRacerContainer('👨‍🦱 🚴‍♂️', 'Ayah', 0x3b82f6);
+    // 1. Papa Racer (Top Lane: y = trackY + 40)
+    this.ayahBike = this.createRacerContainer('👨‍🦱 🚴‍♂️', 'Papa', 0x3b82f6);
     this.ayahBike.setPosition(this.ayahX, trackY + 40);
 
     // 2. Arkan Racer (Middle Lane: y = trackY + 110) ⭐ PLAYER
     this.arkanBike = this.createRacerContainer('👦 ⭐ 🚴‍♂️', 'Arkan (Kamu)', 0xf59e0b, true);
     this.arkanBike.setPosition(this.arkanX, trackY + 110);
 
-    // 3. Ibu Racer (Bottom Lane: y = trackY + 175)
-    this.ibuBike = this.createRacerContainer('🧕 🚴‍♀️', 'Ibu', 0xec4899);
+    // 3. Mama Racer (Bottom Lane: y = trackY + 175)
+    this.ibuBike = this.createRacerContainer('🧕 🚴‍♀️', 'Mama', 0xec4899);
     this.ibuBike.setPosition(this.ibuX, trackY + 175);
 
     // Giant 3D Interactive Pedal Button at Bottom Center
@@ -125,11 +125,11 @@ export class BikeRaceScene extends BaseGameScene {
           }
         }
 
-        // Check if Ayah or Ibu finished first
+        // Check if Papa or Mama finished first
         if (this.ayahX >= this.finishX && !this.isFinished) {
-          this.checkRaceResult('Ayah');
+          this.checkRaceResult('Papa');
         } else if (this.ibuX >= this.finishX && !this.isFinished) {
-          this.checkRaceResult('Ibu');
+          this.checkRaceResult('Mama');
         }
       }
     });
@@ -214,15 +214,15 @@ export class BikeRaceScene extends BaseGameScene {
     const bg = this.add.graphics();
     bg.fillStyle(0xffffff, 0.95);
     bg.lineStyle(3, colorHex, 1);
-    bg.fillRoundedRect(-60, -26, 120, 52, 18);
-    bg.strokeRoundedRect(-60, -26, 120, 52, 18);
+    bg.fillRoundedRect(-75, -34, 150, 68, 22);
+    bg.strokeRoundedRect(-75, -34, 150, 68, 22);
     container.add(bg);
 
     // Player Golden Ring Aura
     if (isPlayer) {
       const aura = this.add.graphics();
       aura.fillStyle(0xfacc15, 0.35);
-      aura.fillCircle(0, 0, 36);
+      aura.fillCircle(0, 0, 46);
       container.addAt(aura, 0);
 
       this.tweens.add({
@@ -239,9 +239,9 @@ export class BikeRaceScene extends BaseGameScene {
 
     // Cyclist Sprite / Text Label
     // IMPORTANT FIX: Emoji `🚴‍♂️` faces LEFT by default. We set scaleX = -1 so the cyclist faces RIGHT (FORWARD towards finish line 🏁)!
-    const spriteText = this.add.text(-22, 0, emojiLabel, {
+    const spriteText = this.add.text(-28, 0, emojiLabel, {
       fontFamily: 'Fredoka, sans-serif',
-      fontSize: '26px'
+      fontSize: '36px'
     }).setOrigin(0.5);
 
     // Flip horizontally so character rides FORWARD to the right!
@@ -249,9 +249,9 @@ export class BikeRaceScene extends BaseGameScene {
     container.add(spriteText);
 
     // Name Label
-    const nameText = this.add.text(20, 0, name, {
+    const nameText = this.add.text(26, 0, name, {
       fontFamily: 'Fredoka, sans-serif',
-      fontSize: '15px',
+      fontSize: '17px',
       color: isPlayer ? '#b45309' : '#1e293b',
       fontStyle: 'bold'
     }).setOrigin(0.5);

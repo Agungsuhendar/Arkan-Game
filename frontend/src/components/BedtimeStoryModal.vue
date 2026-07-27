@@ -136,107 +136,112 @@
           </div>
         </div>
 
-        <!-- Main Reader Layout: Split Screen Grid -->
-        <div class="col q-px-xl q-py-md overflow-hidden reader-main-body">
-          <div class="fit row q-col-gutter-lg items-stretch">
+        <!-- Main Reader Layout: Open Fairytale Storybook -->
+        <div class="col q-px-lg q-pb-md overflow-hidden fairytale-reader-stage flex flex-center">
+          <!-- 3D Open Magical Storybook Container -->
+          <div class="fairytale-open-book shadow-24 relative-position row items-stretch">
             
-            <!-- Left Column: Big Illustration & Dialogue -->
-            <div class="col-12 col-md-6 column justify-between full-height">
-              <!-- Illustration Card -->
-              <div class="reader-image-card col relative-position overflow-hidden shadow-8 rounded-card">
+            <!-- Book Spine Middle Shadow Line -->
+            <div class="book-spine-line"></div>
+            <!-- Book Bookmark Ribbon -->
+            <div class="fairytale-bookmark-ribbon shadow-4"></div>
+
+            <!-- LEFT PAGE: Giant Magical Picture Frame -->
+            <div class="book-left-page col-12 col-md-6 column justify-between relative-position q-pa-lg">
+              <!-- Golden Picture Frame -->
+              <div class="golden-picture-frame col relative-position overflow-hidden shadow-10">
                 <img
                   :src="activePage.image"
                   :alt="activePage.title"
-                  class="reader-img"
+                  class="fairytale-img"
                   @error="handleImageError"
                 />
-                <div class="image-gradient-overlay"></div>
+                <div class="fairytale-img-glow"></div>
+
+                <!-- Page Emoji Badge Top Left -->
+                <div class="story-emoji-badge shadow-4 font-fredoka">
+                  {{ activePage.emoji || '✨ 📖 🌟' }}
+                </div>
               </div>
 
-              <!-- Dialogue Speech Bubble -->
-              <div v-if="activePage.dialogueText" class="speech-card q-mt-md q-pa-md shadow-4 rounded-borders">
-                <div class="speaker-name font-fredoka">{{ activePage.dialogueSpeaker }}</div>
+              <!-- Dialogue Speech Scroll (Bottom of Picture) -->
+              <div v-if="activePage.dialogueText" class="fairytale-dialogue-scroll q-mt-md q-pa-md shadow-5">
+                <div class="row items-center q-gutter-x-xs q-mb-xs">
+                  <span>✨ 💬</span>
+                  <span class="speaker-name font-fredoka text-amber-10">{{ activePage.dialogueSpeaker }}</span>
+                </div>
                 <div class="speech-quote font-fredoka text-subtitle1">"{{ activePage.dialogueText }}"</div>
               </div>
             </div>
 
-            <!-- Right Column: Narrative, Mission & Reader Controls -->
-            <div class="col-12 col-md-6 column justify-between full-height">
+            <!-- RIGHT PAGE: Parchment Narrative & Interactive Controls -->
+            <div class="book-right-page col-12 col-md-6 column justify-between q-pa-lg relative-position">
               <div class="column q-gutter-y-md col overflow-auto pr-xs">
-                <!-- Page Title -->
-                <div class="page-title-banner row items-center justify-between">
-                  <div>
-                    <div class="text-h5 font-fredoka text-bold text-amber-3">{{ activePage.title }}</div>
-                    <div class="text-subtitle2 font-quicksand text-purple-2 text-weight-bold">{{ activePage.subtitle }}</div>
-                  </div>
+                <!-- Chapter Header -->
+                <div class="fairytale-chapter-header">
+                  <div class="text-h4 font-fredoka text-bold text-amber-10 story-chapter-title">{{ activePage.title }}</div>
+                  <div class="text-subtitle1 font-quicksand text-brown-8 text-weight-bolder q-mt-xs">{{ activePage.subtitle }}</div>
                 </div>
 
-                <!-- Main Narrative Story Text -->
-                <div class="narrative-box q-pa-lg font-quicksand text-body1 text-white text-weight-bold shadow-4 rounded-borders">
-                  {{ activePage.storyContent }}
+                <!-- Classic Parchment Story Text Box -->
+                <div class="parchment-story-box q-pa-lg font-quicksand text-h6 text-brown-10 text-weight-bolder shadow-3">
+                  <span class="drop-cap font-fredoka">{{ activePage.storyContent.charAt(0) }}</span>
+                  <span>{{ activePage.storyContent.slice(1) }}</span>
                 </div>
 
-                <!-- Mission Card -->
-                <div v-if="activePage.missionText" class="mission-card row items-center justify-between q-pa-md shadow-4 rounded-borders">
+                <!-- Magical Quest / Moral Badge -->
+                <div v-if="activePage.missionText" class="fairytale-mission-badge row items-center justify-between q-pa-md shadow-3">
                   <div class="row items-center q-gutter-x-sm">
-                    <span class="text-h6">🎯</span>
-                    <span class="font-fredoka text-bold text-amber-3 text-subtitle1">{{ activePage.missionText }}</span>
+                    <span class="text-h6">📜</span>
+                    <span class="font-fredoka text-bold text-purple-9 text-subtitle1">{{ activePage.missionText }}</span>
                   </div>
-                  <span class="sparkle-icon">✨</span>
+                  <span class="sparkle-icon">🌟</span>
                 </div>
               </div>
 
-              <!-- Voice Selector & Tone Controls for Bedtime Story Narrator -->
-              <div v-if="availableVoices.length > 0" class="voice-selector-box row items-center justify-between q-mt-sm q-px-md q-py-xs shadow-3 rounded-borders">
-                <div class="row items-center q-gutter-x-sm col">
-                  <span class="text-subtitle2 font-fredoka text-amber-3">🗣️ Suara Pendongeng:</span>
-                  <select v-model="selectedVoiceURI" class="voice-select-dropdown font-quicksand text-weight-bold text-caption col">
+              <!-- Narrator Voice Control Bar -->
+              <div v-if="availableVoices.length > 0" class="fairytale-voice-box row items-center justify-between q-mt-xs q-px-md q-py-xs shadow-2">
+                <div class="row items-center q-gutter-x-xs col">
+                  <span class="text-caption font-fredoka text-brown-9 text-bold">🗣️ Suara:</span>
+                  <select v-model="selectedVoiceURI" class="voice-select-fairytale font-quicksand text-weight-bold text-caption col">
                     <option v-for="v in availableVoices" :key="v.voiceURI" :value="v.voiceURI">
-                      {{ v.name }} ({{ v.lang }})
+                      {{ v.name }}
                     </option>
                   </select>
                 </div>
-                <div class="row items-center q-ml-sm text-caption text-purple-2 font-quicksand text-weight-bold">
-                  ✨ Nada Dongeng Hangat
-                </div>
               </div>
 
-              <!-- Reader Control Buttons Footer Bar -->
-              <div class="reader-controls-bar row items-center justify-between q-pt-md q-gutter-x-xs">
+              <!-- Page Control Navigation Bar -->
+              <div class="fairytale-controls-row row items-center justify-between q-pt-sm q-gutter-x-xs">
                 <button
-                  class="btn-reader-action btn-prev-page font-fredoka shadow-4"
+                  class="btn-fairytale btn-prev-fairytale font-fredoka shadow-4"
                   :disabled="currentPage === 0"
                   @click="prevPage"
                 >
                   ⬅️ Sebelum
                 </button>
 
-                <button class="btn-reader-action btn-audio-narration font-fredoka shadow-4" @click="toggleAudioNarration">
-                  {{ isNarrating ? '🔊 Membaca... ⏸️' : '🎧 Baca Dongeng' }}
+                <button class="btn-fairytale btn-audio-fairytale font-fredoka shadow-4" @click="toggleAudioNarration">
+                  {{ isNarrating ? '🔊 Membaca...' : '🎧 Baca Dongeng' }}
                 </button>
 
-                <button class="btn-reader-action btn-lullaby font-fredoka shadow-4" :class="{ active: isLullabyPlaying }" @click="toggleLullabyMusic">
-                  {{ isLullabyPlaying ? '🎵 Musik: ON ✨' : '🎵 Musik: OFF' }}
-                </button>
-
-                <button class="btn-reader-action btn-auto-advance font-fredoka shadow-4" :class="{ active: isAutoAdvance }" @click="isAutoAdvance = !isAutoAdvance">
-                  {{ isAutoAdvance ? '⏩ Auto: ON' : '⏩ Auto: OFF' }}
+                <button class="btn-fairytale btn-lullaby-fairytale font-fredoka shadow-4" :class="{ active: isLullabyPlaying }" @click="toggleLullabyMusic">
+                  {{ isLullabyPlaying ? '🎵 Musik: ON' : '🎵 Musik: OFF' }}
                 </button>
 
                 <button
                   v-if="currentPage < selectedBook.pages.length - 1"
-                  class="btn-reader-action btn-next-page font-fredoka shadow-4"
+                  class="btn-fairytale btn-next-fairytale font-fredoka shadow-4"
                   @click="nextPage"
                 >
                   Lanjut ➡️
                 </button>
-
                 <button
                   v-else
-                  class="btn-reader-action btn-finish-story font-fredoka shadow-6 pulse-bounce"
+                  class="btn-fairytale btn-finish-fairytale font-fredoka shadow-4"
                   @click="finishStory"
                 >
-                  🎉 Selesai
+                  Selesai 🏆
                 </button>
               </div>
             </div>
@@ -450,7 +455,7 @@ const storyBooks = computed<StoryBook[]>(() => [
     badge: '🌟 Terbaru',
     badgeColor: 'bg-green-8',
     readTime: '3 Menit',
-    summary: 'Petualangan seru Arkan dan Ibu di Hutan Mini! Belajar kepedulian menolong anak burung jatuh dari sarang bersama pak petugas.',
+    summary: 'Petualangan seru Arkan dan Mama di Hutan Mini! Belajar kepedulian menolong anak burung jatuh dari sarang bersama pak petugas.',
     pages: [
       {
         pageNumber: 1,
@@ -460,8 +465,8 @@ const storyBooks = computed<StoryBook[]>(() => [
         badge: 'Hutan Mini',
         badgeColor: 'bg-green-8',
         dialogueSpeaker: 'Arkan',
-        dialogueText: 'Wah! Lihat itu, Ibu! Kelinci! Lucu sekali!',
-        storyContent: 'Hari Minggu, Arkan dan Ibu berkunjung ke Hutan Mini di kota. Arkan sangat senang karena bisa melihat banyak hewan!',
+        dialogueText: 'Wah! Lihat itu, Mama! Kelinci! Lucu sekali!',
+        storyContent: 'Hari Minggu, Arkan dan Mama berkunjung ke Hutan Mini di kota. Arkan sangat senang karena bisa melihat banyak hewan!',
         missionText: '🐰 Mengenal Hewan di Hutan Mini',
         bgGradient: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)',
         emoji: '🐰 🌳 ✨'
@@ -510,15 +515,15 @@ const storyBooks = computed<StoryBook[]>(() => [
       },
       {
         pageNumber: 5,
-        title: 'Bagian 5: Hadiah Es Krim dari Ibu',
+        title: 'Bagian 5: Hadiah Es Krim dari Mama',
         subtitle: 'Rasa Syukur & Kebahagiaan',
         image: '/arkan_hutan_5.png?v=hutan_v1',
         badge: 'Es Krim Lezat',
         badgeColor: 'bg-pink-8',
         dialogueSpeaker: 'Arkan',
-        dialogueText: 'Terima kasih Ibu! Hari ini menyenangkan sekali!',
-        storyContent: 'Sebagai tanda terima kasih, Ibu membelikan es krim favorit Arkan. Arkan senang sekali!',
-        missionText: '🍦 Hadiah Kebaikan dari Ibu',
+        dialogueText: 'Terima kasih Mama! Hari ini menyenangkan sekali!',
+        storyContent: 'Sebagai tanda terima kasih, Mama membelikan es krim favorit Arkan. Arkan senang sekali!',
+        missionText: '🍦 Hadiah Kebaikan dari Mama',
         bgGradient: 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)',
         emoji: '🍦 💖 😊'
       },
@@ -648,15 +653,15 @@ const storyBooks = computed<StoryBook[]>(() => [
     pages: [
       {
         pageNumber: 1,
-        title: 'Bagian 1: Sepeda Baru dari Ayah',
+        title: 'Bagian 1: Sepeda Baru dari Papa',
         subtitle: 'Kegembiraan di Pagi Hari',
         image: '/arkan_sepeda_1.png?v=sepeda_v1',
         badge: 'Sepeda Merah',
         badgeColor: 'bg-red-8',
         dialogueSpeaker: 'Arkan',
-        dialogueText: 'Wah! Sepeda baru untukku! Terima kasih, Ayah!',
-        storyContent: 'Suatu pagi, Ayah memberi Arkan sepeda baru. Arkan sangat senang!',
-        missionText: '🚲 Hadiah Sepeda Baru dari Ayah',
+        dialogueText: 'Wah! Sepeda baru untukku! Terima kasih, Papa!',
+        storyContent: 'Suatu pagi, Papa memberi Arkan sepeda baru. Arkan sangat senang!',
+        missionText: '🚲 Hadiah Sepeda Baru dari Papa',
         bgGradient: 'linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%)',
         emoji: '🚲 🎁 ✨'
       },
@@ -676,14 +681,14 @@ const storyBooks = computed<StoryBook[]>(() => [
       },
       {
         pageNumber: 3,
-        title: 'Bagian 3: Berlatih Bersama Ayah',
+        title: 'Bagian 3: Berlatih Bersama Papa',
         subtitle: 'Semangat Berlatih',
         image: '/arkan_sepeda_3.png?v=sepeda_v1',
-        badge: 'Didampingi Ayah',
+        badge: 'Didampingi Papa',
         badgeColor: 'bg-blue-8',
-        dialogueSpeaker: 'Ayah',
+        dialogueSpeaker: 'Papa',
         dialogueText: 'Pelan-pelan ya, Arkan. Kamu pasti bisa!',
-        storyContent: 'Arkan berlatih terus dengan semangat. Ayah selalu mendampinginya dan memberi semangat.',
+        storyContent: 'Arkan berlatih terus dengan semangat. Papa selalu mendampinginya dan memberi semangat.',
         missionText: '🔥 Berlatih dengan Semangat',
         bgGradient: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)',
         emoji: '👨‍👦 🚴‍♂️ 🌟'
@@ -759,14 +764,14 @@ const storyBooks = computed<StoryBook[]>(() => [
       },
       {
         pageNumber: 2,
-        title: 'Bagian 2: Membantu Ibu Merapikan Mainan',
+        title: 'Bagian 2: Membantu Mama Merapikan Mainan',
         subtitle: 'Kebaikan di Rumah',
         image: '/arkan_toples_2.png?v=toples_v1',
         badge: 'Kebaikan di Rumah',
         badgeColor: 'bg-emerald-8',
-        dialogueSpeaker: 'Ibu',
-        dialogueText: 'Terima kasih ya, Arkan. Ibu senang sekali!',
-        storyContent: 'Pagi itu, Arkan membantu Ibu merapikan mainan tanpa diminta. Arkan memasukkan satu kancing ke dalam toplesnya.',
+        dialogueSpeaker: 'Mama',
+        dialogueText: 'Terima kasih ya, Arkan. Mama senang sekali!',
+        storyContent: 'Pagi itu, Arkan membantu Mama merapikan mainan tanpa diminta. Arkan memasukkan satu kancing ke dalam toplesnya.',
         missionText: '🧸 Membantu Tanpa Diminta',
         bgGradient: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)',
         emoji: '🧸 🧹 💖'
@@ -1693,140 +1698,204 @@ function closeModal() {
   box-shadow: 0 0 12px rgba(245, 158, 11, 0.8);
 }
 
-.reader-main-body {
-  height: calc(100vh - 100px);
-}
-
-.reader-image-card {
+/* ================= MAGICAL FAIRYTALE READER MODE STYLES ================= */
+.fairytale-reader-stage {
+  height: calc(100vh - 65px);
   width: 100%;
-  border: 4px solid rgba(255, 255, 255, 0.2);
-  border-radius: 24px;
 }
 
-.reader-img {
+.fairytale-open-book {
+  width: 100%;
+  max-width: 100%;
+  height: calc(100vh - 80px);
+  max-height: 100%;
+  background: radial-gradient(circle at center, #fdf6e3 0%, #f4e8c1 100%);
+  border-radius: 20px;
+  border: 10px solid #5c3a21;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.7),
+    inset 0 0 30px rgba(92, 58, 33, 0.3);
+}
+
+.book-spine-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 12px;
+  transform: translateX(-50%);
+  z-index: 20;
+  background: linear-gradient(90deg, rgba(92, 58, 33, 0.35) 0%, rgba(40, 24, 12, 0.6) 50%, rgba(92, 58, 33, 0.35) 100%);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+}
+
+.fairytale-bookmark-ribbon {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 90px;
+  z-index: 25;
+  background: linear-gradient(180deg, #dc2626 0%, #991b1b 100%);
+  border-radius: 0 0 6px 6px;
+  border: 1px solid #7f1d1d;
+}
+
+/* Left Page (Golden Frame) */
+.book-left-page {
+  background: linear-gradient(135deg, #fffcf5 0%, #f8eed1 100%);
+  border-radius: 20px 0 0 20px;
+  border-right: 1px solid rgba(120, 80, 40, 0.15);
+}
+
+.golden-picture-frame {
+  border: 6px solid #d97706;
+  border-radius: 24px;
+  background: #1e293b;
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+.fairytale-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.5s ease;
 }
 
-.image-gradient-overlay {
+.golden-picture-frame:hover .fairytale-img {
+  transform: scale(1.03);
+}
+
+.fairytale-img-glow {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,0) 60%, rgba(0,0,0,0.4) 100%);
+  box-shadow: inset 0 0 30px rgba(217, 119, 6, 0.4);
+  pointer-events: none;
 }
 
-.speech-card {
-  background: rgba(255, 255, 255, 0.95);
-  border-left: 6px solid #a855f7;
-  border-radius: 18px;
-  color: #1e293b;
+.story-emoji-badge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 16px;
+  border: 2px solid #f59e0b;
+  color: #78350f;
 }
 
-.speaker-name {
-  color: #7c3aed;
-  font-size: 13px;
+.fairytale-dialogue-scroll {
+  background: #fffbeb;
+  border-left: 5px solid #f59e0b;
+  border-radius: 16px;
+  border: 2px solid #fde68a;
+  color: #451a03;
+}
+
+/* Right Page (Parchment & Controls) */
+.book-right-page {
+  background: linear-gradient(135deg, #fefcf3 0%, #f5eac7 100%);
+  border-radius: 0 20px 20px 0;
+  border-left: 1px solid rgba(120, 80, 40, 0.15);
+}
+
+.story-chapter-title {
+  color: #78350f;
+  text-shadow: 1px 1px 2px rgba(251, 191, 36, 0.4);
+}
+
+.parchment-story-box {
+  background: rgba(255, 255, 255, 0.65);
+  border: 2px solid #eab308;
+  border-radius: 20px;
+  line-height: 1.75;
+  color: #451a03;
+}
+
+.drop-cap {
+  float: left;
+  font-size: 52px;
+  line-height: 42px;
+  padding-top: 4px;
+  padding-right: 8px;
+  padding-left: 3px;
+  color: #d97706;
   font-weight: bold;
 }
 
-.speech-quote {
-  color: #0f172a;
-  font-weight: bold;
-  font-style: italic;
-}
-
-.narrative-box {
-  background: rgba(30, 41, 59, 0.8);
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  line-height: 1.6;
-}
-
-.mission-card {
-  background: rgba(168, 85, 247, 0.2);
+.fairytale-mission-badge {
+  background: #faf5ff;
   border: 2px dashed #c084fc;
-}
-
-/* Reader Control Buttons */
-.btn-reader-action {
-  border: none;
-  border-radius: 22px;
-  padding: 12px 24px;
-  color: white;
-  font-size: 15px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: transform 0.15s ease;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-}
-
-.btn-reader-action:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-.btn-prev-page {
-  background: linear-gradient(180deg, #64748b 0%, #334155 100%);
-  box-shadow: 0 4px 0 #1e293b;
-}
-
-.btn-audio-narration {
-  background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
-  box-shadow: 0 4px 0 #b45309;
-}
-
-.btn-lullaby {
-  background: linear-gradient(180deg, #8b5cf6 0%, #6d28d9 100%);
-  box-shadow: 0 4px 0 #4c1d95;
-}
-
-.btn-lullaby.active {
-  background: linear-gradient(180deg, #ec4899 0%, #be185d 100%);
-  box-shadow: 0 4px 0 #831843;
-  animation: pulse-glow 1.5s infinite alternate;
-}
-
-.btn-auto-advance {
-  background: linear-gradient(180deg, #0284c7 0%, #0369a1 100%);
-  box-shadow: 0 4px 0 #075985;
-}
-
-.btn-auto-advance.active {
-  background: linear-gradient(180deg, #10b981 0%, #047857 100%);
-  box-shadow: 0 4px 0 #065f46;
-}
-
-.btn-next-page {
-  background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
-  box-shadow: 0 4px 0 #1e40af;
-}
-
-.btn-finish-story {
-  background: linear-gradient(180deg, #22c55e 0%, #15803d 100%);
-  box-shadow: 0 4px 0 #166534;
-}
-
-.btn-reader-action:hover:not(:disabled) {
-  transform: translateY(-2px);
-}
-
-/* Voice Selector Dropdown */
-.voice-selector-box {
-  background: rgba(30, 41, 59, 0.7);
-  border: 1.5px solid rgba(192, 132, 252, 0.35);
   border-radius: 16px;
 }
 
-.voice-select-dropdown {
-  background: rgba(15, 23, 42, 0.85);
-  color: #fef08a;
-  border: 1px solid #c084fc;
-  border-radius: 12px;
-  padding: 4px 8px;
+.fairytale-voice-box {
+  background: rgba(254, 243, 199, 0.8);
+  border: 1px solid #fde047;
+  border-radius: 14px;
+}
+
+.voice-select-fairytale {
+  background: #ffffff;
+  color: #78350f;
+  border: 1.5px solid #f59e0b;
+  border-radius: 10px;
+  padding: 3px 8px;
   outline: none;
   cursor: pointer;
 }
 
-.voice-select-dropdown option {
-  background: #0f172a;
-  color: #ffffff;
+/* Fairytale Buttons */
+.btn-fairytale {
+  border: none;
+  border-radius: 20px;
+  padding: 10px 18px;
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+.btn-fairytale:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.btn-prev-fairytale {
+  background: linear-gradient(180deg, #78350f 0%, #451a03 100%);
+  box-shadow: 0 4px 0 #270e02;
+}
+
+.btn-audio-fairytale {
+  background: linear-gradient(180deg, #d97706 0%, #b45309 100%);
+  box-shadow: 0 4px 0 #78350f;
+}
+
+.btn-lullaby-fairytale {
+  background: linear-gradient(180deg, #9333ea 0%, #7e22ce 100%);
+  box-shadow: 0 4px 0 #581c87;
+}
+
+.btn-lullaby-fairytale.active {
+  background: linear-gradient(180deg, #ec4899 0%, #be185d 100%);
+  box-shadow: 0 4px 0 #831843;
+}
+
+.btn-next-fairytale {
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+  box-shadow: 0 4px 0 #1e40af;
+}
+
+.btn-finish-fairytale {
+  background: linear-gradient(180deg, #16a34a 0%, #15803d 100%);
+  box-shadow: 0 4px 0 #166534;
+}
+
+.btn-fairytale:hover:not(:disabled) {
+  transform: translateY(-2px);
 }
 </style>

@@ -156,9 +156,9 @@
           <div class="family-card-body q-pa-xs text-center">
             <img src="/family_photo.png?v=family_v2" class="family-photo-img shadow-1" :alt="`Foto Keluarga ${store.child.name}`" />
             <div class="row justify-around q-mt-xs">
-              <span class="tag-badge bg-blue-1 text-primary font-fredoka">Ayah</span>
+              <span class="tag-badge bg-blue-1 text-primary font-fredoka">Papa</span>
               <span class="tag-badge bg-amber-1 text-amber-10 font-fredoka">{{ store.child.name }}</span>
-              <span class="tag-badge bg-pink-1 text-pink font-fredoka">Ibu</span>
+              <span class="tag-badge bg-pink-1 text-pink font-fredoka">Mama</span>
             </div>
           </div>
         </div>
@@ -491,15 +491,15 @@ function triggerDinoReaction() {
   inset: 0;
   z-index: 10;
   pointer-events: auto;
-  --char-offset: clamp(170px, 16.5vw, 260px);
-  --arkan-width: clamp(240px, 22vw, 340px);
-  --arkan-height: clamp(220px, 20vw, 310px);
-  --cat-width: clamp(140px, 13vw, 200px);
-  --cat-height: clamp(140px, 13vw, 200px);
-  --dino-width: clamp(140px, 13vw, 200px);
-  --dino-height: clamp(140px, 13vw, 200px);
-  --chest-width: clamp(110px, 10vw, 150px);
-  --chest-height: clamp(90px, 8vw, 120px);
+  --char-offset: clamp(210px, 20vw, 320px);
+  --arkan-width: clamp(310px, 28vw, 440px);
+  --arkan-height: clamp(285px, 26vw, 400px);
+  --cat-width: clamp(180px, 17vw, 260px);
+  --cat-height: clamp(180px, 17vw, 260px);
+  --dino-width: clamp(180px, 17vw, 260px);
+  --dino-height: clamp(180px, 17vw, 260px);
+  --chest-width: clamp(140px, 13vw, 190px);
+  --chest-height: clamp(115px, 10vw, 155px);
 }
 
 .character-wrapper {
@@ -515,7 +515,9 @@ function triggerDinoReaction() {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.45));
+  mix-blend-mode: normal;
+  border-radius: 12px;
 }
 
 /* Arkan (Center Floor) */
@@ -694,7 +696,7 @@ function triggerDinoReaction() {
   right: 24px;
   top: 90px;
   z-index: 20;
-  width: 235px;
+  width: 280px;
 }
 
 .family-card-widget, .quests-card-widget {
@@ -715,21 +717,21 @@ function triggerDinoReaction() {
 }
 
 .family-title, .quest-title {
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .family-photo-img {
   width: 100%;
-  height: 90px;
+  height: 135px;
   object-fit: cover;
-  border-radius: 12px;
+  border-radius: 14px;
 }
 
 .tag-badge {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: bold;
-  padding: 2px 10px;
-  border-radius: 8px;
+  padding: 3px 12px;
+  border-radius: 10px;
 }
 
 .quest-text {
