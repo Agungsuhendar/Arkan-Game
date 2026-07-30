@@ -127,9 +127,9 @@
           <span class="btn-text font-fredoka">Kuis Suara</span>
         </button>
 
-        <button class="nav-3d-btn bg-purple-btn" @click="$emit('open-wardrobe')">
+        <button class="nav-3d-btn bg-purple-btn" @click="$emit('open-family')">
           <div class="btn-icon-box flex flex-center">
-            <span class="btn-icon">💖</span>
+            <span class="btn-icon">👨‍👩‍👧</span>
           </div>
           <span class="btn-text font-fredoka">Keluarga</span>
         </button>
@@ -236,7 +236,7 @@
 import { ref } from 'vue';
 import { useGameStore } from '../application/stores/gameStore';
 
-defineEmits(['open-map', 'open-wardrobe', 'open-story', 'open-trophy', 'open-drawing', 'open-puzzle', 'open-voice-quiz']);
+defineEmits(['open-map', 'open-wardrobe', 'open-story', 'open-trophy', 'open-drawing', 'open-puzzle', 'open-voice-quiz', 'open-family']);
 const store = useGameStore();
 
 const getDefaultSpeech = () => `Ayo ${store.child.name},<br />hari ini kita<br />petualangan lagi!`;
@@ -511,6 +511,9 @@ function triggerDinoReaction() {
 .bg-orange-btn { background: linear-gradient(180deg, #f97316 0%, #c2410c 100%); box-shadow: 0 5px 0 #9a3412; }
 .bg-green-btn { background: linear-gradient(180deg, #22c55e 0%, #15803d 100%); box-shadow: 0 5px 0 #166534; }
 .bg-pink-btn { background: linear-gradient(180deg, #ec4899 0%, #be185d 100%); box-shadow: 0 5px 0 #9d174d; }
+.bg-cyan-btn { background: linear-gradient(180deg, #06b6d4 0%, #0891b2 100%); box-shadow: 0 5px 0 #155e75; }
+.bg-amber-btn { background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%); box-shadow: 0 5px 0 #b45309; }
+.bg-purple-btn { background: linear-gradient(180deg, #a855f7 0%, #7e22ce 100%); box-shadow: 0 5px 0 #6b21a8; }
 
 /* 3. ANIMATED CHARACTERS LAYER & STAGE */
 .characters-interactive-stage {

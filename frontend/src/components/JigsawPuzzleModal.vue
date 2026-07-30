@@ -4,20 +4,24 @@
       <!-- Top Bar Header -->
       <div class="puzzle-header-bar row items-center justify-between q-px-lg q-py-sm">
         <div class="row items-center q-gutter-x-md">
-          <span class="text-h4">🧩✨</span>
+          <span class="text-h4 title-emoji-pulse">🧩✨</span>
           <div class="column">
-            <div class="text-h5 font-fredoka text-bold text-amber-3">Mainan Puzzle Gambar Ajaib Arkan</div>
-            <div class="text-caption text-purple-2 font-fredoka">Geser potongan puzzle ke tempat yang cocok & lengkapi gambarnya!</div>
+            <div class="text-h5 font-fredoka text-bold text-amber-3 header-title-glow">
+              Mainan Puzzle Gambar Ajaib Arkan
+            </div>
+            <div class="text-caption text-purple-2 font-fredoka">
+              Geser atau tekan kepingan puzzle ke tempat yang cocok & lengkapi gambarnya!
+            </div>
           </div>
         </div>
 
         <div class="row items-center q-gutter-x-sm">
-          <button class="btn-puzzle-action btn-hint-sparkle font-fredoka shadow-4" @click="handleSparkleHint">
+          <button class="btn-puzzle-action btn-hint-sparkle font-fredoka shadow-6" @click="handleSparkleHint">
             💡 Petunjuk Sparkle
           </button>
 
           <button
-            class="btn-puzzle-action font-fredoka shadow-4"
+            class="btn-puzzle-action font-fredoka shadow-6"
             :class="showGhostHint ? 'btn-ghost-on' : 'btn-ghost-off'"
             @click="showGhostHint = !showGhostHint"
           >
@@ -41,7 +45,7 @@
               <button
                 v-for="grid in gridOptions"
                 :key="grid.size"
-                class="btn-grid-chip font-fredoka flex flex-center col"
+                class="btn-grid-chip font-fredoka flex flex-center col shadow-3"
                 :class="{ active: currentGridSize === grid.size }"
                 @click="changeGridSize(grid.size)"
               >
@@ -57,11 +61,11 @@
               <button
                 v-for="theme in puzzleThemes"
                 :key="theme.id"
-                class="btn-theme-choice font-fredoka row items-center q-pa-xs"
+                class="btn-theme-choice font-fredoka row items-center q-pa-xs shadow-3"
                 :class="{ active: currentThemeId === theme.id }"
                 @click="changeTheme(theme.id)"
               >
-                <div class="theme-badge-icon flex flex-center font-fredoka q-mr-sm">
+                <div class="theme-badge-icon flex flex-center font-fredoka q-mr-sm shadow-2">
                   {{ theme.emoji }}
                 </div>
                 <div class="column text-left">
@@ -75,7 +79,7 @@
 
         <!-- Center Stage: Target Board Grid -->
         <div class="puzzle-board-stage col flex flex-center relative-position q-pa-md">
-          <div class="board-frame shadow-16 relative-position">
+          <div class="board-frame shadow-24 relative-position">
             <!-- Ghost Image Background Hint -->
             <div
               class="ghost-hint-background fit absolute-top-left"
@@ -98,27 +102,29 @@
               <div
                 v-for="(slot, idx) in slots"
                 :key="`slot-${idx}`"
-                class="puzzle-slot-cell flex flex-center relative-position"
+                class="puzzle-slot-cell flex flex-center relative-position cursor-pointer"
                 :class="{ locked: slot.isFilled, highlighted: highlightedSlotIndex === idx }"
                 :style="{ background: slot.isFilled ? currentTheme.pieceColors[idx] : 'rgba(255,255,255,0.06)' }"
               >
-                <span v-if="slot.isFilled" class="slot-piece-emoji">{{ currentTheme.pieceEmojis[idx] }}</span>
+                <span v-if="slot.isFilled" class="slot-piece-emoji animate-pop">{{ currentTheme.pieceEmojis[idx] }}</span>
                 <span v-if="slot.isFilled" class="slot-lock-badge">✓</span>
-                <span v-else class="slot-number-hint font-fredoka">{{ idx + 1 }}</span>
+                <span v-else class="slot-number-hint font-fredoka">#{{ idx + 1 }}</span>
               </div>
             </div>
 
             <!-- Full Screen Victory Celebration Overlay -->
-            <div v-if="isCompleted" class="victory-overlay fit flex flex-center column">
-              <div class="victory-banner column items-center q-pa-lg text-center shadow-16">
+            <div v-if="isCompleted" class="victory-overlay fit flex flex-center column animate-fade">
+              <div class="victory-banner column items-center q-pa-lg text-center shadow-24">
                 <span class="text-h2 animate-bounce q-mb-sm">🏆 🌟 🎊</span>
                 <div class="text-h4 font-fredoka text-bold text-amber-3">PUZZLE SELESAI!</div>
-                <div class="text-subtitle1 font-fredoka text-white q-my-xs">Hebat sekali! Arkan berhasil menyusun semua kepingan!</div>
+                <div class="text-subtitle1 font-fredoka text-white q-my-xs">
+                  Hebat sekali! Arkan berhasil menyusun semua kepingan puzzle!
+                </div>
                 <div class="row q-gutter-x-md q-my-md font-fredoka text-bold text-amber-4 text-h6">
                   <span>🪙 +30 Koin</span>
                   <span>⭐ +50 XP</span>
                 </div>
-                <button class="btn-play-again font-fredoka shadow-6" @click="resetCurrentPuzzle">
+                <button class="btn-play-again font-fredoka shadow-8" @click="resetCurrentPuzzle">
                   🔄 Main Lagi!
                 </button>
               </div>
@@ -136,7 +142,7 @@
             <div
               v-for="piece in remainingPieces"
               :key="`piece-${piece.targetIdx}`"
-              class="draggable-piece-card flex flex-center shadow-6 cursor-pointer relative-position"
+              class="draggable-piece-card flex flex-center shadow-8 cursor-pointer relative-position"
               :style="{ background: currentTheme.pieceColors[piece.targetIdx] }"
               draggable="true"
               @dragstart="handleDragStart($event, piece.targetIdx)"
@@ -165,16 +171,16 @@ const isOpen = computed({
   set: (val) => emit('update:modelValue', val)
 });
 
-const currentGridSize = ref(2); // 2x2 = 4 pieces default
+const currentGridSize = ref(2); // 2x2 default
 const showGhostHint = ref(true);
 const currentThemeId = ref('dino');
 const isCompleted = ref(false);
 const highlightedSlotIndex = ref<number | null>(null);
 
 const gridOptions = [
-  { size: 2, label: '2 x 2 (Mudah)' },
-  { size: 3, label: '3 x 3 (Sedang)' },
-  { size: 4, label: '4 x 4 (Tantangan)' }
+  { size: 2, label: '2 x 2' },
+  { size: 3, label: '3 x 3' },
+  { size: 4, label: '4 x 4' }
 ];
 
 interface PuzzleTheme {
@@ -280,7 +286,6 @@ function handleDragStart(e: DragEvent, targetIdx: number) {
 }
 
 function handlePieceClick(targetIdx: number) {
-  // Direct tap to place in slot
   placePieceInSlot(targetIdx);
 }
 
@@ -289,13 +294,10 @@ function placePieceInSlot(targetIdx: number) {
 
   const targetSlot = slots.value[targetIdx];
   if (targetSlot && !targetSlot.isFilled) {
-    // Correct slot snap!
     targetSlot.isFilled = true;
     remainingPieces.value = remainingPieces.value.filter(p => p.targetIdx !== targetIdx);
-
     store.playSfx('coin');
 
-    // Check if puzzle fully assembled!
     if (remainingPieces.value.length === 0) {
       triggerVictory();
     }
@@ -306,13 +308,10 @@ function placePieceInSlot(targetIdx: number) {
 
 function handleSparkleHint() {
   if (remainingPieces.value.length === 0) return;
-
   store.playSfx('star');
-  // Find first unplaced piece
   const unplaced = remainingPieces.value[0];
   if (unplaced) {
     highlightedSlotIndex.value = unplaced.targetIdx;
-
     setTimeout(() => {
       highlightedSlotIndex.value = null;
     }, 1500);
@@ -346,14 +345,18 @@ watch(isOpen, (newVal) => {
 
 <style scoped>
 .jigsaw-puzzle-card {
-  background: linear-gradient(135deg, #1e1b4b 0%, #311b92 100%);
+  background: linear-gradient(135deg, #1e1b4b 0%, #311b92 50%, #4c1d95 100%);
   color: white;
 }
 
 .puzzle-header-bar {
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(15, 23, 42, 0.7);
   border-bottom: 2px solid rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
+}
+
+.header-title-glow {
+  text-shadow: 0 0 10px rgba(253, 224, 71, 0.5);
 }
 
 .btn-puzzle-action {
@@ -363,27 +366,51 @@ watch(isOpen, (newVal) => {
   font-weight: bold;
   cursor: pointer;
   border: 2px solid rgba(255, 255, 255, 0.3);
-  transition: transform 0.15s ease;
+  transition: transform 0.15s ease, background 0.2s ease;
+}
+
+.btn-puzzle-action:hover {
+  transform: scale(1.05);
 }
 
 .btn-hint-sparkle {
   background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+  border-color: #fde047;
   color: white;
 }
 
 .btn-ghost-on {
   background: linear-gradient(180deg, #16a34a 0%, #15803d 100%);
+  border-color: #bbf7d0;
   color: white;
 }
 
 .btn-ghost-off {
   background: linear-gradient(180deg, #64748b 0%, #475569 100%);
+  border-color: #cbd5e1;
   color: white;
 }
 
+.btn-close-fullscreen {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.btn-close-fullscreen:hover {
+  transform: scale(1.1);
+  background: rgba(239, 68, 68, 0.8);
+}
+
 .puzzle-controls-sidebar, .puzzle-tray-sidebar {
-  width: 210px;
-  background: rgba(255, 255, 255, 0.08);
+  width: 220px;
+  background: rgba(255, 255, 255, 0.06);
   border-right: 2px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -395,48 +422,61 @@ watch(isOpen, (newVal) => {
 .btn-grid-chip {
   background: rgba(255, 255, 255, 0.12);
   color: white;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
-  padding: 6px 2px;
-  font-size: 11px;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 8px 2px;
+  font-size: 12px;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-grid-chip:hover {
+  background: rgba(255, 255, 255, 0.22);
 }
 
 .btn-grid-chip.active {
-  background: #f59e0b;
-  border-color: #fef08a;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border-color: #fde047;
   font-weight: bold;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
 }
 
 .btn-theme-choice {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.1);
   color: white;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 14px;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  border-radius: 16px;
   cursor: pointer;
   width: 100%;
+  transition: all 0.2s ease;
+}
+
+.btn-theme-choice:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateX(2px);
 }
 
 .btn-theme-choice.active {
   background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%);
   border-color: #e9d5ff;
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.4);
 }
 
 .theme-badge-icon {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   background: rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
-  font-size: 20px;
+  border-radius: 12px;
+  font-size: 22px;
 }
 
 .board-frame {
-  width: 520px;
-  height: 520px;
-  border-radius: 24px;
+  width: 530px;
+  height: 530px;
+  border-radius: 28px;
   border: 6px solid #818cf8;
   overflow: hidden;
-  background: rgba(15, 23, 42, 0.5);
+  background: rgba(15, 23, 42, 0.6);
 }
 
 .ghost-hint-background {
@@ -449,17 +489,17 @@ watch(isOpen, (newVal) => {
 }
 
 .ghost-emoji-giant {
-  font-size: 140px;
+  font-size: 150px;
 }
 
 .puzzle-grid-container {
   display: grid;
-  gap: 4px;
-  padding: 8px;
+  gap: 6px;
+  padding: 10px;
 }
 
 .puzzle-slot-cell {
-  border-radius: 14px;
+  border-radius: 16px;
   border: 2px dashed rgba(255, 255, 255, 0.3);
   transition: all 0.2s ease;
 }
@@ -467,7 +507,7 @@ watch(isOpen, (newVal) => {
 .puzzle-slot-cell.locked {
   border-style: solid;
   border-color: #fde047;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
 }
 
 .puzzle-slot-cell.highlighted {
@@ -478,7 +518,7 @@ watch(isOpen, (newVal) => {
 }
 
 .slot-piece-emoji {
-  font-size: 38px;
+  font-size: 42px;
 }
 
 .slot-lock-badge {
@@ -496,19 +536,20 @@ watch(isOpen, (newVal) => {
 }
 
 .draggable-piece-card {
-  width: 90px;
-  height: 90px;
-  border-radius: 18px;
+  width: 96px;
+  height: 96px;
+  border-radius: 20px;
   border: 3px solid rgba(255, 255, 255, 0.6);
-  transition: transform 0.15s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .draggable-piece-card:hover {
-  transform: scale(1.08);
+  transform: scale(1.1) translateY(-2px);
+  border-color: #fde047;
 }
 
 .piece-emoji {
-  font-size: 40px;
+  font-size: 42px;
 }
 
 .piece-label {
@@ -518,33 +559,38 @@ watch(isOpen, (newVal) => {
   font-size: 11px;
   color: white;
   font-weight: bold;
-  background: rgba(0, 0, 0, 0.4);
-  padding: 0 6px;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 1px 6px;
   border-radius: 8px;
 }
 
 .victory-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(10px);
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(12px);
   z-index: 100;
 }
 
 .victory-banner {
   background: linear-gradient(135deg, #1e1b4b 0%, #311b92 100%);
   border: 4px solid #818cf8;
-  border-radius: 28px;
+  border-radius: 32px;
 }
 
 .btn-play-again {
   background: linear-gradient(180deg, #16a34a 0%, #15803d 100%);
   color: white;
   border: 2px solid #bbf7d0;
-  border-radius: 20px;
-  padding: 10px 24px;
+  border-radius: 22px;
+  padding: 10px 28px;
   font-size: 18px;
   font-weight: bold;
   cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.btn-play-again:hover {
+  transform: scale(1.06);
 }
 </style>

@@ -19,6 +19,7 @@
         @open-drawing="showDrawing = true"
         @open-puzzle="showPuzzle = true"
         @open-voice-quiz="showVoiceQuiz = true"
+        @open-family="store.showParentDashboardModal = true"
       />
     </q-page-container>
 
@@ -31,6 +32,7 @@
     <MagicDrawingModal v-model="showDrawing" />
     <JigsawPuzzleModal v-model="showPuzzle" />
     <VoiceQuizModal v-model="showVoiceQuiz" />
+    <PwaInstallPromptModal />
   </q-layout>
 </template>
 
@@ -52,6 +54,7 @@ const TrophyRoomModal = defineAsyncComponent(() => import('./components/TrophyRo
 const MagicDrawingModal = defineAsyncComponent(() => import('./components/MagicDrawingModal.vue'));
 const JigsawPuzzleModal = defineAsyncComponent(() => import('./components/JigsawPuzzleModal.vue'));
 const VoiceQuizModal = defineAsyncComponent(() => import('./components/VoiceQuizModal.vue'));
+const PwaInstallPromptModal = defineAsyncComponent(() => import('./components/PwaInstallPromptModal.vue'));
 
 const store = useGameStore();
 const currentTab = ref<'beranda' | 'game' | 'petualangan'>('beranda');
