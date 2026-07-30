@@ -95,8 +95,8 @@ function handleGlobalUserInteraction() {
   }
 }
 
-watch(() => store.soundMuted, (isMuted) => {
-  if (isMuted) {
+watch([() => store.soundMuted, () => store.isGameActive], ([isMuted, isGameActive]) => {
+  if (isMuted || isGameActive) {
     pauseAudio();
   } else {
     tryPlayAudio();

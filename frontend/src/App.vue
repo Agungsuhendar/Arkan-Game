@@ -16,6 +16,9 @@
         @open-wardrobe="showWardrobe = true"
         @open-story="showStory = true"
         @open-trophy="showTrophy = true"
+        @open-drawing="showDrawing = true"
+        @open-puzzle="showPuzzle = true"
+        @open-voice-quiz="showVoiceQuiz = true"
       />
     </q-page-container>
 
@@ -25,6 +28,9 @@
     <AvatarWardrobeModal v-model="showWardrobe" />
     <BedtimeStoryModal v-model="showStory" />
     <TrophyRoomModal v-model="showTrophy" />
+    <MagicDrawingModal v-model="showDrawing" />
+    <JigsawPuzzleModal v-model="showPuzzle" />
+    <VoiceQuizModal v-model="showVoiceQuiz" />
   </q-layout>
 </template>
 
@@ -43,6 +49,9 @@ const ParentDashboardModal = defineAsyncComponent(() => import('./components/Par
 const AvatarWardrobeModal = defineAsyncComponent(() => import('./components/AvatarWardrobeModal.vue'));
 const BedtimeStoryModal = defineAsyncComponent(() => import('./components/BedtimeStoryModal.vue'));
 const TrophyRoomModal = defineAsyncComponent(() => import('./components/TrophyRoomModal.vue'));
+const MagicDrawingModal = defineAsyncComponent(() => import('./components/MagicDrawingModal.vue'));
+const JigsawPuzzleModal = defineAsyncComponent(() => import('./components/JigsawPuzzleModal.vue'));
+const VoiceQuizModal = defineAsyncComponent(() => import('./components/VoiceQuizModal.vue'));
 
 const store = useGameStore();
 const currentTab = ref<'beranda' | 'game' | 'petualangan'>('beranda');
@@ -50,6 +59,9 @@ const currentTab = ref<'beranda' | 'game' | 'petualangan'>('beranda');
 const showWardrobe = ref(false);
 const showStory = ref(false);
 const showTrophy = ref(false);
+const showDrawing = ref(false);
+const showPuzzle = ref(false);
+const showVoiceQuiz = ref(false);
 
 onMounted(() => {
   store.fetchWorlds();

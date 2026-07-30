@@ -106,7 +106,28 @@
           <span class="btn-text font-fredoka">Cerita</span>
         </button>
 
-        <button class="nav-3d-btn bg-pink-btn" @click="$emit('open-wardrobe')">
+        <button class="nav-3d-btn bg-pink-btn" @click="$emit('open-drawing')">
+          <div class="btn-icon-box flex flex-center">
+            <span class="btn-icon">🎨</span>
+          </div>
+          <span class="btn-text font-fredoka">Melukis</span>
+        </button>
+
+        <button class="nav-3d-btn bg-cyan-btn" @click="$emit('open-puzzle')">
+          <div class="btn-icon-box flex flex-center">
+            <span class="btn-icon">🧩</span>
+          </div>
+          <span class="btn-text font-fredoka">Puzzle</span>
+        </button>
+
+        <button class="nav-3d-btn bg-amber-btn" @click="$emit('open-voice-quiz')">
+          <div class="btn-icon-box flex flex-center">
+            <span class="btn-icon">🎙️</span>
+          </div>
+          <span class="btn-text font-fredoka">Kuis Suara</span>
+        </button>
+
+        <button class="nav-3d-btn bg-purple-btn" @click="$emit('open-wardrobe')">
           <div class="btn-icon-box flex flex-center">
             <span class="btn-icon">💖</span>
           </div>
@@ -215,13 +236,15 @@
 import { ref } from 'vue';
 import { useGameStore } from '../application/stores/gameStore';
 
-defineEmits(['open-map', 'open-wardrobe', 'open-story', 'open-trophy']);
+defineEmits(['open-map', 'open-wardrobe', 'open-story', 'open-trophy', 'open-drawing', 'open-puzzle', 'open-voice-quiz']);
 const store = useGameStore();
 
 const getDefaultSpeech = () => `Ayo ${store.child.name},<br />hari ini kita<br />petualangan lagi!`;
 const speechMessage = ref(getDefaultSpeech());
 
 function triggerArkanReaction() {
+  store.playSfx('click');
+  store.speak(`Hai! Ayo ${store.child.name}, kita belajar dan main game seru!`);
   speechMessage.value = 'Haii! Ayo kita<br />belajar dan main<br />game seru!';
   setTimeout(() => {
     speechMessage.value = getDefaultSpeech();
@@ -229,6 +252,8 @@ function triggerArkanReaction() {
 }
 
 function triggerCatReaction() {
+  store.playSfx('pop');
+  store.speak('Meow! Meow! Kucing lucu siap menemanimu!');
   speechMessage.value = 'Meow! Kucing<br />siap menemanimu<br />belajar!';
   setTimeout(() => {
     speechMessage.value = getDefaultSpeech();
@@ -236,6 +261,8 @@ function triggerCatReaction() {
 }
 
 function triggerDinoReaction() {
+  store.playSfx('success');
+  store.speak('Rawr! Dino suka musik dan petualangan!');
   speechMessage.value = 'Rawr! Dino<br />suka musik dan<br />petualangan!';
   setTimeout(() => {
     speechMessage.value = getDefaultSpeech();

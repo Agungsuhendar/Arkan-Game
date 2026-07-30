@@ -48,12 +48,12 @@
         {{ store.soundMuted ? '🔇' : '🎵' }}
       </button>
 
-      <button class="icon-action-btn bg-pink-gradient text-white shadow-3 cursor-pointer" title="Hadiah">
+      <button class="icon-action-btn bg-pink-gradient text-white shadow-3 cursor-pointer" @click="store.playSfx('star')" title="Hadiah">
         🎁
         <span class="badge-count bg-amber-5 text-white flex flex-center">3</span>
       </button>
 
-      <button class="icon-action-btn bg-blue-gradient text-white shadow-3 cursor-pointer" @click="store.showParentDashboardModal = true" title="Notifikasi">
+      <button class="icon-action-btn bg-blue-gradient text-white shadow-3 cursor-pointer" @click="openDashboard" title="Notifikasi">
         🔔
         <span class="badge-count bg-red text-white flex flex-center">3</span>
       </button>
@@ -65,6 +65,11 @@
 import { useGameStore } from '../application/stores/gameStore';
 
 const store = useGameStore();
+
+function openDashboard() {
+  store.playSfx('whoosh');
+  store.showParentDashboardModal = true;
+}
 </script>
 
 <style scoped>

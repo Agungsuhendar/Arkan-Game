@@ -74,6 +74,8 @@ export class BalloonGameScene extends BaseGameScene {
 
     container.on('pointerdown', () => {
       if (letterText === this.targetLetter) {
+        this.playSfx('pop');
+        this.speak(`Huruf ${this.targetLetter}`);
         this.score += 10;
         this.events.emit('update_score', this.score);
         this.spawnRewardParticles(container.x, container.y);
@@ -92,6 +94,7 @@ export class BalloonGameScene extends BaseGameScene {
           }
         });
       } else {
+        this.playSfx('wrong');
         // Wobble on wrong balloon
         this.tweens.add({
           targets: container,

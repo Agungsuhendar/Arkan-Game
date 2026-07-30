@@ -29,13 +29,17 @@ async def startup_event():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    # Seed initial game worlds and engines if empty
+    # Seed initial game worlds and engines if empty or missing
     async with AsyncSessionLocal() as session:
         from sqlalchemy.future import select
         result = await session.execute(select(World))
-        worlds = result.scalars().all()
-        if not worlds:
-            # Create default mini-game engine
+        existing_worlds = result.scalars().all()
+        existing_codes = {w.code for w in existing_worlds}
+
+        # Check balloon engine
+        result_eng = await session.execute(select(GameEngineConfig))
+        engines = result_eng.scalars().all()
+        if not engines:
             balloon_engine = GameEngineConfig(
                 code="balloon_game",
                 name="Balloon Pop Engine",
@@ -45,18 +49,21 @@ async def startup_event():
             session.add(balloon_engine)
             await session.flush()
 
-            # Create 7 Worlds from Game Story
-            world_data = [
-                ("hutan_huruf", "Hutan Huruf", "Dunia alfabet & fonik bersama Arkan", "Raja Huruf", "Kelinci Pintar", 1),
-                ("kebun_angka", "Kebun Angka", "Belajar berhitung di kebun buah", "Monster Hitung", "Tupai Angka", 2),
-                ("kota_warna", "Kota Warna", "Mengenal warna & bentuk geometri", "Pelukis Raksasa", "Kucing Warna", 3),
-                ("pulau_hewan", "Pulau Hewan", "Belajar suara & habitat satwa", "Naga Hutan", "Lumba-Lumba", 4),
-                ("kastil_puzzle", "Kastil Puzzle", "Melatih memori & logika pemecahan masalah", "Ksatria Teka-Teki", "Burung Hantu", 5),
-                ("planet_sains", "Planet Sains", "Eksplorasi fenomena alam & sains dasar", "Profesor Alien", "Robot Sains", 6),
-                ("gunung_prestasi", "Gunung Prestasi", "Tantangan gabungan & trophy room", "Master Arkan", "Elang Emas", 7),
-            ]
+        world_data = [
+            ("hutan_huruf", "Hutan Huruf", "Dunia alfabet & fonik bersama Arkan", "Raja Huruf", "Kelinci Pintar", 1),
+            ("kebun_angka", "Kebun Angka", "Belajar berhitung di kebun buah", "Monster Hitung", "Tupai Angka", 2),
+            ("kota_warna", "Kota Warna", "Mengenal warna & bentuk geometri", "Pelukis Raksasa", "Kucing Warna", 3),
+            ("pulau_hewan", "Pulau Hewan", "Belajar suara & habitat satwa", "Naga Hutan", "Lumba-Lumba", 4),
+            ("kastil_puzzle", "Kastil Puzzle", "Melatih memori & logika pemecahan masalah", "Ksatria Teka-Teki", "Burung Hantu", 5),
+            ("planet_sains", "Planet Sains", "Eksplorasi fenomena alam & sains dasar", "Profesor Alien", "Robot Sains", 6),
+            ("gunung_prestasi", "Gunung Prestasi", "Tantangan gabungan & trophy room", "Master Arkan", "Elang Emas", 7),
+            ("studio_musik", "Studio Musik", "Bermain piano & irama lagu anak", "Maestro Arkan", "Dino Drummer", 8),
+            ("taman_ejaan", "Taman Ejaan Kata", "Belajar mengeja kata & fonik", "Raja Ejaan", "Kelinci Eja", 9),
+        ]
 
-            for code, name, desc, boss, npc, order in world_data:
+        added_any = False
+        for code, name, desc, boss, npc, order in world_data:
+            if code not in existing_codes:
                 w = World(
                     code=code,
                     name=name,
@@ -68,44 +75,17 @@ async def startup_event():
                     order_index=order
                 )
                 session.add(w)
-                await session.flush()
+                added_any = True
 
-                # Add sample chapter & level for Hutan Huruf
-                if code == "hutan_huruf":
-                    ch = Chapter(world_id=w.id, name="Bab 1: Huruf Vokal", order_index=1)
-                    session.add(ch)
-                    await session.flush()
+        if added_any or not existing_worlds:
+            await session.commit()
 
-                    lvl = Level(
-                        chapter_id=ch.id,
-                        engine_id=balloon_engine.id,
-                        level_number=1,
-                        title="Letuskan Balon Huruf A",
-                        reward_coins=20,
-                        reward_xp=50
-                    )
-                    session.add(lvl)
-                    await session.flush()
-
-                    q = Question(
-                        level_id=lvl.id,
-                        prompt_text="Letuskan balon yang memiliki huruf A!",
-                        prompt_audio="voice_prompt_letter_a.mp3",
-                        category="huruf",
-                        difficulty=1
-                    )
-                    session.add(q)
-                    await session.flush()
-
-                    session.add_all([
-                        QuestionOption(question_id=q.id, option_text="A", is_correct=True),
-                        QuestionOption(question_id=q.id, option_text="B", is_correct=False),
-                        QuestionOption(question_id=q.id, option_text="C", is_correct=False)
-                    ])
-
-            # Create default test user & child
+        # Check default user & child
+        from app.domain.models import User, Parent, Child
+        result_user = await session.execute(select(User))
+        users = result_user.scalars().all()
+        if not users:
             import bcrypt
-
             default_user = User(
                 email="parent@arkan.com",
                 hashed_password=bcrypt.hashpw("arkan123".encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
@@ -129,7 +109,6 @@ async def startup_event():
                 diamonds=15
             )
             session.add(default_child)
-
             await session.commit()
 
 @app.get("/")

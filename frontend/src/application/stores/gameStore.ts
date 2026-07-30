@@ -1,9 +1,13 @@
 import { defineStore } from 'pinia';
 import { ChildProfile, World, Level } from '../../domain/types';
 import { gameApi } from '../../services/api';
+import { soundService, SfxType } from '../services/soundService';
 
 // XP yang dibutuhkan untuk naik level (konsisten di seluruh app)
 export const XP_PER_LEVEL = 600;
+
+const initialMuted = localStorage.getItem('arkan_sound_muted') === 'true';
+soundService.setMuted(initialMuted);
 
 export const useGameStore = defineStore('game', {
   state: () => ({
@@ -21,8 +25,9 @@ export const useGameStore = defineStore('game', {
     worlds: [] as World[],
     selectedWorld: null as World | null,
     currentLevel: null as Level | null,
+    activeSceneKey: 'MountainClimbScene',
     isGameActive: false,
-    soundMuted: localStorage.getItem('arkan_sound_muted') === 'true',
+    soundMuted: initialMuted,
     showParentDashboardModal: false,
     isLoadingProfile: false,
   }),
@@ -52,12 +57,16 @@ export const useGameStore = defineStore('game', {
 
     selectWorld(world: World) {
       this.selectedWorld = world;
+      this.playSfx('whoosh');
+      this.speak(`Dunia ${world.name}`);
     },
 
-    async startLevel(levelId: string) {
+    async startLevel(levelId: string, sceneKey: string = 'MountainClimbScene') {
       const config = await gameApi.getLevelConfig(levelId);
       this.currentLevel = config;
+      this.activeSceneKey = sceneKey;
       this.isGameActive = true;
+      this.playSfx('click');
     },
 
     async completeLevel(stars: number, score: number, timeSpent: number, category: string) {
@@ -79,15 +88,33 @@ export const useGameStore = defineStore('game', {
         }
       }
       this.isGameActive = false;
+      this.playSfx('win');
+      this.speak('Hebat sekali! Level selesai!');
     },
 
     toggleSound() {
       this.soundMuted = !this.soundMuted;
+      soundService.setMuted(this.soundMuted);
       try {
         localStorage.setItem('arkan_sound_muted', String(this.soundMuted));
       } catch (e) {
         console.warn('Gagal menyimpan status suara ke localStorage:', e);
       }
+      if (!this.soundMuted) {
+        soundService.playSfx('click');
+      }
+    },
+
+    playSfx(type: SfxType) {
+      soundService.playSfx(type);
+    },
+
+    speak(text: string, rate?: number) {
+      soundService.speak(text, { rate });
+    },
+
+    stopSpeech() {
+      soundService.stopSpeech();
     }
   }
 });

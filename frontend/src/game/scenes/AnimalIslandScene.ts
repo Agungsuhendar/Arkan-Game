@@ -288,6 +288,8 @@ export class AnimalIslandScene extends BaseGameScene {
 
     if (animal.id === roundData.targetId) {
       // ✅ SUCCESS MATCH!
+      this.playSfx('success');
+      this.speak(`${animal.name}! ${animal.soundText}`);
       this.spawnRewardParticles(container.x, container.y);
 
       this.score += 35;
@@ -321,6 +323,8 @@ export class AnimalIslandScene extends BaseGameScene {
       });
     } else {
       // ❌ WRONG ANIMAL
+      this.playSfx('wrong');
+      this.speak(`Ini ${animal.name}`);
       this.triggerArkanCheer(`Ini ${animal.name} (${animal.soundText}), coba cari yang lain ya! 😊`);
 
       this.tweens.add({

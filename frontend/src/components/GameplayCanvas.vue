@@ -77,6 +77,20 @@
         >
           🚴 Sepeda
         </button>
+        <button
+          class="btn-3d-cartoon q-px-sm q-py-xs text-caption"
+          :class="activeScene === 'MusicStudioScene' ? 'btn-primary-yellow' : 'btn-primary-blue'"
+          @click="switchScene('MusicStudioScene')"
+        >
+          🎵 Musik
+        </button>
+        <button
+          class="btn-3d-cartoon q-px-sm q-py-xs text-caption"
+          :class="activeScene === 'SpellingGardenScene' ? 'btn-primary-yellow' : 'btn-primary-blue'"
+          @click="switchScene('SpellingGardenScene')"
+        >
+          🔤 Ejaan
+        </button>
       </div>
 
       <div class="stat-pill bg-amber-5 text-white font-fredoka text-bold shadow-4 q-px-md q-py-xs rounded-borders">
@@ -96,7 +110,7 @@ import { PhaserGameManager } from '../game/PhaserGameManager';
 
 const emit = defineEmits(['exit']);
 const store = useGameStore();
-const activeScene = ref<string>('MountainClimbScene');
+const activeScene = ref<string>(store.activeSceneKey || 'MountainClimbScene');
 
 const launchCurrentScene = () => {
   const prompt = store.currentLevel?.questions[0]?.prompt_text || 'Tolong Arkan selamatkan ikan dari jaring!';

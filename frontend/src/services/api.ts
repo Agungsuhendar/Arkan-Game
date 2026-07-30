@@ -38,6 +38,8 @@ export const gameApi = {
         { id: 'w5', code: 'kastil_puzzle', name: 'Kastil Puzzle', description: 'Melatih logika & memori', boss_name: 'Ksatria', npc_name: 'Burung Hantu', icon_asset: 'kastil_puzzle', bg_asset: 'bg_kastil', order_index: 5 },
         { id: 'w6', code: 'planet_sains', name: 'Planet Sains', description: 'Eksplorasi alam & eksperimen', boss_name: 'Alien', npc_name: 'Robot', icon_asset: 'planet_sains', bg_asset: 'bg_planet', order_index: 6 },
         { id: 'w7', code: 'gunung_prestasi', name: 'Gunung Prestasi', description: 'Tantangan puncak & piala', boss_name: 'Master Arkan', npc_name: 'Elang Emas', icon_asset: 'gunung_prestasi', bg_asset: 'bg_gunung', order_index: 7 },
+        { id: 'w8', code: 'studio_musik', name: 'Studio Musik', description: 'Bermain piano & irama lagu anak', boss_name: 'Maestro Arkan', npc_name: 'Dino Drummer', icon_asset: 'studio_musik', bg_asset: 'bg_musik', order_index: 8 },
+        { id: 'w9', code: 'taman_ejaan', name: 'Taman Ejaan Kata', description: 'Belajar mengeja kata & fonik', boss_name: 'Raja Ejaan', npc_name: 'Kelinci Eja', icon_asset: 'taman_ejaan', bg_asset: 'bg_ejaan', order_index: 9 },
       ];
     }
   },
@@ -124,6 +126,106 @@ export const gameApi = {
         diamonds: 15,
         energy: 100,
         hearts: 5,
+      };
+    }
+  },
+
+  async generateAiStory(topic: string, moralValue: string, category: string = 'Petualangan 🚩', targetAge: number = 4): Promise<any> {
+    try {
+      const res = await apiClient.post('/game/story/generate', {
+        topic,
+        moral_value: moralValue,
+        category,
+        target_age: targetAge
+      });
+      return res.data;
+    } catch (e) {
+      // Offline fallback story generator
+      const timestamp = Date.now();
+      const cleanTopic = topic || 'Petualangan Arkan yang Ajaib';
+      const cleanMoral = moralValue || 'Suka Menolong & Menyayangi Sesama';
+      return {
+        id: `buku-ai-${timestamp}`,
+        title: `Arkan dan ${cleanTopic}`,
+        subtitle: `Cerita Dongeng AI untuk Usia ${targetAge} Tahun`,
+        coverImage: '/arkan_cat_dino.png',
+        category,
+        badge: '✨ Dibuat AI',
+        badgeColor: 'bg-purple-8',
+        readTime: '3 Menit',
+        summary: `Kisah ajaib buatan AI tentang ${cleanTopic} yang mengajari Arkan dan teman-teman tentang nilai moral ${cleanMoral}.`,
+        pages: [
+          {
+            pageNumber: 1,
+            title: `Bagian 1: Belajar Tentang ${cleanTopic}`,
+            subtitle: 'Hari Baru yang Ceria',
+            image: '/arkan_baik_hati_1.jpg',
+            badge: 'Pagi Ceria',
+            badgeColor: 'bg-amber-8',
+            dialogueSpeaker: 'Arkan',
+            dialogueText: `Wah! Hari ini aku siap berpetualang dan belajar tentang ${cleanTopic}!`,
+            storyContent: `Di pagi hari yang cerah, Arkan bangun dengan senyuman ceria. Arkan siap belajar dan berpetualang tentang ${cleanTopic}.`,
+            missionText: `🌅 Belajar tentang ${cleanTopic}`,
+            bgGradient: 'linear-gradient(135deg, #fef9c3 0%, #fef08a 100%)',
+            emoji: '✨ 🌅 🦖'
+          },
+          {
+            pageNumber: 2,
+            title: 'Bagian 2: Pengalaman & Teman Baru',
+            subtitle: 'Bertemu Teman di Jalan',
+            image: '/arkan_cat_dino.png',
+            badge: 'Sahabat Baik',
+            badgeColor: 'bg-blue-8',
+            dialogueSpeaker: 'Teman Baru',
+            dialogueText: 'Halo Arkan! Bersama-sama kita pasti bisa melakukan hal hebat!',
+            storyContent: `Arkan bertemu teman baru yang ramah. Bersama-sama, mereka saling membantu dengan penuh kasih sayang.`,
+            missionText: `🤝 ${cleanMoral}`,
+            bgGradient: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)',
+            emoji: '🤝 🦖 💖'
+          },
+          {
+            pageNumber: 3,
+            title: 'Bagian 3: Rintangan Kebaikan',
+            subtitle: 'Tunjukkan Hati yang Baik',
+            image: '/arkan_hutan_3.png',
+            badge: 'Tantangan',
+            badgeColor: 'bg-purple-8',
+            dialogueSpeaker: 'Arkan',
+            dialogueText: 'Jangan khawatir, aku pasti akan membantumu!',
+            storyContent: `Saat ada kesulitan kecil, Arkan tidak ragu menolong dengan tulus sesuai nilai moral '${cleanMoral}'.`,
+            missionText: `💖 Menebar ${cleanMoral}`,
+            bgGradient: 'linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%)',
+            emoji: '💖 🌟 ✨'
+          },
+          {
+            pageNumber: 4,
+            title: 'Bagian 4: Kebahagiaan Bersama',
+            subtitle: 'Senyuman Indah',
+            image: '/arkan_toples_4.png',
+            badge: 'Sukacita',
+            badgeColor: 'bg-emerald-8',
+            dialogueSpeaker: 'Mama & Papa',
+            dialogueText: 'Arkan hebat sekali! Mama Papa bangga!',
+            storyContent: `Semua merasa gembira. Arkan belajar bahwa berbuat baik membuat hati terasa sangat damai dan penuh syukur.`,
+            missionText: '😊 Berbuat Baik Setiap Hari',
+            bgGradient: 'linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%)',
+            emoji: '😊 🫙 🌟'
+          },
+          {
+            pageNumber: 5,
+            title: 'Bagian 5: Janji Anak Pintar',
+            subtitle: 'Menutup Hari dengan Syukur',
+            image: '/arkan_baik_hati_6.jpg',
+            badge: 'Pesan Dongeng AI',
+            badgeColor: 'bg-pink-8',
+            dialogueSpeaker: 'Arkan',
+            dialogueText: `Mari kita selalu menerapkan ${cleanMoral} setiap hari!`,
+            storyContent: `Arkan tersenyum dan berjanji akan terus menjadi anak yang baik hati, rajin belajar, dan menyayangi sesama.`,
+            missionText: `📜 Pesan Moral: ${cleanMoral}`,
+            bgGradient: 'linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%)',
+            emoji: '🌟 💖 🌍'
+          }
+        ]
       };
     }
   }

@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from app.infrastructure.database import get_db
 from app.domain.schemas import (
-    WorldSchema, LevelSchema, GameStartRequest, GameFinishRequest, GameFinishResponse, ChildProfile
+    WorldSchema, LevelSchema, GameStartRequest, GameFinishRequest, GameFinishResponse, ChildProfile, StoryGenerateRequest
 )
 from app.repositories.game_repository import GameRepository
 from app.repositories.user_repository import UserRepository
@@ -83,3 +83,14 @@ async def finish_game_session(req: GameFinishRequest, db: AsyncSession = Depends
         new_total_coins=updated_child.coins if updated_child else coins_earned,
         new_total_xp=updated_child.xp if updated_child else xp_earned
     )
+
+@router.post("/story/generate")
+async def generate_ai_story(req: StoryGenerateRequest):
+    from app.domain.story_generator_service import StoryGeneratorService
+    story_book = StoryGeneratorService.generate_story(
+        topic=req.topic,
+        moral_value=req.moral_value,
+        category=req.category or "Petualangan 🚩",
+        target_age=req.target_age or 4
+    )
+    return story_book

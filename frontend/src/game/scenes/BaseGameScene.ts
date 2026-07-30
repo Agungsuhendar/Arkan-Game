@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { soundService, SfxType } from '../../application/services/soundService';
 
 export interface BaseSceneConfig {
   promptText: string;
@@ -40,6 +41,9 @@ export class BaseGameScene extends Phaser.Scene {
       align: 'center'
     }).setOrigin(0.5);
 
+    // Speak prompt text for narration
+    soundService.speak(this.promptText);
+
     // Score Counter Top Right
     const scoreBg = this.add.graphics();
     scoreBg.fillStyle(0xffd166, 1);
@@ -65,7 +69,16 @@ export class BaseGameScene extends Phaser.Scene {
     });
   }
 
+  playSfx(type: SfxType) {
+    soundService.playSfx(type);
+  }
+
+  speak(text: string) {
+    soundService.speak(text);
+  }
+
   spawnRewardParticles(x: number, y: number) {
+    soundService.playSfx('coin');
     const graphics = this.add.graphics();
     graphics.fillStyle(0xffd166, 1);
     graphics.fillCircle(0, 0, 8);
@@ -84,6 +97,8 @@ export class BaseGameScene extends Phaser.Scene {
   }
 
   finishGame() {
+    soundService.playSfx('win');
+    soundService.speak('Luar biasa! Kamu berhasil menyelesaikan tantangan ini!');
     this.spawnRewardParticles(this.scale.width / 2, this.scale.height / 2);
     this.time.delayedCall(1200, () => {
       if (this.onFinishCallback) {

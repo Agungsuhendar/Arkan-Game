@@ -121,3 +121,11 @@ class ParentAnalyticsResponse(BaseModel):
     total_playtime_minutes: int
     total_stars: int
     categories: List[ParentCategoryProgress]
+
+# AI Story Generator Schema
+class StoryGenerateRequest(BaseModel):
+    topic: str
+    moral_value: str
+    category: Optional[str] = "Petualangan 🚩"
+    target_age: Optional[int] = 4
+

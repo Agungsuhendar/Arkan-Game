@@ -27,6 +27,9 @@
           </div>
 
           <div class="row items-center q-gutter-x-md">
+            <button class="btn-create-ai-story font-fredoka shadow-4 row items-center q-px-md q-py-xs cursor-pointer" @click="openAiStoryModal">
+              ✨ Buat Dongeng AI
+            </button>
             <div class="books-count-badge font-fredoka shadow-3">
               ✨ {{ storyBooks.length }} Buku Cerita Tersedia
             </div>
@@ -251,12 +254,77 @@
       </template>
 
     </q-card>
+
+    <!-- ================= AI STORY GENERATOR MODAL DIALOG ================= -->
+    <q-dialog v-model="showAiModal" persistent transition-show="scale" transition-hide="scale">
+      <q-card class="ai-generator-card font-quicksand q-pa-lg text-white">
+        <div class="row items-center justify-between q-mb-md">
+          <div class="row items-center q-gutter-x-sm">
+            <span class="text-h4">✨ 🤖</span>
+            <div class="text-h5 font-fredoka text-bold text-amber-3">Generator Dongeng AI</div>
+          </div>
+          <button class="btn-close-fullscreen flex flex-center" @click="showAiModal = false">✕</button>
+        </div>
+
+        <div class="text-subtitle2 text-purple-2 q-mb-md font-fredoka">
+          Ketik topik cerita favorit atau pilih ide di bawah! AI akan men-generate buku dongeng 5 halaman khusus untuk Arkan!
+        </div>
+
+        <!-- Presets -->
+        <div class="q-mb-md">
+          <div class="text-caption text-bold text-amber-4 q-mb-xs font-fredoka">💡 Ide Topik Populer:</div>
+          <div class="row q-gutter-xs">
+            <button
+              v-for="preset in topicPresets"
+              :key="preset"
+              class="preset-chip-btn font-fredoka"
+              @click="aiTopic = preset"
+            >
+              {{ preset }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Custom Topic Input -->
+        <div class="q-mb-md">
+          <label class="text-caption text-bold text-white font-fredoka">📝 Topik / Judul Cerita:</label>
+          <input
+            v-model="aiTopic"
+            type="text"
+            class="custom-input-box font-fredoka q-mt-xs width-full"
+            placeholder="Contoh: Arkan dan Dinosaurus Baik Hati"
+          />
+        </div>
+
+        <!-- Moral Value Picker -->
+        <div class="q-mb-lg">
+          <label class="text-caption text-bold text-white font-fredoka">💖 Nilai Moral & Karakter:</label>
+          <select v-model="aiMoral" class="custom-select-box font-fredoka q-mt-xs width-full">
+            <option v-for="moral in moralOptions" :key="moral" :value="moral">{{ moral }}</option>
+          </select>
+        </div>
+
+        <!-- Generate Button -->
+        <button
+          class="btn-generate-magic font-fredoka row items-center justify-center width-full shadow-6"
+          :disabled="isGeneratingAi"
+          @click="handleGenerateAiStory"
+        >
+          <span v-if="!isGeneratingAi">🚀 Mulai Buat Dongeng Ajaib</span>
+          <span v-else class="row items-center">
+            <q-spinner-sparkles color="amber" size="24px" class="q-mr-sm" />
+            Generating Dongeng AI...
+          </span>
+        </button>
+      </q-card>
+    </q-dialog>
   </q-dialog>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useGameStore } from '../application/stores/gameStore';
+import { gameApi } from '../services/api';
 
 const props = defineProps<{ modelValue: boolean }>();
 const emit = defineEmits(['update:modelValue']);
@@ -277,6 +345,57 @@ const isLullabyPlaying = ref(false);
 const isAutoAdvance = ref(true);
 let lullabyTimer: any = null;
 let lullabyCtx: AudioContext | null = null;
+
+// AI Story Generator States
+const showAiModal = ref(false);
+const isGeneratingAi = ref(false);
+const aiTopic = ref('Dinosaurus Baik Hati 🦖');
+const aiMoral = ref('Suka Menolong & Menyayangi Hewan');
+const topicPresets = [
+  'Dinosaurus Baik Hati 🦖',
+  'Robot Penyelamat 🤖',
+  'Menanam Bunga Ajaib 🌸',
+  'Luar Angkasa & Bintang 🚀',
+  'Anak Burung Kecil 🐣'
+];
+const moralOptions = [
+  'Suka Menolong & Menyayangi Hewan',
+  'Pantang Menyerah & Rajin Belajar',
+  'Jujur & Rendah Hati',
+  'Menyayangi Orang Tua & Keluarga',
+  'Menjaga Kebersihan & Lingkungan'
+];
+
+function openAiStoryModal() {
+  store.playSfx('whoosh');
+  showAiModal.value = true;
+}
+
+async function handleGenerateAiStory() {
+  if (!aiTopic.value.trim()) return;
+  isGeneratingAi.value = true;
+  store.playSfx('star');
+
+  try {
+    const newBook = await gameApi.generateAiStory(
+      aiTopic.value,
+      aiMoral.value,
+      'Petualangan 🚩',
+      store.child.age || 4
+    );
+
+    storyBooks.value.unshift(newBook);
+    showAiModal.value = false;
+    isGeneratingAi.value = false;
+    store.playSfx('win');
+
+    // Automatically open the generated AI storybook!
+    openBook(newBook);
+  } catch (e) {
+    console.error('Error generating AI story:', e);
+    isGeneratingAi.value = false;
+  }
+}
 
 // Voice Narrator Options (Suara Dongeng)
 const availableVoices = ref<SpeechSynthesisVoice[]>([]);
@@ -1317,12 +1436,15 @@ const activePage = computed(() => {
 });
 
 function openBook(book: StoryBook) {
+  store.playSfx('whoosh');
+  store.speak(book.title);
   selectedBook.value = book;
   currentPage.value = 0;
   stopAudio();
 }
 
 function backToShelf() {
+  store.playSfx('click');
   stopAudio();
   selectedBook.value = null;
   currentPage.value = 0;
@@ -1330,6 +1452,7 @@ function backToShelf() {
 
 function nextPage() {
   if (selectedBook.value && currentPage.value < selectedBook.value.pages.length - 1) {
+    store.playSfx('click');
     currentPage.value++;
     stopAudio();
   }
@@ -1337,6 +1460,7 @@ function nextPage() {
 
 function prevPage() {
   if (currentPage.value > 0) {
+    store.playSfx('click');
     currentPage.value--;
     stopAudio();
   }
@@ -1348,6 +1472,7 @@ function handleImageError(e: Event) {
 }
 
 function toggleLullabyMusic() {
+  store.playSfx('click');
   if (isLullabyPlaying.value) {
     stopLullabyMusic();
   } else {
@@ -1407,6 +1532,7 @@ function stopLullabyMusic() {
 }
 
 function toggleAudioNarration() {
+  store.playSfx('click');
   if (isNarrating.value) {
     stopAudio();
   } else {
@@ -1464,6 +1590,8 @@ function stopAudio() {
 function finishStory() {
   stopAudio();
   stopLullabyMusic();
+  store.playSfx('win');
+  store.speak('Hebat! Kamu telah menyelesaikan buku cerita ini!');
   store.child.coins += 50;
   store.child.xp += 100;
   selectedBook.value = null;
@@ -1471,6 +1599,7 @@ function finishStory() {
 }
 
 function closeModal() {
+  store.playSfx('click');
   stopAudio();
   stopLullabyMusic();
   selectedBook.value = null;
@@ -1897,5 +2026,75 @@ function closeModal() {
 
 .btn-fairytale:hover:not(:disabled) {
   transform: translateY(-2px);
+}
+
+/* AI Generator Button & Dialog Styles */
+.btn-create-ai-story {
+  background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%);
+  color: white;
+  border: 2px solid #e9d5ff;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: bold;
+  transition: transform 0.15s ease;
+}
+
+.btn-create-ai-story:hover {
+  transform: scale(1.05);
+}
+
+.ai-generator-card {
+  width: 520px;
+  max-width: 95vw;
+  background: linear-gradient(135deg, #1e1b4b 0%, #311b92 100%);
+  border-radius: 24px !important;
+  border: 3px solid #818cf8;
+}
+
+.preset-chip-btn {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fef08a;
+  border: 1px solid rgba(254, 240, 138, 0.3);
+  border-radius: 14px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.preset-chip-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.custom-input-box, .custom-select-box {
+  background: rgba(255, 255, 255, 0.95);
+  color: #1e1b4b;
+  border: 2px solid #818cf8;
+  border-radius: 14px;
+  padding: 10px 14px;
+  font-size: 14px;
+  outline: none;
+  width: 100%;
+}
+
+.btn-generate-magic {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  border: 2px solid #fde68a;
+  border-radius: 18px;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.btn-generate-magic:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.btn-generate-magic:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 </style>

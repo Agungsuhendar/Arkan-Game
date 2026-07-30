@@ -32,7 +32,7 @@
 
     <!-- 1. Integrated Top Navigation Header Bar -->
     <div class="adventure-top-bar row items-center justify-between q-px-lg q-pt-md relative-position">
-      <button class="btn-3d-cartoon btn-accent-pink shadow-6 font-fredoka btn-back-home" @click="$emit('back')">
+      <button class="btn-3d-cartoon btn-accent-pink shadow-6 font-fredoka btn-back-home" @click="handleBackHome">
         ⬅️ Beranda Rumah
       </button>
 
@@ -158,8 +158,15 @@ const getWorldEmoji = (code: string) => {
     kastil_puzzle: '🏰🧩',
     planet_sains: '🚀🪐',
     gunung_prestasi: '🏆🏔️',
+    studio_musik: '🎵🎹',
+    taman_ejaan: '🔤⚽',
   };
   return map[code] || '🌟';
+};
+
+const handleBackHome = () => {
+  store.playSfx('click');
+  emit('back');
 };
 
 const handleSelectWorld = (world: World) => {
@@ -174,10 +181,12 @@ const handleSelectWorld = (world: World) => {
     kastil_puzzle: 'CastlePuzzleScene',
     planet_sains: 'SpaceScienceScene',
     gunung_prestasi: 'MountainClimbScene',
+    studio_musik: 'MusicStudioScene',
+    taman_ejaan: 'SpellingGardenScene',
   };
 
   const targetScene = sceneMap[world.code] || 'NumberGardenScene';
-  store.startLevel('lvl_1');
+  store.startLevel('lvl_1', targetScene);
   emit('select-level', targetScene);
 };
 </script>

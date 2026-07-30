@@ -461,6 +461,8 @@ export class NumberGardenScene extends BaseGameScene {
     }
 
     if (isCorrect) {
+      this.playSfx('coin');
+      this.speak(`Angka ${item.value}! ${item.name}`);
       item.picked = true;
       this.collectedCount++;
 
@@ -498,6 +500,8 @@ export class NumberGardenScene extends BaseGameScene {
       }
     } else {
       // Wrong pick
+      this.playSfx('wrong');
+      this.speak(`Ini angka ${item.value}`);
       this.triggerArkanCheer('Coba buah yang lain yuk! 😊');
 
       if (item.container) {

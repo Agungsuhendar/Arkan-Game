@@ -296,6 +296,8 @@ export class BikeRaceScene extends BaseGameScene {
     hitArea.on('pointerdown', () => {
       if (this.isFinished) return;
 
+      this.playSfx('pedal');
+
       // Move Arkan forward to the RIGHT
       this.arkanX += 32;
       this.speedKmH = Math.min(60, this.speedKmH + 8);
@@ -351,6 +353,8 @@ export class BikeRaceScene extends BaseGameScene {
 
     if (winner === 'Arkan') {
       // 🏆 ARKAN WINS JUARA 1!
+      this.playSfx('win');
+      this.speak('Horeee! Arkan menang balapan sepeda!');
       this.spawnRewardParticles(width / 2, height / 2);
 
       const trophyContainer = this.add.container(width / 2, height / 2 - 20);
