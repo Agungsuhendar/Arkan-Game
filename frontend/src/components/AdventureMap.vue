@@ -1,5 +1,12 @@
 <template>
-  <div class="adventure-map-wrapper relative-position overflow-hidden">
+  <div
+    ref="mapWrapperRef"
+    class="adventure-map-wrapper relative-position"
+    @mousedown="handleMouseDown"
+    @mousemove="handleMouseMove"
+    @mouseup="handleMouseUpOrLeave"
+    @mouseleave="handleMouseUpOrLeave"
+  >
     <!-- Animated Hot Air Balloons & Floating Birds -->
 
     <!-- Animated Hot Air Balloons & Floating Birds -->
@@ -138,7 +145,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useGameStore } from '../application/stores/gameStore';
 import { World } from '../domain/types';
 
@@ -189,19 +196,56 @@ const handleSelectWorld = (world: World) => {
   store.startLevel('lvl_1', targetScene);
   emit('select-level', targetScene);
 };
+
+// Drag to Scroll Logic for Desktop Mouse Dragging
+const mapWrapperRef = ref<HTMLElement | null>(null);
+const isDragging = ref(false);
+const startY = ref(0);
+const scrollTopStart = ref(0);
+
+const handleMouseDown = (e: MouseEvent) => {
+  if (!mapWrapperRef.value) return;
+  const target = e.target as HTMLElement;
+  if (target.closest('button') || target.closest('.magical-world-card')) {
+    return;
+  }
+  isDragging.value = true;
+  startY.value = e.pageY - mapWrapperRef.value.offsetTop;
+  scrollTopStart.value = mapWrapperRef.value.scrollTop;
+};
+
+const handleMouseMove = (e: MouseEvent) => {
+  if (!isDragging.value || !mapWrapperRef.value) return;
+  e.preventDefault();
+  const y = e.pageY - mapWrapperRef.value.offsetTop;
+  const walk = (y - startY.value) * 1.5;
+  mapWrapperRef.value.scrollTop = scrollTopStart.value - walk;
+};
+
+const handleMouseUpOrLeave = () => {
+  isDragging.value = false;
+};
 </script>
 
 <style scoped>
 /* Full Page Pure CSS Gradient Sky - 100% Crisp & Zero Blur */
 .adventure-map-wrapper {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
+  position: relative;
+  width: 100%;
   height: 100vh;
+  min-height: 100vh;
   z-index: 10;
   background: linear-gradient(180deg, #38bdf8 0%, #0284c7 50%, #0f172a 100%);
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  scroll-behavior: smooth;
+  cursor: grab;
+}
+
+.adventure-map-wrapper:active {
+  cursor: grabbing;
 }
 
 /* Hot Air Balloons & Birds */
