@@ -1,11 +1,13 @@
-const CACHE_NAME = 'arkan-game-v26-mountain-climb';
-const MEDIA_CACHE_NAME = 'arkan-media-v13';
+const CACHE_NAME = 'arkan-game-v28-pwa-icon-fix';
+const MEDIA_CACHE_NAME = 'arkan-media-v14';
 
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
   '/favicon.ico',
+  '/pwa_icon_192.png',
+  '/pwa_icon_512.png',
   '/family_photo.png?v=family_v2'
 ];
 

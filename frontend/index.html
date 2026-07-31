@@ -18,7 +18,14 @@
     <meta name="apple-mobile-web-app-title" content="Arkan Game" />
     <link rel="apple-touch-icon" href="/arkan_avatar_card.png" />
     <script>
-      if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
+      // Capture beforeinstallprompt event globally as early as possible
+      window.deferredPwaPrompt = null;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        window.deferredPwaPrompt = e;
+      });
+
+      if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(window.location.hostname))) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW registration failed:', err));
         });

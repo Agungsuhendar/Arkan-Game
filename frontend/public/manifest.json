@@ -3,11 +3,19 @@
   "short_name": "Arkan Game",
   "description": "Game edukasi interaktif belajar membaca, berhitung, warna, dan sains bersama Arkan",
   "start_url": "/",
+  "id": "/",
   "display": "standalone",
   "background_color": "#0F172A",
   "theme_color": "#4F46E5",
   "orientation": "any",
   "categories": ["education", "kids", "games"],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://mini.arsaku.web.id/manifest.json"
+    }
+  ],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/favicon.ico",
@@ -15,16 +23,28 @@
       "type": "image/x-icon"
     },
     {
-      "src": "/arkan_avatar_card.png",
+      "src": "/pwa_icon_192.png",
       "type": "image/png",
       "sizes": "192x192",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "/arkan_avatar_card.png",
+      "src": "/pwa_icon_192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/pwa_icon_512.png",
       "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa_icon_512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
     }
   ]
 }

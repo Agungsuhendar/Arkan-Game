@@ -61,20 +61,42 @@
         </div>
 
         <!-- iOS Instructions Callout -->
-        <div v-if="isIOS" class="ios-instructions q-pa-sm q-mb-md text-left">
+        <div v-if="isIOS" class="platform-callout q-pa-sm q-mb-md text-left">
           <div class="text-subtitle2 text-bold text-amber-3 flex items-center gap-xs q-mb-xs">
             <q-icon name="apple" size="20px" /> Cara Install di iPhone / iPad:
           </div>
           <ol class="q-pl-md q-ma-none text-caption text-white font-quicksand">
             <li>Ketuk tombol <strong>Bagikan</strong> <q-icon name="ios_share" color="light-blue-3" /> di bagian bawah Safari</li>
-            <li>Geser ke bawah lalu pilih <strong>"Tambah ke Layar Utama"</strong> (Add to Home Screen) ➕</li>
+            <li>Geser ke bawah lalu pilih <strong>"Tambah ke Layar Utama"</strong> ➕</li>
+          </ol>
+        </div>
+
+        <!-- macOS Safari Callout -->
+        <div v-else-if="isMacOS && isSafari" class="platform-callout q-pa-sm q-mb-md text-left">
+          <div class="text-subtitle2 text-bold text-amber-3 flex items-center gap-xs q-mb-xs">
+            <q-icon name="laptop_mac" size="20px" /> Cara Install di Safari Mac:
+          </div>
+          <ol class="q-pl-md q-ma-none text-caption text-white font-quicksand">
+            <li>Klik menu <strong>File</strong> di bagian paling atas screen Mac Anda.</li>
+            <li>Pilih <strong>"Add to Dock..." (Tambah ke Dock)</strong> 📌</li>
+          </ol>
+        </div>
+
+        <!-- Fallback Manual Guide if prompt event is delayed/desktop -->
+        <div v-else-if="showFallbackGuide" class="platform-callout q-pa-sm q-mb-md text-left bg-purple-9">
+          <div class="text-subtitle2 text-bold text-amber-3 flex items-center gap-xs q-mb-xs">
+            <q-icon name="info" size="20px" /> Cara Install di macOS / Browser:
+          </div>
+          <ol class="q-pl-md q-ma-none text-caption text-white font-quicksand">
+            <li>Klik ikon <strong>Install (💻 / ⊕)</strong> di sebelah kanan Address Bar Chrome/Edge.</li>
+            <li>Atau klik menu <strong>3 titik (⋮)</strong> ➔ <strong>"Install Petualangan Arkan"</strong>.</li>
           </ol>
         </div>
 
         <!-- Action Buttons -->
         <div class="column gap-sm items-center q-mt-sm">
           <q-btn
-            v-if="!isIOS"
+            v-if="!isIOS && !(isMacOS && isSafari)"
             unelevated
             rounded
             class="install-btn full-width q-py-sm"
@@ -97,17 +119,31 @@
             <span class="text-bold text-subtitle1">SAYA MENGERTI 👍</span>
           </q-btn>
 
-          <q-btn
-            flat
-            rounded
-            no-caps
-            color="grey-4"
-            class="later-btn text-caption"
-            v-close-popup
-            @click="dismissPrompt"
-          >
-            Nanti Saja
-          </q-btn>
+          <div class="row items-center justify-center gap-xs full-width q-mt-xs">
+            <q-btn
+              flat
+              rounded
+              no-caps
+              color="grey-4"
+              class="later-btn text-caption"
+              v-close-popup
+              @click="dismissPrompt"
+            >
+              Nanti Saja
+            </q-btn>
+            <span class="text-grey-6">•</span>
+            <q-btn
+              flat
+              rounded
+              no-caps
+              color="amber-3"
+              class="later-btn text-caption text-weight-bold"
+              v-close-popup
+              @click="markAsInstalled"
+            >
+              Sudah Pernah Install ✓
+            </q-btn>
+          </div>
         </div>
       </div>
     </div>
@@ -120,14 +156,42 @@ import { ref, onMounted, onBeforeUnmount } from 'vue';
 const isOpen = ref(false);
 const deferredPrompt = ref<any>(null);
 const isIOS = ref(false);
+const isMacOS = ref(false);
+const isSafari = ref(false);
+const showFallbackGuide = ref(false);
 
-const DISMISS_KEY = 'arkan_pwa_prompt_dismissed_until';
+const DISMISS_KEY = 'arkan_pwa_prompt_dismissed_session';
+const INSTALLED_KEY = 'arkan_pwa_installed';
 
-const checkIsStandalone = (): boolean => {
-  return (
+const checkIsInstalled = async (): Promise<boolean> => {
+  // 1. Check if app is running in standalone mode (installed & opened as app)
+  if (
     window.matchMedia('(display-mode: standalone)').matches ||
     (window.navigator as any).standalone === true
-  );
+  ) {
+    localStorage.setItem(INSTALLED_KEY, 'true');
+    return true;
+  }
+
+  // 2. Check localStorage flag from previous installation
+  if (localStorage.getItem(INSTALLED_KEY) === 'true') {
+    return true;
+  }
+
+  // 3. Check browser getInstalledRelatedApps API (Chrome/Edge desktop & mobile)
+  if ('getInstalledRelatedApps' in navigator) {
+    try {
+      const relatedApps = await (navigator as any).getInstalledRelatedApps();
+      if (relatedApps && relatedApps.length > 0) {
+        localStorage.setItem(INSTALLED_KEY, 'true');
+        return true;
+      }
+    } catch (e) {
+      console.log('getInstalledRelatedApps error:', e);
+    }
+  }
+
+  return false;
 };
 
 const checkIsIOS = (): boolean => {
@@ -135,60 +199,97 @@ const checkIsIOS = (): boolean => {
   return /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
 };
 
+const checkIsMacOS = (): boolean => {
+  const ua = window.navigator.userAgent;
+  return /Macintosh|MacIntel/.test(ua) && !('ontouchend' in document);
+};
+
+const checkIsSafari = (): boolean => {
+  const ua = window.navigator.userAgent;
+  return /Safari/.test(ua) && !/Chrome|CriOS|FxiOS|Edg/.test(ua);
+};
+
 const isDismissed = (): boolean => {
-  const dismissedUntil = localStorage.getItem(DISMISS_KEY);
-  if (!dismissedUntil) return false;
-  return new Date().getTime() < parseInt(dismissedUntil, 10);
+  return sessionStorage.getItem(DISMISS_KEY) === 'true';
 };
 
 const dismissPrompt = () => {
   isOpen.value = false;
-  // Don't show again for 24 hours
-  const tomorrow = new Date().getTime() + 24 * 60 * 60 * 1000;
-  localStorage.setItem(DISMISS_KEY, tomorrow.toString());
+  sessionStorage.setItem(DISMISS_KEY, 'true');
+};
+
+const markAsInstalled = () => {
+  isOpen.value = false;
+  localStorage.setItem(INSTALLED_KEY, 'true');
 };
 
 const installPwa = async () => {
-  if (!deferredPrompt.value) return;
+  const promptEvent = deferredPrompt.value || (window as any).deferredPwaPrompt;
 
-  deferredPrompt.value.prompt();
-  const { outcome } = await deferredPrompt.value.userChoice;
-  
-  if (outcome === 'accepted') {
-    console.log('PWA installation accepted by user');
+  if (promptEvent && typeof promptEvent.prompt === 'function') {
+    try {
+      promptEvent.prompt();
+
+      const choiceResult = await promptEvent.userChoice;
+      if (choiceResult && choiceResult.outcome === 'accepted') {
+        console.log('PWA installation accepted by user');
+        localStorage.setItem(INSTALLED_KEY, 'true');
+        isOpen.value = false;
+        return;
+      }
+
+      deferredPrompt.value = null;
+      (window as any).deferredPwaPrompt = null;
+      isOpen.value = false;
+      return;
+    } catch (err) {
+      console.log('Native prompt failed:', err);
+    }
   }
-  deferredPrompt.value = null;
-  isOpen.value = false;
+
+  // Fallback jika event belum dipicu browser
+  showFallbackGuide.value = true;
 };
 
-const handleBeforeInstallPrompt = (e: Event) => {
+const handleBeforeInstallPrompt = async (e: Event) => {
   e.preventDefault();
   deferredPrompt.value = e;
+  (window as any).deferredPwaPrompt = e;
 
-  if (!checkIsStandalone() && !isDismissed()) {
+  const alreadyInstalled = await checkIsInstalled();
+  if (!alreadyInstalled && !isDismissed()) {
     setTimeout(() => {
       isOpen.value = true;
-    }, 1500);
+    }, 1000);
   }
 };
 
 const handleAppInstalled = () => {
   isOpen.value = false;
   deferredPrompt.value = null;
+  (window as any).deferredPwaPrompt = null;
+  localStorage.setItem(INSTALLED_KEY, 'true');
   console.log('PWA installed successfully');
 };
 
-onMounted(() => {
+onMounted(async () => {
   isIOS.value = checkIsIOS();
+  isMacOS.value = checkIsMacOS();
+  isSafari.value = checkIsSafari();
+
+  if ((window as any).deferredPwaPrompt) {
+    deferredPrompt.value = (window as any).deferredPwaPrompt;
+  }
 
   window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   window.addEventListener('appinstalled', handleAppInstalled);
 
-  // If on iOS and not standalone and not dismissed, show prompt after 2 seconds
-  if (isIOS.value && !checkIsStandalone() && !isDismissed()) {
+  // Check if app is already installed before triggering popup
+  const alreadyInstalled = await checkIsInstalled();
+  if (!alreadyInstalled && !isDismissed()) {
     setTimeout(() => {
       isOpen.value = true;
-    }, 2000);
+    }, 1500);
   }
 });
 
@@ -314,8 +415,8 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
 }
 
-/* iOS Callout */
-.ios-instructions {
+/* Callouts */
+.platform-callout {
   background: rgba(245, 158, 11, 0.12);
   border: 1px dashed rgba(245, 158, 11, 0.4);
   border-radius: 16px;
