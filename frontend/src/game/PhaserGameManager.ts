@@ -12,6 +12,21 @@ import { MountainClimbScene } from './scenes/MountainClimbScene';
 import { MusicStudioScene } from './scenes/MusicStudioScene';
 import { SpellingGardenScene } from './scenes/SpellingGardenScene';
 
+const SCENE_CLASS_MAP: Record<string, any> = {
+  BikeRaceScene,
+  BalloonGameScene,
+  FishRescueScene,
+  MusicStudioScene,
+  SpellingGardenScene,
+  NumberGardenScene,
+  MatchLineGameScene,
+  ColorCityScene,
+  AnimalIslandScene,
+  CastlePuzzleScene,
+  SpaceScienceScene,
+  MountainClimbScene,
+};
+
 export class PhaserGameManager {
   private static instance: Phaser.Game | null = null;
 
@@ -20,6 +35,8 @@ export class PhaserGameManager {
       this.instance.destroy(true);
       this.instance = null;
     }
+
+    const TargetSceneClass = SCENE_CLASS_MAP[sceneKey] || NumberGardenScene;
 
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
@@ -30,13 +47,13 @@ export class PhaserGameManager {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH
       },
-      backgroundColor: '#f8fafc',
+      backgroundColor: '#0f172a',
       render: {
         antialias: true,
         roundPixels: true,
         powerPreference: 'high-performance'
       },
-      scene: [SpellingGardenScene, MusicStudioScene, MountainClimbScene, SpaceScienceScene, AnimalIslandScene, CastlePuzzleScene, ColorCityScene, NumberGardenScene, MatchLineGameScene, BalloonGameScene, FishRescueScene, BikeRaceScene],
+      scene: [TargetSceneClass],
       physics: {
         default: 'arcade',
         arcade: { debug: false }

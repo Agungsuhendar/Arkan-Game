@@ -371,7 +371,10 @@ class SoundService {
       if (options.onEnd) options.onEnd();
     };
 
-    utterance.onerror = (err) => {
+    utterance.onerror = (err: any) => {
+      if (err && (err.error === 'canceled' || err.error === 'interrupted')) {
+        return;
+      }
       this.isSpeechActive = false;
       if (options.onError) options.onError(err);
       else if (options.onEnd) options.onEnd();

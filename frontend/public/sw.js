@@ -1,11 +1,13 @@
-const CACHE_NAME = 'arkan-game-v28-pwa-icon-fix';
-const MEDIA_CACHE_NAME = 'arkan-media-v14';
+const CACHE_NAME = 'arkan-game-v29-3d-pwa-icon';
+const MEDIA_CACHE_NAME = 'arkan-media-v15';
 
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
   '/favicon.ico',
+  '/favicon.png',
+  '/pwa_icon_180.png',
   '/pwa_icon_192.png',
   '/pwa_icon_512.png',
   '/family_photo.png?v=family_v2'

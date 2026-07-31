@@ -1,96 +1,13 @@
 <template>
-  <div class="gameplay-canvas-fullscreen relative-position">
-    <!-- Floating Overlay Top Bar -->
-    <div class="gameplay-header-overlay row items-center justify-between q-px-lg q-py-sm">
-      <button class="btn-3d-cartoon btn-accent-pink shadow-4" @click="handleExit">
+  <div class="gameplay-canvas-fullscreen column relative-position overflow-hidden">
+    <!-- Clean Non-Overlapping Top Header Bar -->
+    <div class="gameplay-header-bar row items-center justify-between q-px-lg">
+      <button class="btn-3d-cartoon btn-accent-pink shadow-4 btn-exit-game" @click="handleExit">
         ✖️ Keluar Game
       </button>
 
-      <div class="scenes-scroll-row row items-center q-gutter-x-xs no-wrap overflow-auto">
-        <button
-          class="btn-3d-cartoon q-px-sm q-py-xs text-caption"
-          :class="activeScene === 'MountainClimbScene' ? 'btn-primary-yellow' : 'btn-primary-blue'"
-          @click="switchScene('MountainClimbScene')"
-        >
-          🏔️ Gunung
-        </button>
-        <button
-          class="btn-3d-cartoon q-px-sm q-py-xs text-caption"
-          :class="activeScene === 'SpaceScienceScene' ? 'btn-primary-yellow' : 'btn-primary-blue'"
-          @click="switchScene('SpaceScienceScene')"
-        >
-          🚀 Sains
-        </button>
-        <button
-          class="btn-3d-cartoon q-px-sm q-py-xs text-caption"
-          :class="activeScene === 'AnimalIslandScene' ? 'btn-primary-yellow' : 'btn-primary-blue'"
-          @click="switchScene('AnimalIslandScene')"
-        >
-          🏝️ Hewan
-        </button>
-        <button
-          class="btn-3d-cartoon q-px-sm q-py-xs text-caption"
-          :class="activeScene === 'CastlePuzzleScene' ? 'btn-primary-yellow' : 'btn-primary-blue'"
-          @click="switchScene('CastlePuzzleScene')"
-        >
-          🏰 Kastil
-        </button>
-        <button
-          class="btn-3d-cartoon q-px-sm q-py-xs text-caption"
-          :class="activeScene === 'ColorCityScene' ? 'btn-primary-yellow' : 'btn-primary-blue'"
-          @click="switchScene('ColorCityScene')"
-        >
-          🎨 Warna
-        </button>
-        <button
-          class="btn-3d-cartoon q-px-sm q-py-xs text-caption"
-          :class="activeScene === 'NumberGardenScene' ? 'btn-primary-yellow' : 'btn-primary-blue'"
-          @click="switchScene('NumberGardenScene')"
-        >
-          🌻 Angka
-        </button>
-        <button
-          class="btn-3d-cartoon q-px-sm q-py-xs text-caption"
-          :class="activeScene === 'MatchLineGameScene' ? 'btn-primary-yellow' : 'btn-primary-blue'"
-          @click="switchScene('MatchLineGameScene')"
-        >
-          🔗 Garis
-        </button>
-        <button
-          class="btn-3d-cartoon q-px-sm q-py-xs text-caption"
-          :class="activeScene === 'BalloonGameScene' ? 'btn-primary-yellow' : 'btn-primary-blue'"
-          @click="switchScene('BalloonGameScene')"
-        >
-          🎈 Balon
-        </button>
-        <button
-          class="btn-3d-cartoon q-px-sm q-py-xs text-caption"
-          :class="activeScene === 'FishRescueScene' ? 'btn-primary-yellow' : 'btn-primary-blue'"
-          @click="switchScene('FishRescueScene')"
-        >
-          🐠 Ikan
-        </button>
-        <button
-          class="btn-3d-cartoon q-px-sm q-py-xs text-caption"
-          :class="activeScene === 'BikeRaceScene' ? 'btn-primary-yellow' : 'btn-primary-blue'"
-          @click="switchScene('BikeRaceScene')"
-        >
-          🚴 Sepeda
-        </button>
-        <button
-          class="btn-3d-cartoon q-px-sm q-py-xs text-caption"
-          :class="activeScene === 'MusicStudioScene' ? 'btn-primary-yellow' : 'btn-primary-blue'"
-          @click="switchScene('MusicStudioScene')"
-        >
-          🎵 Musik
-        </button>
-        <button
-          class="btn-3d-cartoon q-px-sm q-py-xs text-caption"
-          :class="activeScene === 'SpellingGardenScene' ? 'btn-primary-yellow' : 'btn-primary-blue'"
-          @click="switchScene('SpellingGardenScene')"
-        >
-          🔤 Ejaan
-        </button>
+      <div class="active-game-title font-fredoka text-bold text-white text-h6 title-glow-3d row items-center gap-xs">
+        <span>{{ activeSceneTitle }}</span>
       </div>
 
       <div class="stat-pill bg-amber-5 text-white font-fredoka text-bold shadow-4 q-px-md q-py-xs rounded-borders">
@@ -98,22 +15,39 @@
       </div>
     </div>
 
-    <!-- Phaser 3 Canvas Container Mount Point (Full Screen) -->
-    <div id="phaser-game-mount" class="full-screen-canvas-container"></div>
+    <!-- Phaser 3 Canvas Container (Mounted cleanly BELOW header bar) -->
+    <div id="phaser-game-mount" class="full-screen-canvas-container col"></div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useGameStore } from '../application/stores/gameStore';
 import { PhaserGameManager } from '../game/PhaserGameManager';
 
 const emit = defineEmits(['exit']);
 const store = useGameStore();
-const activeScene = ref<string>(store.activeSceneKey || 'MountainClimbScene');
+const activeScene = ref<string>(store.activeSceneKey || 'NumberGardenScene');
+
+const sceneTitles: Record<string, string> = {
+  BikeRaceScene: '🚴 Balap Sepeda Arkan',
+  BalloonGameScene: '🎈 Pop Balon Huruf & Angka',
+  FishRescueScene: '🐠 Penyelamatan Ikan Laut',
+  MusicStudioScene: '🎵 Studio Pianika & Musik',
+  SpellingGardenScene: '🔤 Taman Ejaan Kata',
+  NumberGardenScene: '🍉 Kebun Angka & Berhitung',
+  MatchLineGameScene: '🎯 Tarik Garis Cocokkan',
+  ColorCityScene: '🎨 Kota Warna & Bentuk',
+  AnimalIslandScene: '🦁 Pulau Satwa & Suara',
+  CastlePuzzleScene: '🏰 Kastil Puzzle Logika',
+  SpaceScienceScene: '🚀 Sains Luar Angkasa',
+  MountainClimbScene: '🏆 Panjat Gunung XP',
+};
+
+const activeSceneTitle = computed(() => sceneTitles[activeScene.value] || '🎮 Game Petualangan Arkan');
 
 const launchCurrentScene = () => {
-  const prompt = store.currentLevel?.questions[0]?.prompt_text || 'Tolong Arkan selamatkan ikan dari jaring!';
+  const prompt = store.currentLevel?.questions[0]?.prompt_text || 'Ayo main bersama Arkan!';
   PhaserGameManager.launch('phaser-game-mount', activeScene.value, {
     promptText: prompt,
     targetLetter: 'A',
@@ -124,11 +58,6 @@ const launchCurrentScene = () => {
       emit('exit');
     }
   });
-};
-
-const switchScene = (sceneKey: string) => {
-  activeScene.value = sceneKey;
-  launchCurrentScene();
 };
 
 onMounted(() => {
@@ -154,28 +83,37 @@ const handleExit = () => {
   height: 100vh;
   z-index: 1000;
   background-color: #0f172a;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
-.gameplay-header-overlay {
-  position: absolute;
-  top: 12px;
-  left: 0;
-  right: 0;
+.gameplay-header-bar {
+  height: 60px;
+  min-height: 60px;
+  max-height: 60px;
+  flex-shrink: 0;
   z-index: 1010;
-  pointer-events: auto;
-  background: rgba(15, 23, 42, 0.4);
-  backdrop-filter: blur(8px);
-  border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  border-bottom: 3px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 }
 
-.scenes-scroll-row::-webkit-scrollbar {
-  display: none;
+.btn-exit-game {
+  font-size: 13px;
+  padding: 6px 14px;
+}
+
+.title-glow-3d {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 .full-screen-canvas-container {
+  flex: 1;
   width: 100%;
-  height: 100%;
+  height: calc(100vh - 60px);
+  position: relative;
+  overflow: hidden;
 }
 
 :deep(#phaser-game-mount canvas) {

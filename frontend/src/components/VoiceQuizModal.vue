@@ -1,51 +1,92 @@
 <template>
   <q-dialog v-model="isOpen" persistent transition-show="scale" transition-hide="scale">
-    <q-card class="voice-quiz-card font-quicksand q-pa-lg text-white column no-wrap shadow-24">
+    <q-card class="voice-quiz-card font-quicksand q-pa-lg text-white column no-wrap shadow-24 relative-position overflow-hidden">
+      <!-- Glow background decorations -->
+      <div class="glow-orb-1"></div>
+      <div class="glow-orb-2"></div>
+
       <!-- Top Bar Header -->
-      <div class="row items-center justify-between q-mb-md header-bar">
+      <div class="row items-center justify-between q-mb-md header-bar relative-position z-top">
         <div class="row items-center q-gutter-x-sm">
-          <span class="text-h4">🎙️✨</span>
+          <div class="avatar-circle-sm relative-position shadow-4">
+            <img src="/arkan_character.png" class="avatar-img" alt="Arkan" />
+          </div>
           <div>
-            <div class="text-h5 font-fredoka text-bold text-amber-3">Kuis Suara & Bicara Arkan</div>
-            <div class="text-caption text-purple-2 font-fredoka">Bicaralah pada mikrofon & jawab pertanyaan hewan!</div>
+            <div class="text-h5 font-fredoka text-bold text-amber-3 row items-center gap-xs">
+              <span>🎙️✨ Kuis Suara & Bicara Arkan</span>
+            </div>
+            <div class="text-caption text-purple-2 font-fredoka">
+              Suara Narator Manusia Alami (Natural Human Voice) 🔊
+            </div>
           </div>
         </div>
         <button class="btn-close-fullscreen flex flex-center shadow-4" @click="closeModal" title="Tutup Kuis">✕</button>
       </div>
 
-      <!-- Question Cartoon Speech Bubble Card -->
-      <div class="question-display-box column items-center text-center q-pa-lg shadow-12 relative-position q-mb-md">
-        <div class="round-badge font-fredoka shadow-4 q-mb-xs row items-center q-gutter-x-xs">
-          <span>🎯</span>
-          <span>Pertanyaan #{{ currentRoundIndex + 1 }} dari {{ quizRounds.length }}</span>
+      <!-- Category Selector Tabs -->
+      <div class="row q-gutter-x-xs justify-center q-mb-md relative-position z-top">
+        <button
+          v-for="cat in categories"
+          :key="cat.id"
+          class="category-tab-btn font-fredoka shadow-3"
+          :class="{ active: currentCategory === cat.id }"
+          @click="selectCategory(cat.id)"
+        >
+          <span class="q-mr-xs">{{ cat.emoji }}</span>
+          <span>{{ cat.label }}</span>
+        </button>
+      </div>
+
+      <!-- Question Speech Box with Arkan Companion Avatar -->
+      <div class="question-display-box column items-center text-center q-pa-md shadow-12 relative-position q-mb-md z-top">
+        <div class="row items-center justify-between full-width q-px-sm q-mb-xs">
+          <div class="round-badge font-fredoka shadow-4 row items-center q-gutter-x-xs">
+            <span>🎯</span>
+            <span>Soal #{{ currentRoundIndex + 1 }} dari {{ activeQuestions.length }}</span>
+          </div>
+
+          <div v-if="comboStreak > 1" class="combo-badge font-fredoka shadow-4 animate-bounce">
+            🔥 Combo x{{ comboStreak }}!
+          </div>
         </div>
 
-        <!-- Animated Question Text -->
+        <!-- Question Text & Audio Button -->
         <div class="text-h4 font-fredoka text-bold text-amber-3 q-my-sm question-text-glow">
           "{{ currentQuestion.questionText }}"
         </div>
 
         <button class="btn-repeat-audio font-fredoka row items-center q-px-md q-py-xs shadow-6 q-mt-xs" @click="speakCurrentQuestion">
           <span class="sound-wave-icon q-mr-xs">🔊</span>
-          <span>Dengarkan Suara Arkan</span>
+          <span>Dengarkan Suara Alami Arkan</span>
         </button>
 
-        <!-- Revealed Animal Icon (Shown when answered correctly) -->
+        <!-- Revealed Answer Emblem (When answered correctly) -->
         <div v-if="isAnsweredCorrectly" class="revealed-animal-box animate-bounce q-mt-md flex flex-center shadow-8">
           <span class="animal-emoji-giant">{{ currentQuestion.emoji }}</span>
         </div>
       </div>
 
-      <!-- Real-time Spoken Transcript Box -->
-      <div class="transcript-box column items-center justify-center q-py-sm q-px-lg rounded-borders text-center q-mb-md">
-        <span class="text-caption text-bold text-purple-2 font-fredoka">🗣️ Terdeteksi Suara Kamu:</span>
-        <div class="text-h6 font-fredoka text-bold text-amber-3 q-mt-xs spoken-text">
+      <!-- Real-time Spoken Transcript Box with Wave Equalizer -->
+      <div class="transcript-box column items-center justify-center q-py-sm q-px-lg rounded-borders text-center q-mb-md relative-position z-top">
+        <div class="row items-center gap-xs q-mb-xs">
+          <span class="text-caption text-bold text-purple-2 font-fredoka">🗣️ Terdeteksi Suara Kamu:</span>
+          <!-- Audio Wave Equalizer when listening -->
+          <div v-if="isListening" class="equalizer-bars row items-end gap-xs">
+            <div class="bar bar-1"></div>
+            <div class="bar bar-2"></div>
+            <div class="bar bar-3"></div>
+            <div class="bar bar-4"></div>
+            <div class="bar bar-5"></div>
+          </div>
+        </div>
+
+        <div class="text-h6 font-fredoka text-bold text-amber-3 spoken-text">
           {{ spokenTranscript || (isListening ? '🎙️ Mendengarkan ucapanmu...' : 'Belum ada suara terdeteksi') }}
         </div>
       </div>
 
-      <!-- Pulsing Interactive Microphone Button & Wave Visualizer -->
-      <div class="mic-button-wrapper flex flex-center relative-position q-my-md">
+      <!-- Pulsing Interactive Microphone Button -->
+      <div class="mic-button-wrapper flex flex-center relative-position q-my-sm z-top">
         <!-- Ripple Rings Animation when Listening -->
         <div v-if="isListening" class="pulse-ring ring-1"></div>
         <div v-if="isListening" class="pulse-ring ring-2"></div>
@@ -63,12 +104,12 @@
         </button>
       </div>
 
-      <div class="text-center text-caption text-bold text-amber-3 font-fredoka q-mb-md">
+      <div class="text-center text-caption text-bold text-amber-3 font-fredoka q-mb-sm z-top">
         {{ isListening ? 'Ayo sebutkan jawabannya sekarang!' : 'Tekan Tombol Mikrofon di atas untuk Bicara' }}
       </div>
 
-      <!-- Fallback Option Cards (If device mic is unavailable or for younger kids) -->
-      <div class="fallback-cards-section q-mt-xs">
+      <!-- Fallback Option Cards for Easy Touch / Mic Alternative -->
+      <div class="fallback-cards-section q-mt-xs relative-position z-top">
         <div class="text-caption text-bold text-purple-2 q-mb-xs font-fredoka text-center">
           💡 Atau Tekan Pilihan Gambar di Bawah:
         </div>
@@ -86,11 +127,12 @@
       </div>
 
       <!-- Round Victory Banner -->
-      <div v-if="isAnsweredCorrectly" class="victory-banner column items-center q-mt-md q-pa-md rounded-borders text-center shadow-12 animate-pop">
-        <div class="text-h5 font-fredoka text-bold text-amber-3">🎉 PINTAR! JAWABAN BENAR!</div>
+      <div v-if="isAnsweredCorrectly" class="victory-banner column items-center q-mt-md q-pa-md rounded-borders text-center shadow-12 animate-pop relative-position z-top">
+        <div class="text-h5 font-fredoka text-bold text-amber-3">🎉 LUAR BIASA! JAWABAN BENAR!</div>
         <div class="row q-gutter-x-md text-bold text-white q-mt-xs font-fredoka text-subtitle1">
           <span>🪙 +30 Koin</span>
           <span>⭐ +50 XP</span>
+          <span v-if="comboStreak > 1" class="text-amber-3">🔥 Bonus Combo!</span>
         </div>
       </div>
     </q-card>
@@ -116,16 +158,28 @@ interface OptionChoice {
 }
 
 interface VoiceQuestion {
+  category: 'hewan' | 'angka' | 'warna' | 'kata';
   questionText: string;
   validTargets: string[];
   emoji: string;
   options: OptionChoice[];
 }
 
-const quizRounds: VoiceQuestion[] = [
+const categories = [
+  { id: 'hewan', label: 'Suara Hewan', emoji: '🐶' },
+  { id: 'angka', label: 'Hitung Angka', emoji: '🔢' },
+  { id: 'warna', label: 'Tebak Warna', emoji: '🎨' },
+  { id: 'kata', label: 'Latihan Kata', emoji: '🔤' },
+];
+
+const currentCategory = ref<'hewan' | 'angka' | 'warna' | 'kata'>('hewan');
+
+const allQuestions: VoiceQuestion[] = [
+  // Category: Hewan
   {
+    category: 'hewan',
     questionText: 'Hewan apa yang suaranya MEOONG?',
-    validTargets: ['kucing', 'kucing mimi', 'cat', 'meong', 'pussy'],
+    validTargets: ['kucing', 'meong', 'cat', 'pus', 'pussy', 'mimi'],
     emoji: '🐱',
     options: [
       { name: 'Kucing', emoji: '🐱' },
@@ -134,6 +188,7 @@ const quizRounds: VoiceQuestion[] = [
     ]
   },
   {
+    category: 'hewan',
     questionText: 'Hewan apa yang suaranya GUK GUK?',
     validTargets: ['anjing', 'guguk', 'dog', 'guk'],
     emoji: '🐶',
@@ -144,6 +199,7 @@ const quizRounds: VoiceQuestion[] = [
     ]
   },
   {
+    category: 'hewan',
     questionText: 'Hewan apa yang suaranya MOOO?',
     validTargets: ['sapi', 'lembu', 'cow', 'moo'],
     emoji: '🐮',
@@ -154,6 +210,7 @@ const quizRounds: VoiceQuestion[] = [
     ]
   },
   {
+    category: 'hewan',
     questionText: 'Hewan apa yang lehernya sangat panjang?',
     validTargets: ['jerapah', 'giraffe', 'jerapa'],
     emoji: '🦒',
@@ -164,25 +221,166 @@ const quizRounds: VoiceQuestion[] = [
     ]
   },
   {
-    questionText: 'Hewan apa yang suaranya RAWR?',
-    validTargets: ['dinosaurus', 'dino', 'singa', 'harimau', 'rawr'],
-    emoji: '🦖',
+    category: 'hewan',
+    questionText: 'Hewan apa yang suaranya KWEK KWEK?',
+    validTargets: ['bebek', 'duck', 'kwek'],
+    emoji: '🦆',
     options: [
-      { name: 'Dinosaurus', emoji: '🦖' },
-      { name: 'Kucing', emoji: '🐱' },
-      { name: 'Jerapah', emoji: '🦒' }
+      { name: 'Bebek', emoji: '🦆' },
+      { name: 'Ayam', emoji: '🐔' },
+      { name: 'Burung', emoji: '🐦' }
+    ]
+  },
+
+  // Category: Angka
+  {
+    category: 'angka',
+    questionText: 'Ayo sebutkan angka SATU!',
+    validTargets: ['satu', '1', 'one'],
+    emoji: '1️⃣',
+    options: [
+      { name: 'Satu', emoji: '1️⃣' },
+      { name: 'Dua', emoji: '2️⃣' },
+      { name: 'Tiga', emoji: '3️⃣' }
+    ]
+  },
+  {
+    category: 'angka',
+    questionText: 'Berapa jumlah 1 ditambah 1?',
+    validTargets: ['dua', '2', 'two'],
+    emoji: '2️⃣',
+    options: [
+      { name: 'Satu', emoji: '1️⃣' },
+      { name: 'Dua', emoji: '2️⃣' },
+      { name: 'Tiga', emoji: '3️⃣' }
+    ]
+  },
+  {
+    category: 'angka',
+    questionText: 'Ayo sebutkan angka TIGA!',
+    validTargets: ['tiga', '3', 'three'],
+    emoji: '3️⃣',
+    options: [
+      { name: 'Dua', emoji: '2️⃣' },
+      { name: 'Tiga', emoji: '3️⃣' },
+      { name: 'Empat', emoji: '4️⃣' }
+    ]
+  },
+
+  // Category: Warna
+  {
+    category: 'warna',
+    questionText: 'Warna apa buah Pisang yang matang?',
+    validTargets: ['kuning', 'yellow'],
+    emoji: '🍌',
+    options: [
+      { name: 'Kuning', emoji: '🟨' },
+      { name: 'Merah', emoji: '🟥' },
+      { name: 'Hijau', emoji: '🟩' }
+    ]
+  },
+  {
+    category: 'warna',
+    questionText: 'Warna apa daun di pohon yang segar?',
+    validTargets: ['hijau', 'green'],
+    emoji: '🍃',
+    options: [
+      { name: 'Hijau', emoji: '🟩' },
+      { name: 'Biru', emoji: '🟦' },
+      { name: 'Kuning', emoji: '🟨' }
+    ]
+  },
+  {
+    category: 'warna',
+    questionText: 'Warna apa buah Apel manis di pohon?',
+    validTargets: ['merah', 'red'],
+    emoji: '🍎',
+    options: [
+      { name: 'Merah', emoji: '🟥' },
+      { name: 'Hijau', emoji: '🟩' },
+      { name: 'Biru', emoji: '🟦' }
+    ]
+  },
+
+  // Category: Kata
+  {
+    category: 'kata',
+    questionText: 'Ayo sebutkan kata APEL!',
+    validTargets: ['apel', 'apple'],
+    emoji: '🍎',
+    options: [
+      { name: 'Apel', emoji: '🍎' },
+      { name: 'Bintang', emoji: '⭐' },
+      { name: 'Mobil', emoji: '🚗' }
+    ]
+  },
+  {
+    category: 'kata',
+    questionText: 'Ayo ucapkan kata ARKAN!',
+    validTargets: ['arkan', 'arkanza'],
+    emoji: '👦',
+    options: [
+      { name: 'Arkan', emoji: '👦' },
+      { name: 'Pintar', emoji: '🌟' },
+      { name: 'Hebat', emoji: '👏' }
+    ]
+  },
+  {
+    category: 'kata',
+    questionText: 'Ayo sebutkan kata BINTANG!',
+    validTargets: ['bintang', 'star'],
+    emoji: '⭐',
+    options: [
+      { name: 'Bintang', emoji: '⭐' },
+      { name: 'Bulan', emoji: '🌙' },
+      { name: 'Matahari', emoji: '☀️' }
     ]
   }
 ];
+
+const activeQuestions = computed(() => {
+  return allQuestions.filter(q => q.category === currentCategory.value);
+});
 
 const currentRoundIndex = ref(0);
 const isListening = ref(false);
 const spokenTranscript = ref('');
 const isAnsweredCorrectly = ref(false);
+const comboStreak = ref(0);
 
-const currentQuestion = computed(() => quizRounds[currentRoundIndex.value] || quizRounds[0]);
+const currentQuestion = computed(() => {
+  const list = activeQuestions.value;
+  return list[currentRoundIndex.value] || list[0] || allQuestions[0];
+});
 
+let currentAudioElement: HTMLAudioElement | null = null;
 let recognition: any = null;
+
+function playNaturalVoice(audioKey: string, fallbackText: string) {
+  if (currentAudioElement) {
+    currentAudioElement.pause();
+    currentAudioElement = null;
+  }
+
+  const audioUrl = `/audio/voices/${audioKey}.mp3`;
+  const audio = new Audio(audioUrl);
+  currentAudioElement = audio;
+
+  audio.play().catch(() => {
+    // Fallback to browser SpeechSynthesis if MP3 audio file is not loaded
+    store.speak(fallbackText);
+  });
+}
+
+function selectCategory(catId: any) {
+  store.playSfx('click');
+  currentCategory.value = catId;
+  currentRoundIndex.value = 0;
+  isAnsweredCorrectly.value = false;
+  spokenTranscript.value = '';
+  comboStreak.value = 0;
+  speakCurrentQuestion();
+}
 
 function initSpeechRecognition() {
   if (typeof window !== 'undefined') {
@@ -191,13 +389,15 @@ function initSpeechRecognition() {
       recognition = new SpeechRecognitionClass();
       recognition.lang = 'id-ID';
       recognition.continuous = false;
-      recognition.interimResults = false;
+      recognition.interimResults = true;
 
       recognition.onresult = (event: any) => {
         const text = event.results[0][0].transcript.toLowerCase().trim();
         spokenTranscript.value = `"${text}"`;
-        isListening.value = false;
-        evaluateAnswer(text);
+        if (event.results[0].isFinal) {
+          isListening.value = false;
+          evaluateAnswer(text);
+        }
       };
 
       recognition.onerror = (err: any) => {
@@ -221,17 +421,17 @@ function startListening() {
     try {
       recognition.start();
     } catch (e) {
-      console.warn('Recognition already started or error:', e);
+      console.warn('Recognition error or already started:', e);
     }
   } else {
-    // Fallback if browser doesn't support Web Speech Recognition
     spokenTranscript.value = 'Mikrofon tidak didukung di browser ini. Gunakan pilihan gambar di bawah!';
     isListening.value = false;
   }
 }
 
 function speakCurrentQuestion() {
-  store.speak(currentQuestion.value.questionText);
+  const audioKey = `q_${currentCategory.value}_${currentRoundIndex.value}`;
+  playNaturalVoice(audioKey, currentQuestion.value.questionText);
 }
 
 function evaluateAnswer(userSpokenText: string) {
@@ -239,10 +439,12 @@ function evaluateAnswer(userSpokenText: string) {
   const isMatch = targets.some(t => userSpokenText.includes(t));
 
   if (isMatch) {
+    comboStreak.value++;
     handleCorrectAnswer();
   } else {
+    comboStreak.value = 0;
     store.playSfx('wrong');
-    store.speak('Hampir benar! Coba tebak sekali lagi ya!');
+    playNaturalVoice('wrong_1', 'Hampir benar! Coba ucapkan sekali lagi ya!');
   }
 }
 
@@ -254,29 +456,33 @@ function handleManualOptionClick(optionName: string) {
 function handleCorrectAnswer() {
   isAnsweredCorrectly.value = true;
   store.playSfx('win');
-  store.speak(`Pintar sekali! Jawaban ${currentQuestion.value.options.find(o => o.name.toLowerCase() === currentQuestion.value.validTargets[0])?.name || optionNameCorrect()} benar!`);
+
+  const praises = ['praise_1', 'praise_2', 'praise_3'];
+  const randomPraiseKey = praises[Math.floor(Math.random() * praises.length)];
+  const fallbackPraise = 'Pintar sekali! Jawabanmu benar!';
+
+  playNaturalVoice(randomPraiseKey, fallbackPraise);
 
   store.child.coins += 30;
   store.child.xp += 50;
 
   setTimeout(() => {
-    if (currentRoundIndex.value + 1 < quizRounds.length) {
+    if (currentRoundIndex.value + 1 < activeQuestions.value.length) {
       currentRoundIndex.value++;
       isAnsweredCorrectly.value = false;
       spokenTranscript.value = '';
       speakCurrentQuestion();
     } else {
-      store.speak('Luar biasa! Arkan berhasil menjawab semua kuis suara!');
+      playNaturalVoice('complete', 'Hore! Kamu berhasil menyelesaikan semua kuis di kategori ini!');
     }
   }, 2200);
 }
 
-function optionNameCorrect(): string {
-  return currentQuestion.value.options[0].name;
-}
-
 function closeModal() {
   store.playSfx('click');
+  if (currentAudioElement) {
+    currentAudioElement.pause();
+  }
   if (recognition) {
     try { recognition.stop(); } catch (e) {}
   }
@@ -288,7 +494,10 @@ watch(isOpen, (newVal) => {
     currentRoundIndex.value = 0;
     isAnsweredCorrectly.value = false;
     spokenTranscript.value = '';
+    comboStreak.value = 0;
     speakCurrentQuestion();
+  } else if (currentAudioElement) {
+    currentAudioElement.pause();
   }
 });
 
@@ -299,11 +508,49 @@ onMounted(() => {
 
 <style scoped>
 .voice-quiz-card {
-  width: 580px;
+  width: 640px;
   max-width: 95vw;
-  background: linear-gradient(135deg, #1e1b4b 0%, #311b92 60%, #4c1d95 100%);
-  border-radius: 28px !important;
-  border: 3px solid #818cf8;
+  background: linear-gradient(145deg, #1e1b4b 0%, #311b92 60%, #4c1d95 100%);
+  border-radius: 32px !important;
+  border: 3.5px solid #818cf8;
+}
+
+/* Background Glow Orbs */
+.glow-orb-1 {
+  position: absolute;
+  top: -40px;
+  left: -40px;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.4) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.glow-orb-2 {
+  position: absolute;
+  bottom: -40px;
+  right: -40px;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.35) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.avatar-circle-sm {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid #f59e0b;
+  overflow: hidden;
+  background: #fef08a;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .btn-close-fullscreen {
@@ -323,6 +570,31 @@ onMounted(() => {
   background: rgba(239, 68, 68, 0.8);
 }
 
+/* Category Selector Tabs */
+.category-tab-btn {
+  padding: 6px 14px;
+  border-radius: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.category-tab-btn:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.category-tab-btn.active {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border-color: #fde047;
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+}
+
+/* Question Display Box */
 .question-display-box {
   background: rgba(255, 255, 255, 0.08);
   border: 2px solid rgba(255, 255, 255, 0.18);
@@ -330,7 +602,7 @@ onMounted(() => {
 }
 
 .question-text-glow {
-  text-shadow: 0 0 10px rgba(253, 224, 71, 0.5);
+  text-shadow: 0 0 12px rgba(253, 224, 71, 0.5);
 }
 
 .round-badge {
@@ -340,6 +612,16 @@ onMounted(() => {
   padding: 4px 14px;
   border-radius: 14px;
   font-size: 13px;
+}
+
+.combo-badge {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border: 1.5px solid #fca5a5;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: bold;
 }
 
 .btn-repeat-audio {
@@ -356,15 +638,38 @@ onMounted(() => {
 }
 
 .revealed-animal-box {
-  width: 100px;
-  height: 100px;
+  width: 90px;
+  height: 90px;
   background: rgba(255, 255, 255, 0.2);
   border: 2px solid rgba(255, 255, 255, 0.4);
   border-radius: 24px;
 }
 
 .animal-emoji-giant {
-  font-size: 64px;
+  font-size: 58px;
+}
+
+/* Equalizer Bars Animation */
+.equalizer-bars {
+  height: 18px;
+}
+
+.bar {
+  width: 4px;
+  background: #f59e0b;
+  border-radius: 4px;
+  animation: equalizer 0.8s infinite alternate ease-in-out;
+}
+
+.bar-1 { height: 8px; animation-delay: 0.1s; }
+.bar-2 { height: 16px; animation-delay: 0.3s; }
+.bar-3 { height: 12px; animation-delay: 0.5s; }
+.bar-4 { height: 18px; animation-delay: 0.2s; }
+.bar-5 { height: 10px; animation-delay: 0.4s; }
+
+@keyframes equalizer {
+  0% { transform: scaleY(0.4); }
+  100% { transform: scaleY(1.4); }
 }
 
 .transcript-box {
@@ -380,7 +685,7 @@ onMounted(() => {
 
 /* Microphone Ripple Rings */
 .mic-button-wrapper {
-  height: 110px;
+  height: 100px;
 }
 
 .pulse-ring {
@@ -400,8 +705,8 @@ onMounted(() => {
 }
 
 .btn-mic-pulse {
-  width: 96px;
-  height: 96px;
+  width: 90px;
+  height: 90px;
   border-radius: 50%;
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   border: 4px solid #fca5a5;

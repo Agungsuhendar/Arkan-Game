@@ -1,24 +1,39 @@
 <template>
   <header class="header-bar row items-center justify-between q-px-md q-py-sm">
-    <!-- Left: Arkan Profile Card -->
-    <div class="profile-card row items-center q-px-md q-py-xs shadow-6 cursor-pointer" @click="openDashboard" title="Buka Dashboard Keluarga">
-      <div class="avatar-circle relative-position q-mr-sm shadow-3">
-        <img src="/arkan_avatar_card.png" class="avatar-img" alt="Arkan Avatar" />
-        <div class="star-badge flex flex-center font-fredoka">⭐</div>
-      </div>
-      <div class="profile-info">
-        <div class="row items-center q-gutter-x-xs">
-          <span class="text-bold text-dark text-subtitle1 font-fredoka profile-name-glow">{{ store.child.name }}</span>
-          <span class="level-pill bg-amber-5 text-white font-fredoka text-caption text-bold q-px-xs rounded-borders shadow-2">
-            Level {{ store.child.level }}
-          </span>
+    <!-- Left: Arkan Profile Card & Direct Nav Links -->
+    <div class="row items-center q-gutter-x-sm">
+      <div class="profile-card row items-center q-px-md q-py-xs shadow-6 cursor-pointer" @click="openDashboard" title="Buka Dashboard Keluarga">
+        <div class="avatar-circle relative-position q-mr-sm shadow-3">
+          <img src="/arkan_avatar_card.png" class="avatar-img" alt="Arkan Avatar" />
+          <div class="star-badge flex flex-center font-fredoka">⭐</div>
         </div>
-        <div class="xp-container row items-center q-gutter-x-xs q-mt-xs">
-          <div class="xp-bar-bg shadow-inner">
-            <div class="xp-bar-fill" :style="{ width: `${store.xpPercent}%` }"></div>
+        <div class="profile-info">
+          <div class="row items-center q-gutter-x-xs">
+            <span class="text-bold text-dark text-subtitle1 font-fredoka profile-name-glow">{{ store.child.name }}</span>
+            <span class="level-pill bg-amber-5 text-white font-fredoka text-caption text-bold q-px-xs rounded-borders shadow-2">
+              Level {{ store.child.level }}
+            </span>
           </div>
-          <span class="text-caption text-weight-bolder text-grey-8 font-quicksand">{{ store.xpDisplay }}</span>
+          <div class="xp-container row items-center q-gutter-x-xs q-mt-xs">
+            <div class="xp-bar-bg shadow-inner">
+              <div class="xp-bar-fill" :style="{ width: `${store.xpPercent}%` }"></div>
+            </div>
+            <span class="text-caption text-weight-bolder text-grey-8 font-quicksand">{{ store.xpDisplay }}</span>
+          </div>
         </div>
+      </div>
+
+      <!-- Quick Direct Nav Buttons -->
+      <div class="row items-center q-gutter-x-xs gt-xs">
+        <button class="nav-shortcut-btn bg-blue-btn text-white font-fredoka shadow-3" @click="handleGoHome">
+          🏠 Beranda
+        </button>
+        <button class="nav-shortcut-btn bg-pink-btn text-white font-fredoka shadow-3" @click="handleOpenMap">
+          🗺️ Peta
+        </button>
+        <button class="nav-shortcut-btn bg-green-btn text-white font-fredoka shadow-3" @click="handleLaunchGame">
+          🎮 Main Game
+        </button>
       </div>
     </div>
 
@@ -68,11 +83,27 @@
 <script setup lang="ts">
 import { useGameStore } from '../application/stores/gameStore';
 
+const emit = defineEmits(['go-home', 'open-map', 'launch-game', 'open-game-picker']);
 const store = useGameStore();
 
 function openDashboard() {
   store.playSfx('whoosh');
   store.showParentDashboardModal = true;
+}
+
+function handleGoHome() {
+  store.playSfx('click');
+  emit('go-home');
+}
+
+function handleOpenMap() {
+  store.playSfx('click');
+  emit('open-map');
+}
+
+function handleLaunchGame() {
+  store.playSfx('whoosh');
+  emit('open-game-picker');
 }
 </script>
 
@@ -89,6 +120,24 @@ function openDashboard() {
   z-index: 50;
   transition: all 0.3s ease;
 }
+
+.nav-shortcut-btn {
+  padding: 6px 14px;
+  border-radius: 16px;
+  border: 2px solid #ffffff;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+
+.nav-shortcut-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+}
+
+.bg-blue-btn { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.bg-pink-btn { background: linear-gradient(135deg, #ec4899, #db2777); }
+.bg-green-btn { background: linear-gradient(135deg, #22c55e, #16a34a); }
 
 .profile-card {
   background: rgba(255, 255, 255, 0.92);

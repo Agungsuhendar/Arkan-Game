@@ -33,6 +33,15 @@
 import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useGameStore } from '../application/stores/gameStore';
 
+const props = withDefaults(
+  defineProps<{
+    pauseBgm?: boolean;
+  }>(),
+  {
+    pauseBgm: false,
+  }
+);
+
 const store = useGameStore();
 const audioRef = ref<HTMLAudioElement | null>(null);
 const isPlaying = ref(false);
@@ -40,6 +49,8 @@ const needUserGesture = ref(false);
 
 function unlockAudio() {
   needUserGesture.value = false;
+  if (props.pauseBgm || store.isGameActive || store.soundMuted) return;
+
   if (audioRef.value) {
     audioRef.value.volume = 0.5;
     audioRef.value.play().then(() => {
@@ -52,7 +63,10 @@ function unlockAudio() {
 }
 
 function tryPlayAudio() {
-  if (store.soundMuted || !audioRef.value) return;
+  if (store.soundMuted || props.pauseBgm || store.isGameActive || !audioRef.value) {
+    pauseAudio();
+    return;
+  }
 
   audioRef.value.volume = 0.5;
   const promise = audioRef.value.play();
@@ -90,13 +104,13 @@ function onAudioError(e: Event) {
 
 // Global user interaction listener to auto-start audio on first click anywhere
 function handleGlobalUserInteraction() {
-  if (!store.soundMuted && !isPlaying.value && audioRef.value) {
+  if (!store.soundMuted && !props.pauseBgm && !store.isGameActive && !isPlaying.value && audioRef.value) {
     unlockAudio();
   }
 }
 
-watch([() => store.soundMuted, () => store.isGameActive], ([isMuted, isGameActive]) => {
-  if (isMuted || isGameActive) {
+watch([() => store.soundMuted, () => store.isGameActive, () => props.pauseBgm], ([isMuted, isGameActive, pauseBgm]) => {
+  if (isMuted || isGameActive || pauseBgm) {
     pauseAudio();
   } else {
     tryPlayAudio();

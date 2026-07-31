@@ -18,10 +18,10 @@
       />
 
       <div class="q-pa-lg text-center relative-position z-top">
-        <!-- Header Badge & Avatar -->
+        <!-- Header Badge & 3D Game Icon Avatar -->
         <div class="avatar-wrapper q-mb-md">
           <div class="avatar-ring"></div>
-          <img src="/arkan_avatar_card.png" alt="Arkan Avatar" class="arkan-avatar-img" />
+          <img src="/pwa_icon_192.png" alt="Arkan Game 3D Icon" class="arkan-avatar-img" />
           <div class="badge-sparkle">✨</div>
         </div>
 

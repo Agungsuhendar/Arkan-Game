@@ -1,18 +1,45 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <HeaderBar v-if="currentTab !== 'beranda'" />
+    <HeaderBar
+      v-if="currentTab !== 'beranda' || store.isGameActive"
+      @go-home="goHome"
+      @open-map="openMap"
+      @launch-game="(sceneKey) => launchDirectGame(sceneKey, 'katalog')"
+      @open-game-picker="openCatalog"
+    />
 
     <q-page-container>
       <!-- Mode 1: Gameplay Canvas (Phaser 3 Engine) -->
-      <GameplayCanvas v-if="store.isGameActive" @exit="store.isGameActive = false" />
+      <GameplayCanvas v-if="store.isGameActive" @exit="handleExitGame" />
 
-      <!-- Mode 2: Adventure Map (7 Worlds) -->
-      <AdventureMap v-else-if="currentTab === 'petualangan'" @back="currentTab = 'beranda'" @select-level="() => store.isGameActive = true" />
+      <!-- Mode 2: Full-Screen Game Catalog -->
+      <GamePickerCatalog
+        v-else-if="currentTab === 'game'"
+        @back="goHome"
+        @launch-game="(sceneKey) => launchDirectGame(sceneKey, 'katalog')"
+        @open-drawing="showDrawing = true"
+        @open-puzzle="showPuzzle = true"
+        @open-voice-quiz="showVoiceQuiz = true"
+        @open-story="showStory = true"
+      />
 
-      <!-- Mode 3: Home Base Room (Beranda) -->
+      <!-- Mode 3: Adventure Map (7 Worlds + Special Mini Games) -->
+      <AdventureMap
+        v-else-if="currentTab === 'petualangan'"
+        @back="goHome"
+        @select-level="(sceneKey) => launchDirectGame(sceneKey, 'petualangan')"
+        @open-drawing="showDrawing = true"
+        @open-puzzle="showPuzzle = true"
+        @open-voice-quiz="showVoiceQuiz = true"
+        @open-story="showStory = true"
+      />
+
+      <!-- Mode 4: Home Base Room (Beranda) -->
       <HomeBase
         v-else
-        @open-map="currentTab = 'petualangan'"
+        @open-map="openMap"
+        @launch-game="(sceneKey) => launchDirectGame(sceneKey, 'katalog')"
+        @open-game-picker="openCatalog"
         @open-wardrobe="showWardrobe = true"
         @open-story="showStory = true"
         @open-trophy="showTrophy = true"
@@ -24,7 +51,7 @@
     </q-page-container>
 
     <!-- Modals & Global Audio -->
-    <BackgroundAudio />
+    <BackgroundAudio :pause-bgm="store.isGameActive || showStory || showVoiceQuiz || showDrawing || showPuzzle" />
     <ParentDashboardModal />
     <AvatarWardrobeModal v-model="showWardrobe" />
     <BedtimeStoryModal v-model="showStory" />
@@ -46,6 +73,7 @@ import HomeBase from './components/HomeBase.vue';
 
 // Lazy loaded async components for instant click responsiveness & fast bundle loading
 const AdventureMap = defineAsyncComponent(() => import('./components/AdventureMap.vue'));
+const GamePickerCatalog = defineAsyncComponent(() => import('./components/GamePickerCatalog.vue'));
 const GameplayCanvas = defineAsyncComponent(() => import('./components/GameplayCanvas.vue'));
 const ParentDashboardModal = defineAsyncComponent(() => import('./components/ParentDashboardModal.vue'));
 const AvatarWardrobeModal = defineAsyncComponent(() => import('./components/AvatarWardrobeModal.vue'));
@@ -58,6 +86,7 @@ const PwaInstallPromptModal = defineAsyncComponent(() => import('./components/Pw
 
 const store = useGameStore();
 const currentTab = ref<'beranda' | 'game' | 'petualangan'>('beranda');
+const entrySource = ref<'katalog' | 'petualangan'>('katalog');
 
 const showWardrobe = ref(false);
 const showStory = ref(false);
@@ -65,6 +94,37 @@ const showTrophy = ref(false);
 const showDrawing = ref(false);
 const showPuzzle = ref(false);
 const showVoiceQuiz = ref(false);
+
+const launchDirectGame = (sceneKey?: string, source: 'katalog' | 'petualangan' = 'katalog') => {
+  entrySource.value = source;
+  const targetScene = sceneKey || 'NumberGardenScene';
+  store.startLevel('lvl_1', targetScene);
+  store.isGameActive = true;
+};
+
+const handleExitGame = () => {
+  store.isGameActive = false;
+  if (entrySource.value === 'petualangan') {
+    currentTab.value = 'petualangan';
+  } else {
+    currentTab.value = 'game';
+  }
+};
+
+const openMap = () => {
+  currentTab.value = 'petualangan';
+  store.isGameActive = false;
+};
+
+const openCatalog = () => {
+  currentTab.value = 'game';
+  store.isGameActive = false;
+};
+
+const goHome = () => {
+  currentTab.value = 'beranda';
+  store.isGameActive = false;
+};
 
 onMounted(() => {
   store.fetchWorlds();

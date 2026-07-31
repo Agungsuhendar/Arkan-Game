@@ -32,28 +32,28 @@
 
         <!-- Top Right: Currency Pills & Notification Buttons -->
         <div class="stats-pills-row row items-center q-gutter-x-sm">
-          <!-- Star XP Pill -->
-          <div class="stat-pill bg-white shadow-3 row items-center">
+          <!-- Star XP Pill (Hidden on Mobile) -->
+          <div class="stat-pill hide-on-mobile bg-white shadow-3 row items-center">
             <span class="stat-icon">⭐</span>
             <span class="stat-value font-fredoka text-dark q-mx-xs">{{ store.child.xp }}</span>
             <button class="add-btn flex flex-center font-fredoka">+</button>
           </div>
 
-          <!-- Coins Pill -->
+          <!-- Coins Pill (Essential - Always Visible) -->
           <div class="stat-pill bg-white shadow-3 row items-center">
             <span class="stat-icon">🪙</span>
             <span class="stat-value font-fredoka text-dark q-mx-xs">{{ store.child.coins }}</span>
             <button class="add-btn flex flex-center font-fredoka">+</button>
           </div>
 
-          <!-- Diamonds Pill -->
-          <div class="stat-pill bg-white shadow-3 row items-center">
+          <!-- Diamonds Pill (Hidden on Mobile) -->
+          <div class="stat-pill hide-on-mobile bg-white shadow-3 row items-center">
             <span class="stat-icon">💎</span>
             <span class="stat-value font-fredoka text-dark q-mx-xs">{{ store.child.diamonds }}</span>
             <button class="add-btn flex flex-center font-fredoka">+</button>
           </div>
 
-          <!-- Sound BGM Toggle Button -->
+          <!-- Sound BGM Toggle Button (Essential - Always Visible) -->
           <button
             class="icon-action-btn bg-purple-3d text-white shadow-4 cursor-pointer"
             :title="store.soundMuted ? 'Nyalakan Musik (Taklukan Langit)' : 'Matikan Musik'"
@@ -62,14 +62,14 @@
             {{ store.soundMuted ? '🔇' : '🎵' }}
           </button>
 
-          <!-- Gift Button -->
+          <!-- Gift Button (Essential - Always Visible) -->
           <button class="icon-action-btn bg-pink-3d text-white shadow-4 cursor-pointer" title="Hadiah" @click="$emit('open-trophy')">
             🎁
             <span class="badge-count bg-amber-5 text-white flex flex-center font-fredoka">3</span>
           </button>
 
-          <!-- Notification Bell Button -->
-          <button class="icon-action-btn bg-blue-3d text-white shadow-4 cursor-pointer" title="Notifikasi" @click="store.showParentDashboardModal = true">
+          <!-- Notification Bell Button (Hidden on Mobile) -->
+          <button class="icon-action-btn hide-on-mobile bg-blue-3d text-white shadow-4 cursor-pointer" title="Notifikasi" @click="store.showParentDashboardModal = true">
             🔔
             <span class="badge-count bg-red text-white flex flex-center font-fredoka">3</span>
           </button>
@@ -78,7 +78,7 @@
 
       <!-- 2. Left Sidebar Navigation Menu (Vertical 3D Buttons) -->
       <div class="left-sidebar-menu column q-gutter-y-sm">
-        <button class="nav-3d-btn bg-blue-btn" @click="$emit('open-map')">
+        <button class="nav-3d-btn bg-blue-btn" @click="$emit('launch-game', 'MatchLineGameScene')">
           <div class="btn-icon-box flex flex-center">
             <span class="btn-icon">📖</span>
           </div>
@@ -92,7 +92,7 @@
           <span class="btn-text font-fredoka">Petualangan</span>
         </button>
 
-        <button class="nav-3d-btn bg-orange-btn" @click="$emit('open-map')">
+        <button class="nav-3d-btn bg-orange-btn" @click="$emit('open-game-picker')">
           <div class="btn-icon-box flex flex-center">
             <span class="btn-icon">🎮</span>
           </div>
@@ -104,27 +104,6 @@
             <span class="btn-icon">▶️</span>
           </div>
           <span class="btn-text font-fredoka">Cerita</span>
-        </button>
-
-        <button class="nav-3d-btn bg-pink-btn" @click="$emit('open-drawing')">
-          <div class="btn-icon-box flex flex-center">
-            <span class="btn-icon">🎨</span>
-          </div>
-          <span class="btn-text font-fredoka">Melukis</span>
-        </button>
-
-        <button class="nav-3d-btn bg-cyan-btn" @click="$emit('open-puzzle')">
-          <div class="btn-icon-box flex flex-center">
-            <span class="btn-icon">🧩</span>
-          </div>
-          <span class="btn-text font-fredoka">Puzzle</span>
-        </button>
-
-        <button class="nav-3d-btn bg-amber-btn" @click="$emit('open-voice-quiz')">
-          <div class="btn-icon-box flex flex-center">
-            <span class="btn-icon">🎙️</span>
-          </div>
-          <span class="btn-text font-fredoka">Kuis Suara</span>
         </button>
 
         <button class="nav-3d-btn bg-purple-btn" @click="$emit('open-family')">
@@ -166,63 +145,74 @@
         </div>
       </div>
 
-      <!-- 4. Right Sidebar Overlay Widgets -->
-      <div class="right-widgets-column column q-gutter-y-sm">
-        <!-- Widget 1: Keluarga Arkan Card -->
-        <div class="family-card-widget shadow-5 cursor-pointer" @click="$emit('open-wardrobe')">
-          <div class="family-header-banner row items-center justify-between q-px-md q-py-xs">
-            <span class="family-title font-fredoka text-white text-bold">Keluarga {{ store.child.name }}</span>
-            <span class="text-white text-subtitle2">💖</span>
+      <!-- 4. Right Sidebar Overlay Widgets (Collapsible on Mobile) -->
+      <div class="right-widgets-wrapper column items-end">
+        <button
+          class="toggle-widgets-btn font-fredoka row items-center q-px-sm q-py-xs shadow-4 cursor-pointer q-mb-xs"
+          @click="showRightWidgets = !showRightWidgets"
+          :title="showRightWidgets ? 'Sembunyikan Card Foto & Misi' : 'Tampilkan Card Foto & Misi'"
+        >
+          <span class="q-mr-xs">{{ showRightWidgets ? '🙈' : '🖼️' }}</span>
+          <span>{{ showRightWidgets ? 'Sembunyikan' : 'Foto & Misi' }}</span>
+        </button>
+
+        <div v-if="showRightWidgets" class="right-widgets-column column q-gutter-y-sm">
+          <!-- Widget 1: Keluarga Arkan Card -->
+          <div class="family-card-widget shadow-5 cursor-pointer" @click="$emit('open-wardrobe')">
+            <div class="family-header-banner row items-center justify-between q-px-md q-py-xs">
+              <span class="family-title font-fredoka text-white text-bold">Keluarga {{ store.child.name }}</span>
+              <span class="text-white text-subtitle2">💖</span>
+            </div>
+            <div class="family-card-body q-pa-xs text-center">
+              <img src="/family_photo.png?v=family_v2" class="family-photo-img shadow-1" :alt="`Foto Keluarga ${store.child.name}`" />
+              <div class="row justify-around q-mt-xs">
+                <span class="tag-badge bg-blue-1 text-primary font-fredoka">Papa</span>
+                <span class="tag-badge bg-amber-1 text-amber-10 font-fredoka">{{ store.child.name }}</span>
+                <span class="tag-badge bg-pink-1 text-pink font-fredoka">Mama</span>
+              </div>
+            </div>
           </div>
-          <div class="family-card-body q-pa-xs text-center">
-            <img src="/family_photo.png?v=family_v2" class="family-photo-img shadow-1" :alt="`Foto Keluarga ${store.child.name}`" />
-            <div class="row justify-around q-mt-xs">
-              <span class="tag-badge bg-blue-1 text-primary font-fredoka">Papa</span>
-              <span class="tag-badge bg-amber-1 text-amber-10 font-fredoka">{{ store.child.name }}</span>
-              <span class="tag-badge bg-pink-1 text-pink font-fredoka">Mama</span>
-            </div>
-          </div>
-        </div>
 
-        <!-- Widget 2: Misi Hari Ini Card -->
-        <div class="quests-card-widget shadow-5">
-          <div class="quest-header-banner row items-center justify-between q-px-md q-py-xs">
-            <div class="row items-center q-gutter-x-xs">
-              <span>📅</span>
-              <span class="quest-title font-fredoka text-white text-bold">Misi Hari Ini</span>
-            </div>
-          </div>
-          <div class="quest-list-box q-pa-xs">
-            <div class="quest-row row items-center justify-between bg-green-1 q-px-sm q-py-xs q-mb-xs rounded-borders">
-              <div class="row items-center">
-                <span class="check-icon text-positive q-mr-xs">✓</span>
-                <span class="quest-text font-fredoka">Belajar Huruf</span>
+          <!-- Widget 2: Misi Hari Ini Card -->
+          <div class="quests-card-widget shadow-5">
+            <div class="quest-header-banner row items-center justify-between q-px-md q-py-xs">
+              <div class="row items-center q-gutter-x-xs">
+                <span>📅</span>
+                <span class="quest-title font-fredoka text-white text-bold">Misi Hari Ini</span>
               </div>
-              <span class="quest-progress text-amber-9 font-fredoka">5/5 ⭐</span>
             </div>
+            <div class="quest-list-box q-pa-xs">
+              <div class="quest-row row items-center justify-between bg-green-1 q-px-sm q-py-xs q-mb-xs rounded-borders">
+                <div class="row items-center">
+                  <span class="check-icon text-positive q-mr-xs">✓</span>
+                  <span class="quest-text font-fredoka">Belajar Huruf</span>
+                </div>
+                <span class="quest-progress text-amber-9 font-fredoka">5/5 ⭐</span>
+              </div>
 
-            <div class="quest-row row items-center justify-between bg-blue-1 q-px-sm q-py-xs q-mb-xs rounded-borders">
-              <div class="row items-center">
-                <span class="check-icon text-positive q-mr-xs">✓</span>
-                <span class="quest-text font-fredoka">Hitung Angka</span>
+              <div class="quest-row row items-center justify-between bg-blue-1 q-px-sm q-py-xs q-mb-xs rounded-borders">
+                <div class="row items-center">
+                  <span class="check-icon text-positive q-mr-xs">✓</span>
+                  <span class="quest-text font-fredoka">Hitung Angka</span>
+                </div>
+                <span class="quest-progress text-grey-7 font-fredoka">8/10 ⚪</span>
               </div>
-              <span class="quest-progress text-grey-7 font-fredoka">8/10 ⚪</span>
-            </div>
 
-            <div class="quest-row row items-center justify-between bg-purple-1 q-px-sm q-py-xs q-mb-xs rounded-borders">
-              <div class="row items-center">
-                <span class="check-icon text-positive q-mr-xs">✓</span>
-                <span class="quest-text font-fredoka">Warna & Bentuk</span>
+              <div class="quest-row row items-center justify-between bg-purple-1 q-px-sm q-py-xs q-mb-xs rounded-borders">
+                <div class="row items-center">
+                  <span class="check-icon text-positive q-mr-xs">✓</span>
+                  <span class="quest-text font-fredoka">Warna & Bentuk</span>
+                </div>
+                <span class="quest-progress text-amber-9 font-fredoka">3/3 ⭐</span>
               </div>
-              <span class="quest-progress text-amber-9 font-fredoka">3/3 ⭐</span>
-            </div>
 
-            <div class="quest-row row items-center justify-between bg-pink-1 q-px-sm q-py-xs rounded-borders">
-              <div class="row items-center">
-                <span class="check-icon text-negative q-mr-xs">✕</span>
-                <span class="quest-text font-fredoka">Dengarkan Cerita</span>
+              <div class="quest-row row items-center justify-between bg-pink-1 q-px-sm q-py-xs rounded-borders">
+                <div class="row items-center">
+                  <span class="check-icon text-negative q-mr-xs">✕</span>
+                  <span class="quest-text font-fredoka">Dengarkan Cerita</span>
+                </div>
+                <span class="quest-progress text-positive font-fredoka">1/1 ✓</span>
               </div>
-              <span class="quest-progress text-positive font-fredoka">1/1 ✓</span>
             </div>
           </div>
         </div>
@@ -233,11 +223,33 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useGameStore } from '../application/stores/gameStore';
 
-defineEmits(['open-map', 'open-wardrobe', 'open-story', 'open-trophy', 'open-drawing', 'open-puzzle', 'open-voice-quiz', 'open-family']);
+defineEmits(['open-map', 'launch-game', 'open-game-picker', 'open-wardrobe', 'open-story', 'open-trophy', 'open-drawing', 'open-puzzle', 'open-voice-quiz', 'open-family']);
 const store = useGameStore();
+
+const showRightWidgets = ref(typeof window !== 'undefined' ? window.innerWidth >= 768 : true);
+
+function handleResize() {
+  if (typeof window !== 'undefined') {
+    if (window.innerWidth < 768) {
+      showRightWidgets.value = false;
+    }
+  }
+}
+
+onMounted(() => {
+  if (typeof window !== 'undefined') {
+    window.addEventListener('resize', handleResize);
+  }
+});
+
+onUnmounted(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('resize', handleResize);
+  }
+});
 
 const getDefaultSpeech = () => `Ayo ${store.child.name},<br />hari ini kita<br />petualangan lagi!`;
 const speechMessage = ref(getDefaultSpeech());
@@ -720,13 +732,86 @@ function triggerDinoReaction() {
   border-top: 10px solid #3b82f6;
 }
 
-/* 4. Right Sidebar Overlay Widgets */
-.right-widgets-column {
+/* 4. Right Sidebar Overlay Widgets Wrapper */
+.right-widgets-wrapper {
   position: absolute;
   right: 24px;
   top: 90px;
-  z-index: 20;
-  width: 280px;
+  z-index: 25;
+}
+
+.toggle-widgets-btn {
+  background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%);
+  color: white;
+  border: 2px solid #ffffff;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: bold;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.toggle-widgets-btn:hover {
+  transform: scale(1.05);
+}
+
+.right-widgets-column {
+  width: 270px;
+}
+
+@media (max-width: 768px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+  .home-top-bar {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    padding-top: 8px !important;
+  }
+  .profile-card-widget {
+    padding: 4px 10px 4px 6px !important;
+  }
+  .xp-container {
+    display: none !important;
+  }
+  .stat-pill {
+    padding: 4px 8px !important;
+  }
+  .add-btn {
+    display: none !important;
+  }
+  .icon-action-btn {
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 18px !important;
+    border-radius: 14px !important;
+  }
+  .left-sidebar-menu {
+    left: 10px !important;
+    top: 75px !important;
+    width: 140px !important;
+  }
+  .nav-3d-btn {
+    padding: 6px 10px !important;
+    gap: 8px !important;
+    border-radius: 18px !important;
+  }
+  .btn-icon-box {
+    width: 28px !important;
+    height: 28px !important;
+  }
+  .btn-icon {
+    font-size: 15px !important;
+  }
+  .btn-text {
+    font-size: 13px !important;
+  }
+  .right-widgets-wrapper {
+    right: 10px;
+    top: 75px;
+  }
+  .right-widgets-column {
+    width: 230px;
+  }
 }
 
 .family-card-widget, .quests-card-widget {

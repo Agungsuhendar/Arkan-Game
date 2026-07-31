@@ -6,7 +6,7 @@
     transition-hide="slide-down"
     persistent
   >
-    <q-card class="fullscreen-story-container column no-wrap overflow-hidden">
+    <q-card class="fullscreen-story-container column no-wrap">
       
       <!-- ================= MODE 1: RAK BUKU / PERPUSTAKAAN CERITA FULLSCREEN ================= -->
       <template v-if="!selectedBook">
@@ -140,7 +140,7 @@
         </div>
 
         <!-- Main Reader Layout: Open Fairytale Storybook -->
-        <div class="col q-px-lg q-pb-md overflow-hidden fairytale-reader-stage flex flex-center">
+        <div class="col q-px-lg q-pb-md fairytale-reader-stage flex flex-center">
           <!-- 3D Open Magical Storybook Container -->
           <div class="fairytale-open-book shadow-24 relative-position row items-stretch">
             
@@ -203,16 +203,18 @@
               </div>
 
               <!-- Narrator Voice Control Bar -->
-              <div v-if="availableVoices.length > 0" class="fairytale-voice-box row items-center justify-between q-mt-xs q-px-md q-py-xs shadow-2">
+              <div class="fairytale-voice-box row items-center justify-between q-mt-xs q-px-md q-py-xs shadow-2">
                 <div class="row items-center q-gutter-x-xs col">
-                  <span class="text-caption font-fredoka text-brown-9 text-bold">🗣️ Suara:</span>
-                  <select v-model="selectedVoiceURI" class="voice-select-fairytale font-quicksand text-weight-bold text-caption col">
+                  <span class="text-caption font-fredoka text-brown-9 text-bold">🗣️ Pilihan Suara:</span>
+                  <select v-model="selectedVoiceURI" @change="handleVoiceChange" class="voice-select-fairytale font-quicksand text-weight-bold text-caption col">
+                    <option value="STUDIO_AI_VOICE">✨ Suara AI Pendongeng Studio (Rekomendasi)</option>
                     <option v-for="v in availableVoices" :key="v.voiceURI" :value="v.voiceURI">
-                      {{ v.name }}
+                      🗣️ {{ v.name }} (TTS Browser)
                     </option>
                   </select>
                 </div>
               </div>
+
 
               <!-- Page Control Navigation Bar -->
               <div class="fairytale-controls-row row items-center justify-between q-pt-sm q-gutter-x-xs">
@@ -399,9 +401,9 @@ async function handleGenerateAiStory() {
 
 // Voice Narrator Options (Suara Dongeng)
 const availableVoices = ref<SpeechSynthesisVoice[]>([]);
-const selectedVoiceURI = ref<string>('');
-const narratorPitch = ref<number>(1.15); // 1.15 = nada hangat khas dongeng
-const narratorRate = ref<number>(0.88);  // 0.88 = tempo santai nina boko / cerita anak
+const selectedVoiceURI = ref<string>('STUDIO_AI_VOICE');
+const narratorPitch = ref<number>(1.0); // 1.0 = standar kompatibilitas Google TTS / Damayanti
+const narratorRate = ref<number>(0.95);  // 0.95 = tempo santai pembacaan anak
 
 function loadVoices() {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
@@ -416,19 +418,8 @@ function loadVoices() {
 
   availableVoices.value = idVoices.length > 0 ? idVoices : allVoices;
 
-  // Pilihlah suara terbaik secara otomatis (Google / Natural / Neural / Female / Aris / Gadis)
-  if (!selectedVoiceURI.value && availableVoices.value.length > 0) {
-    const priorityVoice = availableVoices.value.find(v => 
-      v.name.toLowerCase().includes('natural') || 
-      v.name.toLowerCase().includes('google') || 
-      v.name.toLowerCase().includes('online') ||
-      v.name.toLowerCase().includes('wavenet') ||
-      v.name.toLowerCase().includes('gadis') ||
-      v.name.toLowerCase().includes('aris') ||
-      v.name.toLowerCase().includes('indah')
-    ) || availableVoices.value[0];
-
-    selectedVoiceURI.value = priorityVoice.voiceURI;
+  if (!selectedVoiceURI.value) {
+    selectedVoiceURI.value = 'STUDIO_AI_VOICE';
   }
 }
 
@@ -1148,7 +1139,7 @@ const storyBooks = computed<StoryBook[]>(() => [
     ]
   },
   {
-    id: 'buku-2',
+    id: 'buku-11',
     title: 'Petualangan Arkan di Hutan Huruf',
     subtitle: 'Menjelajah Alfabet & Menyelamatkan Ikan Badut',
     coverImage: '/bedtime_story_card.png',
@@ -1259,7 +1250,7 @@ const storyBooks = computed<StoryBook[]>(() => [
     ]
   },
   {
-    id: 'buku-3',
+    id: 'buku-10',
     title: 'Misteri Samudra & Terumbu Karang',
     subtitle: 'Misi Penyelamatan Ikan Badut di Dasar Laut',
     coverImage: '/underwater_game.png',
@@ -1314,7 +1305,7 @@ const storyBooks = computed<StoryBook[]>(() => [
     ]
   },
   {
-    id: 'buku-3',
+    id: 'buku-9',
     title: 'Balapan Sepeda & Semangat Juara',
     subtitle: 'Mengayuh Kencang Menuju Garis Finish',
     coverImage: '/bicycle_race.png',
@@ -1369,7 +1360,7 @@ const storyBooks = computed<StoryBook[]>(() => [
     ]
   },
   {
-    id: 'buku-4',
+    id: 'buku-8',
     title: 'Kastil Logika & Mahkota Emas',
     subtitle: 'Memecahkan Teka-Teki & Mengumpulkan Trofi',
     coverImage: '/arkan_room_trophy.png',
@@ -1437,7 +1428,6 @@ const activePage = computed(() => {
 
 function openBook(book: StoryBook) {
   store.playSfx('whoosh');
-  store.speak(book.title);
   selectedBook.value = book;
   currentPage.value = 0;
   stopAudio();
@@ -1531,57 +1521,202 @@ function stopLullabyMusic() {
   }
 }
 
+let activeStoryAudioEl: HTMLAudioElement | null = null;
+function logDebug(_msg: string) {
+  // Silent production
+}
+
 function toggleAudioNarration() {
   store.playSfx('click');
   if (isNarrating.value) {
     stopAudio();
   } else {
     isNarrating.value = true;
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+    if (!selectedBook.value) return;
 
-      const textToRead = activePage.value.storyContent;
-
-      const utterance = new SpeechSynthesisUtterance(textToRead);
-      utterance.lang = 'id-ID';
-      utterance.pitch = narratorPitch.value;
-      utterance.rate = narratorRate.value;
-
-      if (selectedVoiceURI.value && availableVoices.value.length > 0) {
-        const foundVoice = availableVoices.value.find(v => v.voiceURI === selectedVoiceURI.value);
-        if (foundVoice) {
-          utterance.voice = foundVoice;
-        }
-      }
-
-      utterance.onend = () => {
-        isNarrating.value = false;
-        // Auto advance to next page if enabled
-        if (isAutoAdvance.value && selectedBook.value && currentPage.value < selectedBook.value.pages.length - 1) {
-          setTimeout(() => {
-            if (isAutoAdvance.value && selectedBook.value) {
-              nextPage();
-              toggleAudioNarration(); // Read next page
-            }
-          }, 2000);
-        }
-      };
-
-      utterance.onerror = () => {
-        isNarrating.value = false;
-      };
-
-      window.speechSynthesis.speak(utterance);
+    if (selectedVoiceURI.value && selectedVoiceURI.value !== 'STUDIO_AI_VOICE') {
+      speakWithWebSpeech();
     } else {
-      setTimeout(() => {
-        isNarrating.value = false;
-      }, 4000);
+      playStudioMp3Narration();
     }
+  }
+}
+
+function playStudioMp3Narration() {
+  if (!selectedBook.value) return;
+  const mp3Path = `/audio/stories/${selectedBook.value.id}_p${activePage.value.pageNumber}.mp3`;
+  logDebug(`▶️ Memutar MP3 Studio: ${selectedBook.value.id}_p${activePage.value.pageNumber}.mp3`);
+
+  if (activeStoryAudioEl) {
+    activeStoryAudioEl.pause();
+    activeStoryAudioEl = null;
+  }
+
+  const audio = new Audio(mp3Path);
+  activeStoryAudioEl = audio;
+
+  audio.onended = () => {
+    isNarrating.value = false;
+    activeStoryAudioEl = null;
+    logDebug(`✅ Selesai membaca halaman ${activePage.value.pageNumber}`);
+    if (isAutoAdvance.value && selectedBook.value && currentPage.value < selectedBook.value.pages.length - 1) {
+      setTimeout(() => {
+        if (isAutoAdvance.value && selectedBook.value) {
+          nextPage();
+          toggleAudioNarration();
+        }
+      }, 1500);
+    }
+  };
+
+  audio.onerror = () => {
+    activeStoryAudioEl = null;
+    logDebug(`⚠️ MP3 gagal dimuat, beralih ke TTS Browser...`);
+    speakWithWebSpeech();
+  };
+
+  audio.play().catch(() => {
+    logDebug(`⚠️ Autoplay MP3 tertahan, beralih ke TTS Browser...`);
+    speakWithWebSpeech();
+  });
+}
+
+let speechWatchdogTimer: any = null;
+let fallbackTimer: any = null;
+
+function speakWithWebSpeech() {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    isNarrating.value = false;
+    logDebug(`⚠️ Browser tidak mendukung Web Speech API`);
+    return;
+  }
+
+  if (speechWatchdogTimer) {
+    clearInterval(speechWatchdogTimer);
+    speechWatchdogTimer = null;
+  }
+  if (fallbackTimer) {
+    clearTimeout(fallbackTimer);
+    fallbackTimer = null;
+  }
+
+  if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+    window.speechSynthesis.cancel();
+  }
+
+  const textToRead = activePage.value.storyContent;
+  const utterance = new SpeechSynthesisUtterance(textToRead);
+  
+  utterance.pitch = narratorPitch.value;
+  utterance.rate = narratorRate.value;
+  utterance.lang = 'id-ID';
+
+  let voiceName = 'Browser Default (id-ID)';
+  if (selectedVoiceURI.value && selectedVoiceURI.value !== 'STUDIO_AI_VOICE' && availableVoices.value.length > 0) {
+    const foundVoice = availableVoices.value.find(v => v.voiceURI === selectedVoiceURI.value);
+    if (foundVoice) {
+      utterance.voice = foundVoice;
+      if (foundVoice.lang) utterance.lang = foundVoice.lang;
+      voiceName = foundVoice.name;
+    }
+  }
+
+  logDebug(`🗣️ Menjalankan TTS: ${voiceName} (${utterance.lang})`);
+
+  let started = false;
+
+  utterance.onstart = () => {
+    started = true;
+    isNarrating.value = true;
+    if (fallbackTimer) {
+      clearTimeout(fallbackTimer);
+      fallbackTimer = null;
+    }
+    logDebug(`🎙️ TTS Berbunyi: ${voiceName}`);
+  };
+
+  utterance.onend = () => {
+    isNarrating.value = false;
+    if (speechWatchdogTimer) {
+      clearInterval(speechWatchdogTimer);
+      speechWatchdogTimer = null;
+    }
+    if (fallbackTimer) {
+      clearTimeout(fallbackTimer);
+      fallbackTimer = null;
+    }
+    logDebug(`✅ TTS Selesai Membaca Halaman ${activePage.value.pageNumber}`);
+    if (isAutoAdvance.value && selectedBook.value && currentPage.value < selectedBook.value.pages.length - 1) {
+      setTimeout(() => {
+        if (isAutoAdvance.value && selectedBook.value) {
+          nextPage();
+          toggleAudioNarration();
+        }
+      }, 1500);
+    }
+  };
+
+  utterance.onerror = (e: any) => {
+    if (e && (e.error === 'canceled' || e.error === 'interrupted')) {
+      return;
+    }
+    if (speechWatchdogTimer) {
+      clearInterval(speechWatchdogTimer);
+      speechWatchdogTimer = null;
+    }
+    if (fallbackTimer) {
+      clearTimeout(fallbackTimer);
+      fallbackTimer = null;
+    }
+    console.warn('Speech synthesis error:', e);
+    logDebug(`⚠️ Error TTS: ${e?.error || 'Unknown'}`);
+    isNarrating.value = false;
+  };
+
+  window.speechSynthesis.speak(utterance);
+  if (window.speechSynthesis.paused) {
+    window.speechSynthesis.resume();
+  }
+
+  // Auto fallback: If specific selected voice (e.g. Damayanti) fails to trigger onstart within 450ms, play via native OS Indonesian voice!
+  fallbackTimer = setTimeout(() => {
+    if (!started && isNarrating.value) {
+      logDebug(`💡 Beralih ke Suara Asli Android (id-ID Native)...`);
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const nativeUtterance = new SpeechSynthesisUtterance(textToRead);
+        nativeUtterance.lang = 'id-ID';
+        nativeUtterance.pitch = 1.0;
+        nativeUtterance.rate = 0.95;
+
+        nativeUtterance.onstart = () => {
+          logDebug(`🎙️ TTS Berbunyi: Suara Asli Android (id-ID)`);
+        };
+
+        nativeUtterance.onend = () => {
+          isNarrating.value = false;
+        };
+
+        window.speechSynthesis.speak(nativeUtterance);
+      }
+    }
+  }, 450);
+}
+
+function handleVoiceChange() {
+  store.playSfx('click');
+  if (isNarrating.value) {
+    stopAudio();
+    toggleAudioNarration();
   }
 }
 
 function stopAudio() {
   isNarrating.value = false;
+  if (activeStoryAudioEl) {
+    activeStoryAudioEl.pause();
+    activeStoryAudioEl = null;
+  }
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel();
   }
@@ -2096,5 +2231,80 @@ function closeModal() {
 .btn-generate-magic:disabled {
   opacity: 0.6;
   cursor: wait;
+}
+
+/* Responsive Mobile & Tablet Fixes */
+@media (max-width: 1024px) {
+  .fullscreen-story-container {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .gallery-header, .reader-header {
+    padding: 12px 16px !important;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .category-bar {
+    padding: 8px 16px !important;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .gallery-scroll-body {
+    padding: 12px 16px !important;
+    overflow-y: auto !important;
+  }
+
+  .fairytale-reader-stage {
+    height: auto !important;
+    min-height: calc(100vh - 70px);
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    align-items: flex-start !important;
+    padding: 8px 12px !important;
+  }
+
+  .fairytale-open-book {
+    height: auto !important;
+    min-height: 100%;
+    border-width: 4px !important;
+    border-radius: 16px !important;
+    overflow-y: visible !important;
+  }
+
+  /* HIDE BOOK DIVIDER (SPINE LINE & RIBBON) ON SMALL SCREENS */
+  .book-spine-line,
+  .fairytale-bookmark-ribbon {
+    display: none !important;
+  }
+
+  .book-left-page,
+  .book-right-page {
+    border-radius: 12px !important;
+    border-right: none !important;
+    border-left: none !important;
+    padding: 14px !important;
+  }
+
+  .golden-picture-frame {
+    height: 220px !important;
+    min-height: 220px !important;
+  }
+
+  .fairytale-controls-row {
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .btn-fairytale {
+    flex: 1 1 40%;
+    min-width: 110px;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
 }
 </style>

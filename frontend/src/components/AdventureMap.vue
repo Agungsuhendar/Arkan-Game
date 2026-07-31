@@ -8,8 +8,6 @@
     @mouseleave="handleMouseUpOrLeave"
   >
     <!-- Animated Hot Air Balloons & Floating Birds -->
-
-    <!-- Animated Hot Air Balloons & Floating Birds -->
     <div class="sky-decorations-layer">
       <div class="hot-air-balloon balloon-1">🎈</div>
       <div class="hot-air-balloon balloon-2">🧺🎈</div>
@@ -61,7 +59,7 @@
     </div>
 
     <!-- 2. Interactive Island Map Cards Grid (Scrollable Container) -->
-    <div class="map-scroll-stage q-px-xl q-pt-lg q-pb-xl">
+    <div class="map-scroll-stage q-px-xl q-pt-lg q-pb-md">
       <div class="row q-col-gutter-xl justify-center items-stretch">
         <div
           v-for="(world, index) in store.worlds"
@@ -129,7 +127,105 @@
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
 
+    <!-- 2b. Special Mini Games & Creative Islands Section -->
+    <div class="special-destinations-section q-px-xl q-pb-xl text-center">
+      <div class="section-title-badge q-mb-lg">
+        <span class="text-h4 font-fredoka text-bold text-amber-3 title-sparkle">
+          ✨ PULAU KREASI & MINI GAME SPESIAL ✨
+        </span>
+      </div>
+
+      <div class="row q-col-gutter-lg justify-center">
+        <!-- 1. Melukis Ajaib Card -->
+        <div class="col-12 col-sm-6 col-md-3">
+          <div class="magical-world-card theme-kota_warna column justify-between shadow-12 cursor-pointer relative-position" @click="openModal('open-drawing')">
+            <div class="card-top-ribbon row items-center justify-between q-px-md q-pt-sm">
+              <span class="world-number-badge font-fredoka shadow-3">Kreasi</span>
+              <span class="stars-earned-badge font-fredoka shadow-3">🎨 Bebas</span>
+            </div>
+            <div class="island-emblem-wrapper flex flex-center relative-position q-my-sm">
+              <div class="world-emoji-giant floating-bounce">🎨🖌️</div>
+            </div>
+            <div class="world-details-box q-pa-md text-center column col justify-between">
+              <div>
+                <div class="world-name-title font-fredoka text-bold line-clamp-1 q-mb-xs">Studio Melukis</div>
+                <div class="world-description-text font-quicksand text-bold line-clamp-2">Lukis gambar ajaib warna-warni bersama Arkan!</div>
+              </div>
+              <button class="btn-play-island font-fredoka shadow-6 row items-center justify-center full-width q-mt-md">
+                <span>Mulai Melukis 🎨</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Puzzle Jigsaw Card -->
+        <div class="col-12 col-sm-6 col-md-3">
+          <div class="magical-world-card theme-kastil_puzzle column justify-between shadow-12 cursor-pointer relative-position" @click="openModal('open-puzzle')">
+            <div class="card-top-ribbon row items-center justify-between q-px-md q-pt-sm">
+              <span class="world-number-badge font-fredoka shadow-3">Asah Otak</span>
+              <span class="stars-earned-badge font-fredoka shadow-3">🧩 Puzzle</span>
+            </div>
+            <div class="island-emblem-wrapper flex flex-center relative-position q-my-sm">
+              <div class="world-emoji-giant floating-bounce">🏰🧩</div>
+            </div>
+            <div class="world-details-box q-pa-md text-center column col justify-between">
+              <div>
+                <div class="world-name-title font-fredoka text-bold line-clamp-1 q-mb-xs">Istana Puzzle</div>
+                <div class="world-description-text font-quicksand text-bold line-clamp-2">Susun kepingan puzzle gambar keluarga & petualangan!</div>
+              </div>
+              <button class="btn-play-island font-fredoka shadow-6 row items-center justify-center full-width q-mt-md">
+                <span>Main Puzzle 🧩</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Kuis Suara Card -->
+        <div class="col-12 col-sm-6 col-md-3">
+          <div class="magical-world-card theme-planet_sains column justify-between shadow-12 cursor-pointer relative-position" @click="openModal('open-voice-quiz')">
+            <div class="card-top-ribbon row items-center justify-between q-px-md q-pt-sm">
+              <span class="world-number-badge font-fredoka shadow-3">Suara</span>
+              <span class="stars-earned-badge font-fredoka shadow-3">🎙️ Pintar</span>
+            </div>
+            <div class="island-emblem-wrapper flex flex-center relative-position q-my-sm">
+              <div class="world-emoji-giant floating-bounce">🎙️✨</div>
+            </div>
+            <div class="world-details-box q-pa-md text-center column col justify-between">
+              <div>
+                <div class="world-name-title font-fredoka text-bold line-clamp-1 q-mb-xs">Kuis Suara Pintar</div>
+                <div class="world-description-text font-quicksand text-bold line-clamp-2">Jawab tebakan seru menggunakan suaramu sendiri!</div>
+              </div>
+              <button class="btn-play-island font-fredoka shadow-6 row items-center justify-center full-width q-mt-md">
+                <span>Bicara & Jawab 🎙️</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Cerita Sebelum Tidur Card -->
+        <div class="col-12 col-sm-6 col-md-3">
+          <div class="magical-world-card theme-hutan_huruf column justify-between shadow-12 cursor-pointer relative-position" @click="openModal('open-story')">
+            <div class="card-top-ribbon row items-center justify-between q-px-md q-pt-sm">
+              <span class="world-number-badge font-fredoka shadow-3">Dongeng</span>
+              <span class="stars-earned-badge font-fredoka shadow-3">▶️ Audio</span>
+            </div>
+            <div class="island-emblem-wrapper flex flex-center relative-position q-my-sm">
+              <div class="world-emoji-giant floating-bounce">📖🌙</div>
+            </div>
+            <div class="world-details-box q-pa-md text-center column col justify-between">
+              <div>
+                <div class="world-name-title font-fredoka text-bold line-clamp-1 q-mb-xs">Dongeng Cerita</div>
+                <div class="world-description-text font-quicksand text-bold line-clamp-2">Dengarkan kisah dongeng edukatif menyenangkan!</div>
+              </div>
+              <button class="btn-play-island font-fredoka shadow-6 row items-center justify-center full-width q-mt-md">
+                <span>Dengar Dongeng ▶️</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -149,12 +245,17 @@ import { ref, onMounted } from 'vue';
 import { useGameStore } from '../application/stores/gameStore';
 import { World } from '../domain/types';
 
-const emit = defineEmits(['back', 'select-level']);
+const emit = defineEmits(['back', 'select-level', 'open-drawing', 'open-puzzle', 'open-voice-quiz', 'open-story']);
 const store = useGameStore();
 
 onMounted(() => {
   store.fetchWorlds();
 });
+
+const openModal = (eventName: string) => {
+  store.playSfx('whoosh');
+  emit(eventName as any);
+};
 
 const getWorldEmoji = (code: string) => {
   const map: Record<string, string> = {
@@ -492,52 +593,49 @@ const handleMouseUpOrLeave = () => {
   background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
   color: white;
   border: 2px solid #fde047;
+  border-radius: 16px;
   padding: 10px 16px;
-  border-radius: 18px;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: bold;
-  box-shadow: 0 4px 0 #b45309;
   cursor: pointer;
   transition: transform 0.15s ease;
 }
 
 .btn-play-island:hover {
-  transform: scale(1.03);
+  transform: scale(1.04);
 }
 
-/* Bottom Companion Arkan Floating Box */
+.special-destinations-section {
+  position: relative;
+  z-index: 20;
+}
+
+.title-sparkle {
+  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
 .map-companion-banner {
   position: fixed;
   bottom: 20px;
-  left: 24px;
-  z-index: 30;
+  left: 20px;
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
+  border-radius: 24px;
+  padding: 8px 18px 8px 10px;
   border: 3px solid #38bdf8;
-  border-radius: 28px;
-  padding: 6px 18px 6px 10px;
-  pointer-events: none;
+  z-index: 50;
 }
 
 .companion-avatar {
-  width: 48px;
-  height: 48px;
-  object-fit: contain;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid #f59e0b;
 }
 
 .companion-speech {
-  color: #0369a1;
+  color: #0f172a;
   font-size: 14px;
   font-weight: bold;
 }
-
-.pulse-slow {
-  animation: pulseBox 3s infinite alternate ease-in-out;
-}
-
-@keyframes pulseBox {
-  0% { transform: scale(1); }
-  100% { transform: scale(1.04); }
-}
 </style>
-
