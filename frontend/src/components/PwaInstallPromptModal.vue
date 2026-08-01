@@ -1,6 +1,6 @@
 <template>
-  <q-dialog v-model="isOpen" persistent transition-show="scale" transition-hide="scale">
-    <div class="pwa-modal-card relative-position overflow-hidden shadow-24">
+  <q-dialog v-model="isOpen" transition-show="scale" transition-hide="scale" @hide="dismissPrompt">
+    <div class="pwa-modal-card relative-position shadow-24">
       <!-- Glow background decoration -->
       <div class="glow-bg-1"></div>
       <div class="glow-bg-2"></div>
@@ -301,12 +301,28 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .pwa-modal-card {
-  width: 90vw;
-  max-width: 420px;
+  width: 92vw;
+  max-width: 440px;
+  max-height: 85vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   border-radius: 28px;
   background: linear-gradient(160deg, #1e1b4b 0%, #311042 50%, #0f172a 100%);
   border: 2px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+}
+
+/* Custom Scrollbar for PWA Modal */
+.pwa-modal-card::-webkit-scrollbar {
+  width: 6px;
+}
+.pwa-modal-card::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+}
+.pwa-modal-card::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
 }
 
 /* Background Glow Effect */
@@ -451,13 +467,14 @@ onBeforeUnmount(() => {
 }
 
 .close-btn {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(4px);
-  z-index: 20;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  cursor: pointer;
 }
 
 .close-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(239, 68, 68, 0.8);
 }
 
 .font-quicksand {

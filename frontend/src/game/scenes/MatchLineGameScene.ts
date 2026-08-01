@@ -11,6 +11,8 @@ interface MatchItem {
   nodeX?: number;
   nodeY?: number;
   container?: Phaser.GameObjects.Container;
+  cardBg?: Phaser.GameObjects.Graphics;
+  activeGlow?: Phaser.GameObjects.Graphics;
   connected?: boolean;
 }
 
@@ -64,7 +66,7 @@ export class MatchLineGameScene extends BaseGameScene {
     // Preload 3D Pixar Icon Images
     this.load.image('icon_dog', '/icon_dog.png');
     this.load.image('icon_bone', '/icon_bone.png');
-    this.load.image('icon_cat', '/icon_cat.png');
+    this.load.image('icon_cat', '/cat_character_v2.png');
     this.load.image('icon_fish', '/icon_fish.png');
     this.load.image('icon_monkey', '/icon_monkey.png');
     this.load.image('icon_banana', '/icon_banana.png');
@@ -86,7 +88,7 @@ export class MatchLineGameScene extends BaseGameScene {
   create() {
     const { width, height } = this.scale;
 
-    // Premium Vibrant Playground Background
+    // Premium Vibrant Playground Background Gradient
     const bg = this.add.graphics();
     bg.fillGradientStyle(0x38bdf8, 0x38bdf8, 0x818cf8, 0x818cf8, 1);
     bg.fillRect(0, 0, width, height);
@@ -141,13 +143,10 @@ export class MatchLineGameScene extends BaseGameScene {
       }
     });
 
-    // Pointer up listener to clear dragging line if released outside
+    // Global pointerup: clear dragging line if not dropped on target
     this.input.on('pointerup', () => {
-      if (this.activeStartNode) {
-        this.activeStartNode = null;
-        if (this.currentDragLineGraphics) {
-          this.currentDragLineGraphics.clear();
-        }
+      if (this.activeStartNode && this.currentDragLineGraphics) {
+        this.currentDragLineGraphics.clear();
       }
     });
 
@@ -155,16 +154,17 @@ export class MatchLineGameScene extends BaseGameScene {
   }
 
   private createDecorations() {
+    const { width } = this.scale;
     const cloudEmojis = ['☁️', '✨', '🌈', '🌟', '🎈'];
 
     cloudEmojis.forEach((emoji, i) => {
-      const x = 70 + i * 200;
-      const y = 85 + (i % 2) * 25;
-      const t = this.add.text(x, y, emoji, { fontSize: '32px' }).setAlpha(0.7);
+      const x = (width * 0.08) + i * (width * 0.2);
+      const y = 75 + (i % 2) * 20;
+      const t = this.add.text(x, y, emoji, { fontSize: '28px' }).setAlpha(0.75);
 
       this.tweens.add({
         targets: t,
-        y: y + 12,
+        y: y + 10,
         duration: 2200 + i * 400,
         yoyo: true,
         repeat: -1,
@@ -175,39 +175,43 @@ export class MatchLineGameScene extends BaseGameScene {
 
   private createArkanMascot() {
     const { width, height } = this.scale;
+    const mascotY = height - 42;
 
-    this.arkanMascotContainer = this.add.container(width / 2, height - 55);
+    this.arkanMascotContainer = this.add.container(width / 2, mascotY);
 
+    const bannerW = Math.min(360, width * 0.85);
     const mascotCardBg = this.add.graphics();
     mascotCardBg.fillStyle(0x0f172a, 0.2);
-    mascotCardBg.fillRoundedRect(-150, -30, 300, 56, 24);
+    mascotCardBg.fillRoundedRect(-bannerW / 2, -24, bannerW, 48, 20);
 
-    mascotCardBg.fillStyle(0xffffff, 0.95);
+    mascotCardBg.fillStyle(0xffffff, 0.96);
     mascotCardBg.lineStyle(3, 0xf59e0b, 1);
-    mascotCardBg.fillRoundedRect(-150, -35, 300, 56, 24);
-    mascotCardBg.strokeRoundedRect(-150, -35, 300, 56, 24);
+    mascotCardBg.fillRoundedRect(-bannerW / 2, -28, bannerW, 48, 20);
+    mascotCardBg.strokeRoundedRect(-bannerW / 2, -28, bannerW, 48, 20);
     this.arkanMascotContainer.add(mascotCardBg);
 
-    const mascotText = this.add.text(0, -8, '👦 Arkan: "Tarik garis gambar ke pasangannya!"', {
+    const fontSize = Math.min(15, Math.max(12, width * 0.017)) + 'px';
+    const mascotText = this.add.text(0, -4, '👦 Arkan: "Tarik garis atau sentuh gambar ke pasangannya!"', {
       fontFamily: 'Fredoka, sans-serif',
-      fontSize: '16px',
+      fontSize,
       color: '#1e293b',
       fontStyle: 'bold'
     }).setOrigin(0.5);
     this.arkanMascotContainer.add(mascotText);
 
     // Arkan Speech Bubble
-    this.arkanSpeechBubble = this.add.container(width / 2, height - 120);
+    this.arkanSpeechBubble = this.add.container(width / 2, mascotY - 58);
+    const bubbleW = Math.min(320, width * 0.75);
     const bubbleBg = this.add.graphics();
     bubbleBg.fillStyle(0xfef08a, 1);
     bubbleBg.lineStyle(3, 0xca8a04, 1);
-    bubbleBg.fillRoundedRect(-135, -22, 270, 44, 16);
-    bubbleBg.strokeRoundedRect(-135, -22, 270, 44, 16);
+    bubbleBg.fillRoundedRect(-bubbleW / 2, -18, bubbleW, 38, 16);
+    bubbleBg.strokeRoundedRect(-bubbleW / 2, -18, bubbleW, 38, 16);
     this.arkanSpeechBubble.add(bubbleBg);
 
     this.arkanSpeechText = this.add.text(0, 0, '✨ Wah, gambar cocok!', {
       fontFamily: 'Fredoka, sans-serif',
-      fontSize: '17px',
+      fontSize: '15px',
       color: '#854d0e',
       fontStyle: 'bold'
     }).setOrigin(0.5);
@@ -223,7 +227,7 @@ export class MatchLineGameScene extends BaseGameScene {
 
       this.tweens.add({
         targets: this.arkanMascotContainer,
-        y: this.scale.height - 68,
+        y: this.scale.height - 52,
         duration: 180,
         yoyo: true,
         ease: 'Back.easeOut'
@@ -231,8 +235,8 @@ export class MatchLineGameScene extends BaseGameScene {
 
       this.tweens.add({
         targets: this.arkanSpeechBubble,
-        scaleX: 1.1,
-        scaleY: 1.1,
+        scaleX: 1.05,
+        scaleY: 1.05,
         duration: 200,
         yoyo: true,
         hold: 1200,
@@ -248,9 +252,9 @@ export class MatchLineGameScene extends BaseGameScene {
   }
 
   private spawnTrailSparkle(x: number, y: number) {
-    if (Math.random() > 0.4) return;
+    if (Math.random() > 0.35) return;
     const sparkle = this.add.text(x + (Math.random() * 20 - 10), y + (Math.random() * 20 - 10), '✨', {
-      fontSize: '18px'
+      fontSize: '16px'
     }).setOrigin(0.5);
 
     this.tweens.add({
@@ -268,25 +272,27 @@ export class MatchLineGameScene extends BaseGameScene {
       return;
     }
 
-    const { width } = this.scale;
+    const { width, height } = this.scale;
     const roundData = this.rounds[roundIdx];
     this.connectedPairsCount = 0;
     this.activeStartNode = null;
 
     if (this.currentDragLineGraphics) this.currentDragLineGraphics.clear();
 
+    const titleFontSize = Math.min(24, Math.max(16, width * 0.026)) + 'px';
     if (!this.titleTextObj) {
-      this.titleTextObj = this.add.text(width / 2, 95, roundData.title, {
+      this.titleTextObj = this.add.text(width / 2, 72, roundData.title, {
         fontFamily: 'Fredoka, sans-serif',
-        fontSize: '25px',
+        fontSize: titleFontSize,
         color: '#ffffff',
         fontStyle: 'bold',
         stroke: '#1e1b4b',
         strokeThickness: 5,
-        shadow: { offsetX: 0, offsetY: 4, color: 'rgba(0,0,0,0.3)', blur: 6, fill: true }
+        shadow: { offsetX: 0, offsetY: 3, color: 'rgba(0,0,0,0.3)', blur: 5, fill: true }
       }).setOrigin(0.5);
     } else {
       this.titleTextObj.setText(roundData.title);
+      this.titleTextObj.setFontSize(titleFontSize);
     }
 
     this.leftItems.forEach(item => item.container?.destroy());
@@ -297,14 +303,20 @@ export class MatchLineGameScene extends BaseGameScene {
     const leftList = roundData.pairs.map(p => ({ ...p.left, side: 'left' as const }));
     const rightList = Phaser.Utils.Array.Shuffle(roundData.pairs.map(p => ({ ...p.right, side: 'right' as const })));
 
-    const startY = 165;
-    const spacingY = 95;
-    const leftX = width * 0.25;
-    const rightX = width * 0.75;
+    // Adaptive Card Sizing & Spacing for Small Screens and Tablets
+    const numPairs = roundData.pairs.length;
+    const startY = 135;
+    const availableHeight = height - startY - 70;
+    const spacingY = Math.min(92, Math.max(68, availableHeight / numPairs));
+
+    const cardW = Math.min(215, Math.max(150, width * 0.27));
+    const cardH = Math.min(72, Math.max(50, spacingY * 0.82));
+    const leftX = width * 0.24;
+    const rightX = width * 0.76;
 
     leftList.forEach((data, i) => {
-      const y = startY + i * spacingY;
-      const nodeX = leftX + 115;
+      const y = startY + i * spacingY + (cardH / 2);
+      const nodeX = leftX + (cardW / 2) + 14;
       const item: MatchItem = {
         id: data.id,
         label: data.label,
@@ -318,13 +330,13 @@ export class MatchLineGameScene extends BaseGameScene {
         connected: false
       };
 
-      item.container = this.createItemCard(item, true);
+      item.container = this.createItemCard(item, true, cardW, cardH);
       this.leftItems.push(item);
     });
 
     rightList.forEach((data, i) => {
-      const y = startY + i * spacingY;
-      const nodeX = rightX - 115;
+      const y = startY + i * spacingY + (cardH / 2);
+      const nodeX = rightX - (cardW / 2) - 14;
       const item: MatchItem = {
         id: data.id,
         label: data.label,
@@ -338,19 +350,29 @@ export class MatchLineGameScene extends BaseGameScene {
         connected: false
       };
 
-      item.container = this.createItemCard(item, false);
+      item.container = this.createItemCard(item, false, cardW, cardH);
       this.rightItems.push(item);
     });
   }
 
-  private createItemCard(item: MatchItem, isLeft: boolean): Phaser.GameObjects.Container {
+  private createItemCard(item: MatchItem, isLeft: boolean, cardW: number, cardH: number): Phaser.GameObjects.Container {
     const container = this.add.container(item.x, item.y);
+    const halfW = cardW / 2;
+    const halfH = cardH / 2;
 
     // 3D Card Shadow
     const shadow = this.add.graphics();
-    shadow.fillStyle(0x0f172a, 0.2);
-    shadow.fillRoundedRect(-105, -34, 210, 72, 22);
+    shadow.fillStyle(0x0f172a, 0.18);
+    shadow.fillRoundedRect(-halfW, -halfH + 4, cardW, cardH, 18);
     container.add(shadow);
+
+    // Active Golden Selection Glow (hidden initially)
+    const activeGlow = this.add.graphics();
+    activeGlow.lineStyle(6, 0xf59e0b, 0.9);
+    activeGlow.strokeRoundedRect(-halfW - 3, -halfH - 3, cardW + 6, cardH + 6, 20);
+    activeGlow.setAlpha(0);
+    container.add(activeGlow);
+    item.activeGlow = activeGlow;
 
     // 3D Card Glass Background Box
     const bg = this.add.graphics();
@@ -358,46 +380,52 @@ export class MatchLineGameScene extends BaseGameScene {
     const fillColor = isLeft ? 0xf0f9ff : 0xfdf2f8;
 
     bg.fillStyle(fillColor, 0.96);
-    bg.lineStyle(4, primaryColor, 1);
-    bg.fillRoundedRect(-105, -38, 210, 72, 22);
-    bg.strokeRoundedRect(-105, -38, 210, 72, 22);
+    bg.lineStyle(3, primaryColor, 1);
+    bg.fillRoundedRect(-halfW, -halfH, cardW, cardH, 18);
+    bg.strokeRoundedRect(-halfW, -halfH, cardW, cardH, 18);
     container.add(bg);
+    item.cardBg = bg;
 
     // Top Glossy Highlight Line
     const gloss = this.add.graphics();
-    gloss.fillStyle(0xffffff, 0.6);
-    gloss.fillRoundedRect(-100, -34, 200, 16, { tl: 18, tr: 18, bl: 0, br: 0 });
+    gloss.fillStyle(0xffffff, 0.55);
+    gloss.fillRoundedRect(-halfW + 4, -halfH + 2, cardW - 8, Math.max(10, cardH * 0.22), { tl: 16, tr: 16, bl: 0, br: 0 });
     container.add(gloss);
 
     // High Definition 3D Pixar Icon Image
+    const iconSize = Math.min(52, Math.max(34, cardH * 0.76));
+    const iconOffsetX = isLeft ? -halfW + (iconSize / 2) + 12 : halfW - (iconSize / 2) - 12;
+
     if (this.textures.exists(item.imageKey)) {
-      const iconImg = this.add.image(isLeft ? -65 : 65, 0, item.imageKey);
-      iconImg.setDisplaySize(56, 56);
+      const iconImg = this.add.image(iconOffsetX, 0, item.imageKey);
+      iconImg.setDisplaySize(iconSize, iconSize);
       container.add(iconImg);
     }
 
     // Label Text
-    const labelText = this.add.text(isLeft ? 12 : -12, 0, item.label, {
+    const labelFontSize = Math.min(19, Math.max(13, cardW * 0.095)) + 'px';
+    const labelOffsetX = isLeft ? 12 : -12;
+    const labelText = this.add.text(labelOffsetX, 0, item.label, {
       fontFamily: 'Fredoka, sans-serif',
-      fontSize: '21px',
+      fontSize: labelFontSize,
       color: isLeft ? '#0369a1' : '#be185d',
       fontStyle: 'bold'
     }).setOrigin(0.5);
     container.add(labelText);
 
     // Connection Node Dot (Glowing 3D Pearl Circle)
-    const nodeX = isLeft ? 115 : -115;
+    const nodeX = isLeft ? halfW + 14 : -halfW - 14;
 
     const nodeGlow = this.add.graphics();
-    nodeGlow.fillStyle(primaryColor, 0.3);
-    nodeGlow.fillCircle(nodeX, 0, 22);
+    nodeGlow.fillStyle(primaryColor, 0.35);
+    nodeGlow.fillCircle(nodeX, 0, 18);
     container.add(nodeGlow);
 
     const nodeBg = this.add.graphics();
     nodeBg.fillStyle(primaryColor, 1);
-    nodeBg.fillCircle(nodeX, 0, 16);
+    nodeBg.fillCircle(nodeX, 0, 14);
     nodeBg.lineStyle(3, 0xffffff, 1);
-    nodeBg.strokeCircle(nodeX, 0, 16);
+    nodeBg.strokeCircle(nodeX, 0, 14);
     container.add(nodeBg);
 
     // Pulse node glow tween
@@ -412,43 +440,95 @@ export class MatchLineGameScene extends BaseGameScene {
       ease: 'Sine.easeInOut'
     });
 
-    // Interactive Touch Area for Line Connecting
-    const hitArea = this.add.circle(nodeX, 0, 28);
-    hitArea.setInteractive({ useHandCursor: true });
-    container.add(hitArea);
+    // Touch Target Area (Generous touch target for small mobile phone screens!)
+    const touchRadius = Math.max(36, cardH * 0.65);
+    const hitAreaNode = this.add.circle(nodeX, 0, touchRadius);
+    hitAreaNode.setInteractive({ useHandCursor: true });
+    container.add(hitAreaNode);
 
-    hitArea.on('pointerdown', (_pointer: Phaser.Input.Pointer, _localX: number, _localY: number, event: Phaser.Types.Input.EventData) => {
-      event.stopPropagation();
+    // Full Card Touch Area (Tap-to-Select / Tap-to-Connect support for mobile!)
+    const cardHitArea = this.add.rectangle(0, 0, cardW, cardH);
+    cardHitArea.setInteractive({ useHandCursor: true });
+    container.add(cardHitArea);
+
+    const handleSelectOrConnect = () => {
       if (item.connected) return;
 
-      this.activeStartNode = item;
+      if (!this.activeStartNode) {
+        // Mode 1/2: Set this item as active start node!
+        this.selectActiveStartItem(item);
+      } else if (this.activeStartNode === item) {
+        // Deselect if tapped again
+        this.deselectActiveItem();
+      } else {
+        // Complete connection!
+        this.evaluateMatch(this.activeStartNode, item);
+      }
+    };
 
-      this.tweens.add({
-        targets: container,
-        scaleX: 1.08,
-        scaleY: 1.08,
-        duration: 120,
-        yoyo: true,
-        ease: 'Quad.easeInOut'
-      });
+    // Node Touch Drag Start
+    hitAreaNode.on('pointerdown', (_pointer: Phaser.Input.Pointer, _lx: number, _ly: number, event: Phaser.Types.Input.EventData) => {
+      event.stopPropagation();
+      handleSelectOrConnect();
     });
 
-    hitArea.on('pointerup', (_pointer: Phaser.Input.Pointer, _localX: number, _localY: number, event: Phaser.Types.Input.EventData) => {
+    hitAreaNode.on('pointerup', (_pointer: Phaser.Input.Pointer, _lx: number, _ly: number, event: Phaser.Types.Input.EventData) => {
       event.stopPropagation();
-
       if (this.activeStartNode && this.activeStartNode !== item) {
         this.evaluateMatch(this.activeStartNode, item);
-        this.activeStartNode = null;
-        if (this.currentDragLineGraphics) this.currentDragLineGraphics.clear();
       }
+    });
+
+    // Full Card Tap
+    cardHitArea.on('pointerdown', (_pointer: Phaser.Input.Pointer, _lx: number, _ly: number, event: Phaser.Types.Input.EventData) => {
+      event.stopPropagation();
+      handleSelectOrConnect();
     });
 
     return container;
   }
 
+  private selectActiveStartItem(item: MatchItem) {
+    this.deselectActiveItem();
+    this.activeStartNode = item;
+
+    if (item.activeGlow) {
+      item.activeGlow.setAlpha(1);
+    }
+
+    if (item.container) {
+      this.tweens.add({
+        targets: item.container,
+        scaleX: 1.06,
+        scaleY: 1.06,
+        duration: 150,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut'
+      });
+    }
+  }
+
+  private deselectActiveItem() {
+    if (this.activeStartNode) {
+      if (this.activeStartNode.activeGlow) {
+        this.activeStartNode.activeGlow.setAlpha(0);
+      }
+      if (this.activeStartNode.container) {
+        this.tweens.killTweensOf(this.activeStartNode.container);
+        this.activeStartNode.container.setScale(1.0);
+      }
+      this.activeStartNode = null;
+    }
+    if (this.currentDragLineGraphics) {
+      this.currentDragLineGraphics.clear();
+    }
+  }
+
   private evaluateMatch(startItem: MatchItem, targetItem: MatchItem) {
     if (startItem.side === targetItem.side) {
       this.showToast('Gariskan ke sisi seberang ya! ➡️', 0xf59e0b);
+      this.deselectActiveItem();
       return;
     }
 
@@ -491,6 +571,8 @@ export class MatchLineGameScene extends BaseGameScene {
       const randomCheer = Phaser.Utils.Array.GetRandom(cheers);
       this.triggerArkanCheer(randomCheer);
 
+      this.deselectActiveItem();
+
       if (this.connectedPairsCount >= 4) {
         this.time.delayedCall(800, () => {
           this.currentRoundIndex++;
@@ -521,22 +603,25 @@ export class MatchLineGameScene extends BaseGameScene {
         duration: 500,
         onComplete: () => errorLine.destroy()
       });
+
+      this.deselectActiveItem();
     }
   }
 
   private showToast(message: string, colorHex: number) {
     const { width, height } = this.scale;
 
-    const toastContainer = this.add.container(width / 2, height - 70);
+    const toastContainer = this.add.container(width / 2, height - 65);
+    const toastW = Math.min(320, width * 0.85);
 
     const bg = this.add.graphics();
     bg.fillStyle(colorHex, 0.95);
-    bg.fillRoundedRect(-160, -25, 320, 50, 20);
+    bg.fillRoundedRect(-toastW / 2, -22, toastW, 44, 18);
     toastContainer.add(bg);
 
     const txt = this.add.text(0, 0, message, {
       fontFamily: 'Fredoka, sans-serif',
-      fontSize: '20px',
+      fontSize: '18px',
       color: '#ffffff',
       fontStyle: 'bold'
     }).setOrigin(0.5);
@@ -544,7 +629,7 @@ export class MatchLineGameScene extends BaseGameScene {
 
     this.tweens.add({
       targets: toastContainer,
-      y: height - 85,
+      y: height - 78,
       duration: 250,
       yoyo: true,
       hold: 900,

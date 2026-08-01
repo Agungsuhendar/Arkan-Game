@@ -121,4 +121,28 @@ const handleExit = () => {
   height: 100% !important;
   display: block;
 }
+
+@media (max-width: 600px) {
+  .gameplay-header-bar {
+    height: 48px;
+    min-height: 48px;
+    max-height: 48px;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+  .full-screen-canvas-container {
+    height: calc(100vh - 48px);
+  }
+  .btn-exit-game {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+  .active-game-title {
+    font-size: 13px !important;
+  }
+  .stat-pill {
+    font-size: 11px !important;
+    padding: 3px 8px !important;
+  }
+}
 </style>

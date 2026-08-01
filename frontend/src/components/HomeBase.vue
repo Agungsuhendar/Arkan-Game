@@ -1,10 +1,13 @@
 <template>
-  <div class="home-dashboard-wrapper relative-position overflow-hidden">
+  <div
+    class="home-dashboard-wrapper relative-position overflow-hidden"
+    :style="{ backgroundImage: `url('${currentBg}')` }"
+  >
     <!-- Full-Screen Interactive Game Dashboard Container -->
     <div class="home-game-screen fit relative-position">
       
       <!-- Warm Ambient Room Lighting Animation -->
-      <div class="room-ambient-lighting"></div>
+      <div class="room-ambient-lighting" :class="{ 'is-daytime': isMorning }"></div>
 
       <!-- 1. Integrated Top Bar Header Overlay -->
       <div class="home-top-bar row items-center justify-between q-px-lg q-pt-md">
@@ -118,18 +121,18 @@
       <div class="characters-interactive-stage">
         <!-- Orange Cat Character Layer -->
         <div class="character-wrapper cat-wrapper animate-cat-bounce cursor-pointer" title="Klik Kucing!" @click="triggerCatReaction">
-          <img src="/cat_character.png" class="character-img" alt="Kucing Arkan" />
+          <img src="/cat_character_v2.png?v=hd_cut" class="character-img" alt="Kucing Arkan" />
         </div>
 
         <!-- Arkan Character Layer (Holding glowing tablet) -->
         <div class="character-wrapper arkan-wrapper animate-arkan-float cursor-pointer" title="Klik Arkan!" @click="triggerArkanReaction">
           <div class="tablet-glow-beam"></div>
-          <img src="/arkan_character.png" class="character-img" alt="Arkan" />
+          <img src="/arkan_character_v2.png?v=yellow_hoodie" class="character-img" alt="Arkan" />
         </div>
 
         <!-- Green Dino Character Layer (Wearing headphones) -->
         <div class="character-wrapper dino-wrapper animate-dino-sway cursor-pointer" title="Klik Dino!" @click="triggerDinoReaction">
-          <img src="/dino_character.png" class="character-img" alt="Dino Arkan" />
+          <img src="/dino_character_v2.png?v=hd_cut" class="character-img" alt="Dino Arkan" />
         </div>
 
         <!-- Glowing Treasure Chest Layer -->
@@ -150,10 +153,10 @@
         <button
           class="toggle-widgets-btn font-fredoka row items-center q-px-sm q-py-xs shadow-4 cursor-pointer q-mb-xs"
           @click="showRightWidgets = !showRightWidgets"
-          :title="showRightWidgets ? 'Sembunyikan Card Foto & Misi' : 'Tampilkan Card Foto & Misi'"
+          :title="showRightWidgets ? 'Sembunyikan Foto Keluarga' : 'Tampilkan Foto Keluarga'"
         >
           <span class="q-mr-xs">{{ showRightWidgets ? '🙈' : '🖼️' }}</span>
-          <span>{{ showRightWidgets ? 'Sembunyikan' : 'Foto & Misi' }}</span>
+          <span>{{ showRightWidgets ? 'Sembunyikan' : 'Foto Keluarga' }}</span>
         </button>
 
         <div v-if="showRightWidgets" class="right-widgets-column column q-gutter-y-sm">
@@ -172,49 +175,6 @@
               </div>
             </div>
           </div>
-
-          <!-- Widget 2: Misi Hari Ini Card -->
-          <div class="quests-card-widget shadow-5">
-            <div class="quest-header-banner row items-center justify-between q-px-md q-py-xs">
-              <div class="row items-center q-gutter-x-xs">
-                <span>📅</span>
-                <span class="quest-title font-fredoka text-white text-bold">Misi Hari Ini</span>
-              </div>
-            </div>
-            <div class="quest-list-box q-pa-xs">
-              <div class="quest-row row items-center justify-between bg-green-1 q-px-sm q-py-xs q-mb-xs rounded-borders">
-                <div class="row items-center">
-                  <span class="check-icon text-positive q-mr-xs">✓</span>
-                  <span class="quest-text font-fredoka">Belajar Huruf</span>
-                </div>
-                <span class="quest-progress text-amber-9 font-fredoka">5/5 ⭐</span>
-              </div>
-
-              <div class="quest-row row items-center justify-between bg-blue-1 q-px-sm q-py-xs q-mb-xs rounded-borders">
-                <div class="row items-center">
-                  <span class="check-icon text-positive q-mr-xs">✓</span>
-                  <span class="quest-text font-fredoka">Hitung Angka</span>
-                </div>
-                <span class="quest-progress text-grey-7 font-fredoka">8/10 ⚪</span>
-              </div>
-
-              <div class="quest-row row items-center justify-between bg-purple-1 q-px-sm q-py-xs q-mb-xs rounded-borders">
-                <div class="row items-center">
-                  <span class="check-icon text-positive q-mr-xs">✓</span>
-                  <span class="quest-text font-fredoka">Warna & Bentuk</span>
-                </div>
-                <span class="quest-progress text-amber-9 font-fredoka">3/3 ⭐</span>
-              </div>
-
-              <div class="quest-row row items-center justify-between bg-pink-1 q-px-sm q-py-xs rounded-borders">
-                <div class="row items-center">
-                  <span class="check-icon text-negative q-mr-xs">✕</span>
-                  <span class="quest-text font-fredoka">Dengarkan Cerita</span>
-                </div>
-                <span class="quest-progress text-positive font-fredoka">1/1 ✓</span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -230,6 +190,20 @@ defineEmits(['open-map', 'launch-game', 'open-game-picker', 'open-wardrobe', 'op
 const store = useGameStore();
 
 const showRightWidgets = ref(typeof window !== 'undefined' ? window.innerWidth >= 768 : true);
+const isMorning = ref(false);
+const currentBg = ref('/home_room_bg.webp');
+
+function checkTimeOfDay() {
+  const hour = new Date().getHours();
+  // Jam Pagi/Siang: 05:00 - 17:59
+  if (hour >= 5 && hour < 18) {
+    isMorning.value = true;
+    currentBg.value = '/home_room_day.webp';
+  } else {
+    isMorning.value = false;
+    currentBg.value = '/home_room_bg.webp';
+  }
+}
 
 function handleResize() {
   if (typeof window !== 'undefined') {
@@ -240,6 +214,7 @@ function handleResize() {
 }
 
 onMounted(() => {
+  checkTimeOfDay();
   if (typeof window !== 'undefined') {
     window.addEventListener('resize', handleResize);
   }
@@ -292,7 +267,10 @@ function triggerDinoReaction() {
   bottom: 0;
   width: 100vw;
   height: 100vh;
-  background: url('/home_room_bg.webp') center center / cover no-repeat;
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  transition: background-image 0.5s ease-in-out;
   z-index: 1;
   overflow: hidden;
 }
@@ -533,15 +511,16 @@ function triggerDinoReaction() {
   inset: 0;
   z-index: 10;
   pointer-events: auto;
-  --char-offset: clamp(210px, 20vw, 320px);
-  --arkan-width: clamp(310px, 28vw, 440px);
-  --arkan-height: clamp(285px, 26vw, 400px);
-  --cat-width: clamp(180px, 17vw, 260px);
-  --cat-height: clamp(180px, 17vw, 260px);
-  --dino-width: clamp(180px, 17vw, 260px);
-  --dino-height: clamp(180px, 17vw, 260px);
-  --chest-width: clamp(140px, 13vw, 190px);
-  --chest-height: clamp(115px, 10vw, 155px);
+  --char-offset: clamp(145px, 14.5vw, 220px);
+  --dino-offset: clamp(185px, 18.5vw, 275px);
+  --arkan-width: clamp(260px, 23vw, 360px);
+  --arkan-height: clamp(370px, 33vw, 510px);
+  --cat-width: clamp(210px, 20vw, 300px);
+  --cat-height: clamp(230px, 22vw, 330px);
+  --dino-width: clamp(210px, 20vw, 300px);
+  --dino-height: clamp(315px, 30vw, 450px);
+  --chest-width: clamp(160px, 15vw, 220px);
+  --chest-height: clamp(130px, 12vw, 180px);
 }
 
 .character-wrapper {
@@ -574,11 +553,11 @@ function triggerDinoReaction() {
 
 .tablet-glow-beam {
   position: absolute;
-  top: 45%;
-  left: 20%;
+  top: 50%;
+  left: 25%;
   width: 50%;
-  height: 35%;
-  background: radial-gradient(ellipse at center, rgba(59, 130, 246, 0.5) 0%, rgba(59, 130, 246, 0) 70%);
+  height: 25%;
+  background: radial-gradient(ellipse at center, rgba(59, 130, 246, 0.45) 0%, rgba(59, 130, 246, 0) 70%);
   animation: tabletPulse 2.2s infinite alternate ease-in-out;
   pointer-events: none;
 }
@@ -593,10 +572,10 @@ function triggerDinoReaction() {
   z-index: 11;
 }
 
-/* Green Dino (Right of Arkan - Constant Center Offset) */
+/* Green Dino (Right of Arkan - Specific Dino Offset) */
 .dino-wrapper {
   bottom: 12%;
-  left: calc(50% + var(--char-offset));
+  left: calc(50% + var(--dino-offset, clamp(185px, 18.5vw, 275px)));
   transform: translateX(-50%);
   width: var(--dino-width);
   height: var(--dino-height);
