@@ -14,7 +14,7 @@
         <!-- Top Left: Arkan Profile Card -->
         <div class="profile-card-widget row items-center cursor-pointer shadow-4" @click="store.showParentDashboardModal = true">
           <div class="avatar-circle relative-position">
-            <img src="/arkan_avatar_card.png" class="avatar-img" alt="Arkan Avatar" />
+            <img src="/arkan_avatar_card.png?v=v2" class="avatar-img" alt="Arkan Avatar" />
             <div class="star-badge flex flex-center font-fredoka">⭐</div>
           </div>
           <div class="profile-info column q-ml-xs">
@@ -63,6 +63,15 @@
             @click="store.toggleSound()"
           >
             {{ store.soundMuted ? '🔇' : '🎵' }}
+          </button>
+
+          <!-- Day / Night / Auto Background Theme Switcher Button -->
+          <button
+            class="icon-action-btn bg-amber-3d text-white shadow-4 cursor-pointer"
+            :title="bgThemeMode === 'AUTO' ? 'Mode Suasana: Otomatis Jam Real-Time' : bgThemeMode === 'DAY' ? 'Mode Suasana: Siang' : 'Mode Suasana: Malam'"
+            @click="toggleBgThemeMode"
+          >
+            {{ bgThemeMode === 'AUTO' ? '🕒' : bgThemeMode === 'DAY' ? '☀️' : '🌙' }}
           </button>
 
           <!-- Gift Button (Essential - Always Visible) -->
@@ -193,16 +202,58 @@ const showRightWidgets = ref(typeof window !== 'undefined' ? window.innerWidth >
 const isMorning = ref(false);
 const currentBg = ref('/home_room_bg.webp');
 
-function checkTimeOfDay() {
-  const hour = new Date().getHours();
-  // Jam Pagi/Siang: 05:00 - 17:59
-  if (hour >= 5 && hour < 18) {
+const bgThemeMode = ref<'AUTO' | 'DAY' | 'NIGHT'>(
+  (localStorage.getItem('arkan_bg_theme_mode') as 'AUTO' | 'DAY' | 'NIGHT') || 'AUTO'
+);
+
+function updateBgTheme() {
+  if (bgThemeMode.value === 'DAY') {
     isMorning.value = true;
-    currentBg.value = '/home_room_day.webp';
-  } else {
+    currentBg.value = '/home_room_day.webp?v=day_v2';
+  } else if (bgThemeMode.value === 'NIGHT') {
     isMorning.value = false;
-    currentBg.value = '/home_room_bg.webp';
+    currentBg.value = '/home_room_bg.webp?v=night_v3';
+  } else {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 18) {
+      isMorning.value = true;
+      currentBg.value = '/home_room_day.webp?v=day_v2';
+    } else {
+      isMorning.value = false;
+      currentBg.value = '/home_room_bg.webp?v=night_v3';
+    }
   }
+}
+
+let activeCharacterAudio: HTMLAudioElement | null = null;
+
+function playCharacterVoice(mp3Path: string, fallbackText: string) {
+  if (activeCharacterAudio) {
+    activeCharacterAudio.pause();
+    activeCharacterAudio = null;
+  }
+  const audio = new Audio(mp3Path);
+  activeCharacterAudio = audio;
+  audio.volume = 1.0;
+  audio.play().catch(() => {
+    store.speak(fallbackText);
+  });
+}
+
+function toggleBgThemeMode() {
+  store.playSfx('click');
+  if (bgThemeMode.value === 'AUTO') {
+    bgThemeMode.value = 'DAY';
+    playCharacterVoice('/audio/voices/theme_day.mp3', 'Mode Suasana Siang');
+  } else if (bgThemeMode.value === 'DAY') {
+    bgThemeMode.value = 'NIGHT';
+    playCharacterVoice('/audio/voices/theme_night.mp3', 'Mode Suasana Malam');
+  } else {
+    bgThemeMode.value = 'AUTO';
+    playCharacterVoice('/audio/voices/theme_auto.mp3', 'Mode Suasana Otomatis Jam');
+  }
+  localStorage.setItem('arkan_bg_theme_mode', bgThemeMode.value);
+  updateBgTheme();
 }
 
 function handleResize() {
@@ -214,7 +265,7 @@ function handleResize() {
 }
 
 onMounted(() => {
-  checkTimeOfDay();
+  updateBgTheme();
   if (typeof window !== 'undefined') {
     window.addEventListener('resize', handleResize);
   }
@@ -224,6 +275,10 @@ onUnmounted(() => {
   if (typeof window !== 'undefined') {
     window.removeEventListener('resize', handleResize);
   }
+  if (activeCharacterAudio) {
+    activeCharacterAudio.pause();
+    activeCharacterAudio = null;
+  }
 });
 
 const getDefaultSpeech = () => `Ayo ${store.child.name},<br />hari ini kita<br />petualangan lagi!`;
@@ -231,29 +286,29 @@ const speechMessage = ref(getDefaultSpeech());
 
 function triggerArkanReaction() {
   store.playSfx('click');
-  store.speak(`Hai! Ayo ${store.child.name}, kita belajar dan main game seru!`);
+  playCharacterVoice('/audio/voices/arkan_greeting.mp3', `Hai! Ayo ${store.child.name}, kita belajar dan main game seru!`);
   speechMessage.value = 'Haii! Ayo kita<br />belajar dan main<br />game seru!';
   setTimeout(() => {
     speechMessage.value = getDefaultSpeech();
-  }, 4000);
+  }, 4500);
 }
 
 function triggerCatReaction() {
   store.playSfx('pop');
-  store.speak('Meow! Meow! Kucing lucu siap menemanimu!');
-  speechMessage.value = 'Meow! Kucing<br />siap menemanimu<br />belajar!';
+  playCharacterVoice('/audio/voices/mimi_cat.mp3?v=mimi_v2', 'Meong! Meong! Nyao! Aku Mimi si kucing imut!');
+  speechMessage.value = 'Meong! Meong!<br />Aku Mimi si kucing<br />siap bermain!';
   setTimeout(() => {
     speechMessage.value = getDefaultSpeech();
-  }, 4000);
+  }, 4500);
 }
 
 function triggerDinoReaction() {
   store.playSfx('success');
-  store.speak('Rawr! Dino suka musik dan petualangan!');
+  playCharacterVoice('/audio/voices/dino_friend.mp3', 'Rawr! Dino suka musik dan petualangan!');
   speechMessage.value = 'Rawr! Dino<br />suka musik dan<br />petualangan!';
   setTimeout(() => {
     speechMessage.value = getDefaultSpeech();
-  }, 4000);
+  }, 4500);
 }
 </script>
 
@@ -433,6 +488,11 @@ function triggerDinoReaction() {
   box-shadow: 0 4px 0 #1e40af;
 }
 
+.bg-amber-3d {
+  background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 0 4px 0 #b45309;
+}
+
 .badge-count {
   position: absolute;
   top: -4px;
@@ -445,65 +505,151 @@ function triggerDinoReaction() {
   border: 2px solid white;
 }
 
-/* 2. Left Sidebar Navigation Menu */
+/* 2. Left Sidebar Navigation Menu (Premium 3D Cartoon Buttons) */
 .left-sidebar-menu {
   position: absolute;
   left: 24px;
   top: 90px;
   z-index: 20;
-  width: 185px;
+  width: 195px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
 }
 
 .nav-3d-btn {
-  border: 3px solid #ffffff;
-  border-radius: 24px;
-  padding: 10px 16px;
+  position: relative;
+  border: 3.5px solid #ffffff;
+  border-radius: 28px;
+  padding: 10px 18px;
   color: white;
   display: flex;
   align-items: center;
   gap: 12px;
   cursor: pointer;
-  transition: all 0.15s ease;
   width: 100%;
+  overflow: hidden;
+  user-select: none;
+  touch-action: manipulation;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease, background 0.22s ease;
+  transform-origin: center left;
+  border-top-color: rgba(255, 255, 255, 0.95);
+  border-left-color: rgba(255, 255, 255, 0.95);
+}
+
+/* Shimmer Highlight Light Effect across button */
+.nav-3d-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.5s ease;
+  pointer-events: none;
+}
+
+.nav-3d-btn:hover::before {
+  left: 160%;
 }
 
 .nav-3d-btn:hover {
-  transform: translateX(6px);
+  transform: translateX(8px) scale(1.05) rotate(1deg);
 }
 
 .nav-3d-btn:active {
-  transform: translateY(3px);
-  box-shadow: none !important;
+  transform: translateX(6px) translateY(5px) scale(0.97) !important;
 }
 
 .btn-icon-box {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.15) 100%);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.6), 0 3px 8px rgba(0, 0, 0, 0.2);
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.nav-3d-btn:hover .btn-icon-box {
+  transform: scale(1.18) rotate(-10deg);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.3) 100%);
 }
 
 .btn-icon {
-  font-size: 19px;
+  font-size: 21px;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
 }
 
 .btn-text {
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
   white-space: nowrap;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
 }
 
-.bg-blue-btn { background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%); box-shadow: 0 5px 0 #1e40af; }
-.bg-red-pink-btn { background: linear-gradient(180deg, #f43f5e 0%, #be123c 100%); box-shadow: 0 5px 0 #881337; }
-.bg-orange-btn { background: linear-gradient(180deg, #f97316 0%, #c2410c 100%); box-shadow: 0 5px 0 #9a3412; }
-.bg-green-btn { background: linear-gradient(180deg, #22c55e 0%, #15803d 100%); box-shadow: 0 5px 0 #166534; }
-.bg-pink-btn { background: linear-gradient(180deg, #ec4899 0%, #be185d 100%); box-shadow: 0 5px 0 #9d174d; }
-.bg-cyan-btn { background: linear-gradient(180deg, #06b6d4 0%, #0891b2 100%); box-shadow: 0 5px 0 #155e75; }
-.bg-amber-btn { background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%); box-shadow: 0 5px 0 #b45309; }
-.bg-purple-btn { background: linear-gradient(180deg, #a855f7 0%, #7e22ce 100%); box-shadow: 0 5px 0 #6b21a8; }
+/* 3D Color Palettes & Shadows */
+.bg-blue-btn {
+  background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 40%, #1d4ed8 100%);
+  box-shadow: 0 8px 0 #1e40af, 0 10px 20px rgba(29, 78, 216, 0.35);
+}
+.bg-blue-btn:hover {
+  box-shadow: 0 10px 0 #1e40af, 0 14px 28px rgba(59, 130, 246, 0.55), 0 0 20px rgba(96, 165, 250, 0.6);
+}
+.bg-blue-btn:active {
+  box-shadow: 0 3px 0 #1e40af, 0 4px 10px rgba(29, 78, 216, 0.3) !important;
+}
+
+.bg-red-pink-btn {
+  background: linear-gradient(180deg, #fb7185 0%, #f43f5e 40%, #be123c 100%);
+  box-shadow: 0 8px 0 #881337, 0 10px 20px rgba(190, 18, 60, 0.35);
+}
+.bg-red-pink-btn:hover {
+  box-shadow: 0 10px 0 #881337, 0 14px 28px rgba(244, 63, 94, 0.55), 0 0 20px rgba(251, 113, 133, 0.6);
+}
+.bg-red-pink-btn:active {
+  box-shadow: 0 3px 0 #881337, 0 4px 10px rgba(190, 18, 60, 0.3) !important;
+}
+
+.bg-orange-btn {
+  background: linear-gradient(180deg, #fbbf24 0%, #f97316 40%, #c2410c 100%);
+  box-shadow: 0 8px 0 #9a3412, 0 10px 20px rgba(194, 65, 12, 0.35);
+}
+.bg-orange-btn:hover {
+  box-shadow: 0 10px 0 #9a3412, 0 14px 28px rgba(249, 115, 22, 0.55), 0 0 20px rgba(251, 191, 36, 0.6);
+}
+.bg-orange-btn:active {
+  box-shadow: 0 3px 0 #9a3412, 0 4px 10px rgba(194, 65, 12, 0.3) !important;
+}
+
+.bg-green-btn {
+  background: linear-gradient(180deg, #4ade80 0%, #22c55e 40%, #15803d 100%);
+  box-shadow: 0 8px 0 #166534, 0 10px 20px rgba(21, 128, 61, 0.35);
+}
+.bg-green-btn:hover {
+  box-shadow: 0 10px 0 #166534, 0 14px 28px rgba(34, 197, 94, 0.55), 0 0 20px rgba(74, 222, 128, 0.6);
+}
+.bg-green-btn:active {
+  box-shadow: 0 3px 0 #166534, 0 4px 10px rgba(21, 128, 61, 0.3) !important;
+}
+
+.bg-purple-btn {
+  background: linear-gradient(180deg, #c084fc 0%, #a855f7 40%, #7e22ce 100%);
+  box-shadow: 0 8px 0 #6b21a8, 0 10px 20px rgba(126, 34, 206, 0.35);
+}
+.bg-purple-btn:hover {
+  box-shadow: 0 10px 0 #6b21a8, 0 14px 28px rgba(168, 85, 247, 0.55), 0 0 20px rgba(192, 132, 252, 0.6);
+}
+.bg-purple-btn:active {
+  box-shadow: 0 3px 0 #6b21a8, 0 4px 10px rgba(126, 34, 206, 0.3) !important;
+}
 
 /* 3. ANIMATED CHARACTERS LAYER & STAGE */
 .characters-interactive-stage {
@@ -754,6 +900,9 @@ function triggerDinoReaction() {
   }
   .stat-pill {
     padding: 4px 8px !important;
+  }
+  .stat-value {
+    display: none !important;
   }
   .add-btn {
     display: none !important;

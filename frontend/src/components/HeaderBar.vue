@@ -4,7 +4,7 @@
     <div class="row items-center q-gutter-x-sm">
       <div class="profile-card row items-center q-px-md q-py-xs shadow-6 cursor-pointer" @click="openDashboard" title="Buka Dashboard Keluarga">
         <div class="avatar-circle relative-position q-mr-sm shadow-3">
-          <img src="/arkan_avatar_card.png" class="avatar-img" alt="Arkan Avatar" />
+          <img src="/arkan_avatar_card.png?v=v2" class="avatar-img" alt="Arkan Avatar" />
           <div class="star-badge flex flex-center font-fredoka">⭐</div>
         </div>
         <div class="profile-info">

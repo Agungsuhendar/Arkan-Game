@@ -51,7 +51,9 @@ export class PhaserGameManager {
       render: {
         antialias: true,
         roundPixels: true,
-        powerPreference: 'high-performance'
+        powerPreference: 'high-performance',
+        batchSize: 2048,
+        clearBeforeRender: true
       },
       scene: [TargetSceneClass],
       physics: {

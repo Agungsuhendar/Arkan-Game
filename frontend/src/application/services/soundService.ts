@@ -80,7 +80,7 @@ class SoundService {
   /**
    * Play a real-time musical note frequency via Web Audio API (Piano Synthesizer)
    */
-  public playNote(freq: number, duration: number = 0.5) {
+  public playNote(freq: number, duration: number = 0.5, instrument: 'piano' | 'marimba' | 'synth' | 'drum' = 'piano') {
     if (this.isMuted || !this.audioCtx) return;
 
     try {
@@ -92,12 +92,29 @@ class SoundService {
       const osc = this.audioCtx.createOscillator();
       const gain = this.audioCtx.createGain();
 
-      // Triangle/sine hybrid for warm piano chime tone
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(freq, now);
-
-      gain.gain.setValueAtTime(0.35, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+      if (instrument === 'marimba') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq * 1.5, now);
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration * 0.6);
+      } else if (instrument === 'synth') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, now);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration * 0.85);
+      } else if (instrument === 'drum') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq * 0.6, now);
+        osc.frequency.exponentialRampToValueAtTime(30, now + 0.12);
+        gain.gain.setValueAtTime(0.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+      } else {
+        // Piano (default)
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now);
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+      }
 
       osc.connect(gain);
       gain.connect(this.audioCtx.destination);

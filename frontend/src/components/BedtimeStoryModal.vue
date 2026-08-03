@@ -6,8 +6,16 @@
     transition-hide="slide-down"
     persistent
   >
-    <q-card class="fullscreen-story-container column no-wrap">
-      
+    <q-card class="fullscreen-story-container column no-wrap relative-position">
+      <!-- Global Top Right Close (X) Button -->
+      <button
+        class="close-story-modal-btn flex flex-center font-fredoka shadow-6 cursor-pointer"
+        @click="closeModal"
+        title="Tutup Perpustakaan Cerita"
+      >
+        ✖️
+      </button>
+
       <!-- ================= MODE 1: RAK BUKU / PERPUSTAKAAN CERITA FULLSCREEN ================= -->
       <template v-if="!selectedBook">
         <!-- Cosmic Gallery Header -->
@@ -17,30 +25,27 @@
               <span>📚</span>
             </div>
             <div>
-              <div class="text-h4 font-fredoka text-bold text-white title-glow">
-                Perpustakaan Cerita Arkan
+              <div class="text-h4 font-fredoka text-bold text-white title-glow story-main-title">
+                PERPUSTAKAAN CERITA
               </div>
               <div class="text-subtitle1 font-quicksand text-purple-2 text-weight-bold">
-                Pilih buku cerita favoritmu dan mulailah petualangan membaca menyenangkan!
+                Pilih buku cerita favoritmu! 📚
               </div>
             </div>
           </div>
 
-          <div class="row items-center q-gutter-x-md">
+          <div class="row items-center q-gutter-x-md q-mr-xl">
             <button class="btn-create-ai-story font-fredoka shadow-4 row items-center q-px-md q-py-xs cursor-pointer" @click="openAiStoryModal">
               ✨ Buat Dongeng AI
             </button>
-            <div class="books-count-badge font-fredoka shadow-3">
-              ✨ {{ storyBooks.length }} Buku Cerita Tersedia
+            <div class="books-count-badge font-fredoka shadow-3 hide-on-mobile">
+              ✨ {{ storyBooks.length }} Buku Cerita
             </div>
-            <button class="btn-close-fullscreen flex flex-center cursor-pointer shadow-4" @click="closeModal" title="Tutup Perpustakaan">
-              ✕
-            </button>
           </div>
         </div>
 
-        <!-- Filter Category Pills Bar -->
-        <div class="category-bar row items-center q-px-xl q-py-md q-gutter-x-sm">
+        <!-- Filter Category Tags Bar -->
+        <div class="category-bar q-px-xl q-py-sm">
           <button
             v-for="cat in categories"
             :key="cat"
@@ -48,7 +53,8 @@
             :class="{ active: selectedCategory === cat }"
             @click="selectedCategory = cat"
           >
-            {{ cat }}
+            <span class="tag-hash">#</span>
+            <span>{{ cat }}</span>
           </button>
         </div>
 
@@ -120,7 +126,7 @@
             </div>
           </div>
 
-          <div class="row items-center q-gutter-x-sm">
+          <div class="row items-center q-gutter-x-sm q-mr-xl">
             <!-- Progress Dots -->
             <div class="progress-dots-row row items-center q-gutter-x-xs q-px-md q-py-xs rounded-borders bg-white-10">
               <div
@@ -132,10 +138,6 @@
                 :title="page.title"
               ></div>
             </div>
-
-            <button class="btn-close-fullscreen flex flex-center cursor-pointer shadow-4 q-ml-md" @click="closeModal" title="Tutup Cerita">
-              ✕
-            </button>
           </div>
         </div>
 
@@ -1782,53 +1784,98 @@ function closeModal() {
   border: 2px solid rgba(255, 255, 255, 0.4);
 }
 
-.btn-close-fullscreen {
-  width: 44px;
-  height: 44px;
+.close-story-modal-btn {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  z-index: 200;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+  border: 3px solid #ffffff;
+  box-shadow: 0 5px 0 #991b1b, 0 8px 16px rgba(0, 0, 0, 0.35);
   color: white;
   font-size: 20px;
   font-weight: bold;
-  transition: all 0.2s ease;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease, background 0.22s ease;
 }
 
-.btn-close-fullscreen:hover {
-  background: #ef4444;
-  border-color: #f87171;
-  transform: scale(1.1);
+.close-story-modal-btn:hover {
+  transform: scale(1.15) rotate(90deg);
+  box-shadow: 0 7px 0 #991b1b, 0 12px 24px rgba(239, 68, 68, 0.6);
+  background: linear-gradient(180deg, #f87171 0%, #ef4444 100%);
 }
 
-/* Category Filter Bar */
+.close-story-modal-btn:active {
+  transform: scale(0.95) rotate(90deg);
+  box-shadow: 0 2px 0 #991b1b !important;
+}
+
+.story-main-title {
+  white-space: nowrap;
+  font-size: clamp(1.4rem, 2.2vw, 2rem) !important;
+}
+
+@media (max-width: 600px) {
+  .close-story-modal-btn {
+    top: 12px;
+    right: 12px;
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+}
+
+/* Category Filter Tags Bar */
 .category-bar {
-  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.4);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .filter-pill-btn {
-  border: none;
-  background: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
   color: #cbd5e1;
-  padding: 8px 20px;
-  border-radius: 24px;
-  font-size: 14px;
+  padding: 6px 14px;
+  border-radius: 12px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.25s ease;
-  border: 2px solid transparent;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.tag-hash {
+  color: #a855f7;
+  font-weight: 900;
+  font-size: 14px;
 }
 
 .filter-pill-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.35);
 }
 
 .filter-pill-btn.active {
-  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
-  color: white;
-  border-color: rgba(255, 255, 255, 0.5);
-  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.5);
+  background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+  color: #ffffff;
+  border-color: #e9d5ff;
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.45);
+  transform: translateY(-1px);
+}
+
+.filter-pill-btn.active .tag-hash {
+  color: #fde047;
 }
 
 /* Book Gallery Cards */

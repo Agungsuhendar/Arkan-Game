@@ -1,6 +1,6 @@
 <template>
   <q-dialog v-model="isOpen" persistent maximized transition-show="scale" transition-hide="scale">
-    <q-card class="jigsaw-puzzle-card column no-wrap fit font-quicksand">
+    <q-card class="jigsaw-puzzle-card column no-wrap fit font-quicksand relative-position">
       <!-- Top Bar Header -->
       <div class="puzzle-header-bar row items-center justify-between q-px-lg q-py-sm">
         <div class="row items-center q-gutter-x-md">
@@ -10,12 +10,12 @@
               Mainan Puzzle Gambar Ajaib Arkan
             </div>
             <div class="text-caption text-purple-2 font-fredoka">
-              Geser atau tekan kepingan puzzle ke tempat yang cocok & lengkapi gambarnya!
+              Geser atau sentuh kepingan gambar asli ke tempat yang cocok & susun gambarnya!
             </div>
           </div>
         </div>
 
-        <div class="row items-center q-gutter-x-sm">
+        <div class="row items-center q-gutter-x-sm q-mr-lg">
           <button class="btn-puzzle-action btn-hint-sparkle font-fredoka shadow-6" @click="handleSparkleHint">
             💡 Petunjuk Sparkle
           </button>
@@ -27,11 +27,16 @@
           >
             👁️ Bayangan: {{ showGhostHint ? 'ON' : 'OFF' }}
           </button>
-
-          <button class="btn-close-fullscreen flex flex-center shadow-4 q-ml-md" @click="closeModal" title="Tutup Puzzle">
-            ✕
-          </button>
         </div>
+
+        <!-- Global Top Right Close (X) Button -->
+        <button
+          class="close-puzzle-btn flex flex-center font-fredoka shadow-6 cursor-pointer"
+          @click="closeModal"
+          title="Tutup Puzzle"
+        >
+          ✖️
+        </button>
       </div>
 
       <!-- Main Workspace -->
@@ -65,8 +70,11 @@
                 :class="{ active: currentThemeId === theme.id }"
                 @click="changeTheme(theme.id)"
               >
-                <div class="theme-badge-icon flex flex-center font-fredoka q-mr-sm shadow-2">
-                  {{ theme.emoji }}
+                <div
+                  class="theme-badge-preview flex flex-center font-fredoka q-mr-sm shadow-2"
+                  :style="{ backgroundImage: `url(${theme.imageSrc})` }"
+                >
+                  <span class="theme-emoji-icon">{{ theme.emoji }}</span>
                 </div>
                 <div class="column text-left">
                   <span class="text-subtitle2 text-bold line-clamp-1">{{ theme.title }}</span>
@@ -84,12 +92,12 @@
             <div
               class="ghost-hint-background fit absolute-top-left"
               :class="{ 'opacity-active': showGhostHint }"
-              :style="{ background: currentTheme.bgGradient }"
-            >
-              <div class="ghost-emoji-center flex flex-center fit">
-                <span class="ghost-emoji-giant">{{ currentTheme.emoji }}</span>
-              </div>
-            </div>
+              :style="{
+                backgroundImage: `url(${currentTheme.imageSrc})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+              }"
+            ></div>
 
             <!-- Puzzle Target Slots Grid -->
             <div
@@ -102,11 +110,18 @@
               <div
                 v-for="(slot, idx) in slots"
                 :key="`slot-${idx}`"
-                class="puzzle-slot-cell flex flex-center relative-position cursor-pointer"
+                class="puzzle-slot-cell flex flex-center relative-position cursor-pointer overflow-hidden"
                 :class="{ locked: slot.isFilled, highlighted: highlightedSlotIndex === idx }"
-                :style="{ background: slot.isFilled ? currentTheme.pieceColors[idx] : 'rgba(255,255,255,0.06)' }"
+                @dragover.prevent
+                @drop="handleDrop($event, idx)"
+                @click="handleSlotClick(idx)"
               >
-                <span v-if="slot.isFilled" class="slot-piece-emoji animate-pop">{{ currentTheme.pieceEmojis[idx] }}</span>
+                <!-- Render Sliced Real Image Piece when Filled -->
+                <div
+                  v-if="slot.isFilled"
+                  class="slot-piece-image fit animate-pop"
+                  :style="getPieceStyle(slot.targetIdx, currentTheme.imageSrc)"
+                ></div>
                 <span v-if="slot.isFilled" class="slot-lock-badge">✓</span>
                 <span v-else class="slot-number-hint font-fredoka">#{{ idx + 1 }}</span>
               </div>
@@ -118,7 +133,7 @@
                 <span class="text-h2 animate-bounce q-mb-sm">🏆 🌟 🎊</span>
                 <div class="text-h4 font-fredoka text-bold text-amber-3">PUZZLE SELESAI!</div>
                 <div class="text-subtitle1 font-fredoka text-white q-my-xs">
-                  Hebat sekali! Arkan berhasil menyusun semua kepingan puzzle!
+                  Hebat sekali! Arkan berhasil menyusun seluruh kepingan gambar dengan sempurna!
                 </div>
                 <div class="row q-gutter-x-md q-my-md font-fredoka text-bold text-amber-4 text-h6">
                   <span>🪙 +30 Koin</span>
@@ -142,13 +157,12 @@
             <div
               v-for="piece in remainingPieces"
               :key="`piece-${piece.targetIdx}`"
-              class="draggable-piece-card flex flex-center shadow-8 cursor-pointer relative-position"
-              :style="{ background: currentTheme.pieceColors[piece.targetIdx] }"
+              class="draggable-piece-card flex flex-center shadow-8 cursor-pointer relative-position overflow-hidden"
+              :style="getPieceStyle(piece.targetIdx, currentTheme.imageSrc)"
               draggable="true"
               @dragstart="handleDragStart($event, piece.targetIdx)"
               @click="handlePieceClick(piece.targetIdx)"
             >
-              <span class="piece-emoji">{{ currentTheme.pieceEmojis[piece.targetIdx] }}</span>
               <span class="piece-label font-fredoka">#{{ piece.targetIdx + 1 }}</span>
             </div>
           </div>
@@ -173,7 +187,7 @@ const isOpen = computed({
 
 const currentGridSize = ref(2); // 2x2 default
 const showGhostHint = ref(true);
-const currentThemeId = ref('dino');
+const currentThemeId = ref('hutan');
 const isCompleted = ref(false);
 const highlightedSlotIndex = ref<number | null>(null);
 
@@ -188,51 +202,48 @@ interface PuzzleTheme {
   title: string;
   tag: string;
   emoji: string;
-  bgGradient: string;
-  pieceColors: string[];
-  pieceEmojis: string[];
+  imageSrc: string;
 }
 
 const puzzleThemes: Record<string, PuzzleTheme> = {
-  dino: {
-    id: 'dino',
-    title: 'Dino Kiko',
-    tag: 'Hutan Purbakala 🦖',
+  hutan: {
+    id: 'hutan',
+    title: 'Hutan Ajaib Dino',
+    tag: 'Petualangan 🦖',
     emoji: '🦖',
-    bgGradient: 'linear-gradient(135deg, #15803d 0%, #047857 100%)',
-    pieceColors: ['#22c55e', '#16a34a', '#4ade80', '#86efac', '#15803d', '#059669', '#10b981', '#34d399', '#6ee7b7', '#047857', '#065f46', '#022c22', '#a7f3d0', '#6ee7b7', '#34d399', '#10b981'],
-    pieceEmojis: ['🦖', '🌴', '🦴', '🌿', '🦕', '🌋', '🥚', '🍃', '🌴', '🦖', '🌿', '🦴', '🍃', '🦕', '🥚', '🌋']
+    imageSrc: '/arkan_hutan_cover.png'
   },
-  space: {
-    id: 'space',
-    title: 'Roket Arkan',
-    tag: 'Luar Angkasa 🚀',
-    emoji: '🚀',
-    bgGradient: 'linear-gradient(135deg, #1e1b4b 0%, #311b92 100%)',
-    pieceColors: ['#3b82f6', '#1d4ed8', '#60a5fa', '#93c5fd', '#2563eb', '#1e40af', '#38bdf8', '#7dd3fc', '#0284c7', '#0369a1', '#075985', '#0c4a6e', '#bfdbfe', '#93c5fd', '#60a5fa', '#3b82f6'],
-    pieceEmojis: ['🚀', '🌟', '🪐', '👾', '🛸', '⭐', '🌌', '☄️', '🚀', '🌟', '🪐', '🛸', '👾', '⭐', '🌌', '☄️']
+  underwater: {
+    id: 'underwater',
+    title: 'Dunia Bawah Laut',
+    tag: 'Istana Kerang 🌊',
+    emoji: '🐬',
+    imageSrc: '/underwater_game.png'
   },
-  cat: {
-    id: 'cat',
-    title: 'Kucing Mimi',
-    tag: 'Taman Bunga 🐱',
-    emoji: '🐱',
-    bgGradient: 'linear-gradient(135deg, #db2777 0%, #be185d 100%)',
-    pieceColors: ['#ec4899', '#db2777', '#f472b6', '#fbcfe8', '#be185d', '#9d174d', '#fb7185', '#fda4af', '#f43f5e', '#e11d48', '#be123c', '#881337', '#fce7f3', '#fbcfe8', '#f472b6', '#ec4899'],
-    pieceEmojis: ['🐱', '🌸', '🪇', '🦋', '🌷', '🌻', '🎀', '🌺', '🐱', '🌸', '🪇', '🦋', '🌷', '🌻', '🎀', '🌺']
+  family: {
+    id: 'family',
+    title: 'Foto Keluarga',
+    tag: 'Rumah Arkan 👨‍👩‍👦',
+    emoji: '🏡',
+    imageSrc: '/family_photo.jpg'
   },
-  castle: {
-    id: 'castle',
-    title: 'Kastil Pelangi',
-    tag: 'Kerajaan Naga 🏰',
-    emoji: '🏰',
-    bgGradient: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
-    pieceColors: ['#a855f7', '#9333ea', '#c084fc', '#e9d5ff', '#7e22ce', '#6b21a8', '#a855f7', '#d8b4fe', '#9333ea', '#7e22ce', '#581c87', '#3b0764', '#f3e8ff', '#e9d5ff', '#d8b4fe', '#c084fc'],
-    pieceEmojis: ['🏰', '🐉', '👑', '💎', '🛡️', '⚔️', '✨', '🚩', '🏰', '🐉', '👑', '💎', '🛡️', '⚔️', '✨', '🚩']
+  bike: {
+    id: 'bike',
+    title: 'Balap Sepeda Ceria',
+    tag: 'Taman Bermain 🚴',
+    emoji: '🚴',
+    imageSrc: '/bicycle_race.png'
+  },
+  treasure: {
+    id: 'treasure',
+    title: 'Kamar Piala & Harta',
+    tag: 'Peti Rahasia 💎',
+    emoji: '🏆',
+    imageSrc: '/arkan_room_trophy.png'
   }
 };
 
-const currentTheme = computed(() => puzzleThemes[currentThemeId.value] || puzzleThemes.dino);
+const currentTheme = computed(() => puzzleThemes[currentThemeId.value] || puzzleThemes.hutan);
 const totalPiecesCount = computed(() => currentGridSize.value * currentGridSize.value);
 
 interface SlotItem {
@@ -246,6 +257,22 @@ interface PieceItem {
 
 const slots = ref<SlotItem[]>([]);
 const remainingPieces = ref<PieceItem[]>([]);
+
+function getPieceStyle(idx: number, imageUrl: string) {
+  const N = currentGridSize.value;
+  const r = Math.floor(idx / N);
+  const c = idx % N;
+
+  const posX = N > 1 ? (c / (N - 1)) * 100 : 0;
+  const posY = N > 1 ? (r / (N - 1)) * 100 : 0;
+
+  return {
+    backgroundImage: `url(${imageUrl})`,
+    backgroundSize: `${N * 100}% ${N * 100}%`,
+    backgroundPosition: `${posX}% ${posY}%`,
+    backgroundRepeat: 'no-repeat'
+  };
+}
 
 function initPuzzle() {
   isCompleted.value = false;
@@ -285,6 +312,24 @@ function handleDragStart(e: DragEvent, targetIdx: number) {
   }
 }
 
+function handleDrop(e: DragEvent, slotIdx: number) {
+  if (!e.dataTransfer) return;
+  const draggedIdxStr = e.dataTransfer.getData('text/plain');
+  const targetIdx = parseInt(draggedIdxStr, 10);
+  if (!isNaN(targetIdx) && targetIdx === slotIdx) {
+    placePieceInSlot(targetIdx);
+  } else {
+    store.playSfx('wrong');
+  }
+}
+
+function handleSlotClick(slotIdx: number) {
+  const matchingInTray = remainingPieces.value.find(p => p.targetIdx === slotIdx);
+  if (matchingInTray) {
+    placePieceInSlot(slotIdx);
+  }
+}
+
 function handlePieceClick(targetIdx: number) {
   placePieceInSlot(targetIdx);
 }
@@ -321,7 +366,7 @@ function handleSparkleHint() {
 function triggerVictory() {
   isCompleted.value = true;
   store.playSfx('win');
-  store.speak('Hebat sekali! Puzzle Arkan selesai dengan sempurna!');
+  store.speak('Hebat sekali! Puzzle Arkan berhasil disusun dengan sempurna!');
   store.child.coins += 30;
   store.child.xp += 50;
 }
@@ -391,21 +436,32 @@ watch(isOpen, (newVal) => {
   color: white;
 }
 
-.btn-close-fullscreen {
-  width: 40px;
-  height: 40px;
+.close-puzzle-btn {
+  position: absolute;
+  top: 12px;
+  right: 18px;
+  z-index: 200;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+  border: 3px solid #ffffff;
+  box-shadow: 0 5px 0 #991b1b, 0 8px 16px rgba(0, 0, 0, 0.35);
   color: white;
-  font-size: 1.2rem;
-  cursor: pointer;
-  transition: transform 0.2s ease, background 0.2s ease;
+  font-size: 18px;
+  font-weight: bold;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease, background 0.22s ease;
 }
 
-.btn-close-fullscreen:hover {
-  transform: scale(1.1);
-  background: rgba(239, 68, 68, 0.8);
+.close-puzzle-btn:hover {
+  transform: scale(1.15) rotate(90deg);
+  box-shadow: 0 7px 0 #991b1b, 0 12px 24px rgba(239, 68, 68, 0.6);
+  background: linear-gradient(180deg, #f87171 0%, #ef4444 100%);
+}
+
+.close-puzzle-btn:active {
+  transform: scale(0.95) rotate(90deg);
+  box-shadow: 0 2px 0 #991b1b !important;
 }
 
 .puzzle-controls-sidebar, .puzzle-tray-sidebar {
@@ -462,21 +518,29 @@ watch(isOpen, (newVal) => {
   box-shadow: 0 4px 14px rgba(168, 85, 247, 0.4);
 }
 
-.theme-badge-icon {
-  width: 38px;
-  height: 38px;
-  background: rgba(255, 255, 255, 0.2);
+.theme-badge-preview {
+  width: 42px;
+  height: 42px;
   border-radius: 12px;
-  font-size: 22px;
+  background-size: cover;
+  background-position: center;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  position: relative;
+}
+
+.theme-emoji-icon {
+  font-size: 18px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
 }
 
 .board-frame {
-  width: 530px;
-  height: 530px;
+  width: 520px;
+  height: 520px;
   border-radius: 28px;
   border: 6px solid #818cf8;
   overflow: hidden;
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(15, 23, 42, 0.85);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
 }
 
 .ghost-hint-background {
@@ -488,26 +552,23 @@ watch(isOpen, (newVal) => {
   opacity: 0.45;
 }
 
-.ghost-emoji-giant {
-  font-size: 150px;
-}
-
 .puzzle-grid-container {
   display: grid;
-  gap: 6px;
-  padding: 10px;
+  gap: 4px;
+  padding: 8px;
 }
 
 .puzzle-slot-cell {
-  border-radius: 16px;
-  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 14px;
+  border: 2px dashed rgba(255, 255, 255, 0.35);
   transition: all 0.2s ease;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.4);
 }
 
 .puzzle-slot-cell.locked {
   border-style: solid;
-  border-color: #fde047;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5), inset 0 0 0 2px rgba(255, 255, 255, 0.4);
 }
 
 .puzzle-slot-cell.highlighted {
@@ -517,8 +578,9 @@ watch(isOpen, (newVal) => {
   animation: pulse 0.6s infinite alternate;
 }
 
-.slot-piece-emoji {
-  font-size: 42px;
+.slot-piece-image {
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.4);
 }
 
 .slot-lock-badge {
@@ -528,28 +590,28 @@ watch(isOpen, (newVal) => {
   color: #fde047;
   font-weight: bold;
   font-size: 16px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 .slot-number-hint {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.5);
   font-size: 20px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
 }
 
 .draggable-piece-card {
-  width: 96px;
-  height: 96px;
-  border-radius: 20px;
-  border: 3px solid rgba(255, 255, 255, 0.6);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  width: 104px;
+  height: 104px;
+  border-radius: 18px;
+  border: 3px solid rgba(255, 255, 255, 0.8);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.4), 0 8px 18px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .draggable-piece-card:hover {
-  transform: scale(1.1) translateY(-2px);
+  transform: scale(1.1) translateY(-3px);
   border-color: #fde047;
-}
-
-.piece-emoji {
-  font-size: 42px;
+  box-shadow: 0 14px 28px rgba(253, 224, 71, 0.4);
 }
 
 .piece-label {
@@ -559,9 +621,10 @@ watch(isOpen, (newVal) => {
   font-size: 11px;
   color: white;
   font-weight: bold;
-  background: rgba(0, 0, 0, 0.5);
-  padding: 1px 6px;
+  background: rgba(0, 0, 0, 0.65);
+  padding: 2px 6px;
   border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .victory-overlay {
@@ -592,5 +655,29 @@ watch(isOpen, (newVal) => {
 
 .btn-play-again:hover {
   transform: scale(1.06);
+}
+
+@media (max-width: 768px) {
+  .puzzle-workspace {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .puzzle-controls-sidebar, .puzzle-tray-sidebar {
+    width: 100%;
+    border: none;
+  }
+  .board-frame {
+    width: 320px;
+    height: 320px;
+  }
+  .draggable-piece-card {
+    width: 72px;
+    height: 72px;
+  }
+  .tray-pieces-wrapper {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 }
 </style>

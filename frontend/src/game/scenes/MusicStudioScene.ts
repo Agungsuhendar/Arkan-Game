@@ -21,9 +21,12 @@ interface SongRound {
   notesSequence: SongNote[];
 }
 
+type InstrumentType = 'piano' | 'marimba' | 'synth' | 'drum';
+
 export class MusicStudioScene extends BaseGameScene {
   private currentRoundIndex: number = 0;
   private currentSequenceStep: number = 0;
+  private currentInstrument: InstrumentType = 'piano';
 
   private pianoKeys: PianoKey[] = [
     { noteName: 'C4', solfeggio: 'Do', freq: 261.63, colorHex: 0xef4444 },
@@ -39,7 +42,7 @@ export class MusicStudioScene extends BaseGameScene {
   private rounds: SongRound[] = [
     {
       title: '🌟 Bintang Kecil',
-      prompt: '🎵 Ikuti nada piano untuk memainkan lagu Bintang Kecil!',
+      prompt: '🎵 Ikuti tombol bercahaya untuk lagu Bintang Kecil!',
       notesSequence: [
         { noteIndex: 0, lyric: 'Bin-' },
         { noteIndex: 0, lyric: 'tang' },
@@ -52,7 +55,7 @@ export class MusicStudioScene extends BaseGameScene {
     },
     {
       title: '🌈 Pelangi-Pelangi',
-      prompt: '🎵 Ikuti tombol berbinar untuk lagu Pelangi-Pelangi!',
+      prompt: '🎵 Tekan tombol berbinar untuk lagu Pelangi-Pelangi!',
       notesSequence: [
         { noteIndex: 2, lyric: 'Pe-' },
         { noteIndex: 3, lyric: 'lan-' },
@@ -65,7 +68,7 @@ export class MusicStudioScene extends BaseGameScene {
     },
     {
       title: '🎈 Balonku Ada Lima',
-      prompt: '🎵 Tekan tombol piano dan mainkan Balonku Ada Lima!',
+      prompt: '🎵 Mainkan nada indah lagu Balonku Ada Lima!',
       notesSequence: [
         { noteIndex: 0, lyric: 'Ba-' },
         { noteIndex: 2, lyric: 'lon-' },
@@ -74,6 +77,43 @@ export class MusicStudioScene extends BaseGameScene {
         { noteIndex: 4, lyric: 'da' },
         { noteIndex: 3, lyric: 'li-' },
         { noteIndex: 2, lyric: 'ma!' }
+      ]
+    },
+    {
+      title: '🐥 Potong Bebek Angsa',
+      prompt: '🎵 Mari menari & bernyanyi Potong Bebek Angsa!',
+      notesSequence: [
+        { noteIndex: 4, lyric: 'Po-' },
+        { noteIndex: 4, lyric: 'tong' },
+        { noteIndex: 3, lyric: 'be-' },
+        { noteIndex: 2, lyric: 'bek' },
+        { noteIndex: 0, lyric: 'ang-' },
+        { noteIndex: 2, lyric: 'sa!' }
+      ]
+    },
+    {
+      title: '🚂 Naik Kereta Api',
+      prompt: '🎵 Tut tut tut... Mari mainkan Naik Kereta Api!',
+      notesSequence: [
+        { noteIndex: 0, lyric: 'Naik' },
+        { noteIndex: 2, lyric: 'ke-' },
+        { noteIndex: 4, lyric: 're-' },
+        { noteIndex: 4, lyric: 'ta' },
+        { noteIndex: 5, lyric: 'a-' },
+        { noteIndex: 4, lyric: 'pi!' }
+      ]
+    },
+    {
+      title: '🏔️ Naik Ke Puncak Gunung',
+      prompt: '🎵 Kiri kanan kulihat saja... Mainkan lagu Gunung!',
+      notesSequence: [
+        { noteIndex: 2, lyric: 'Naik' },
+        { noteIndex: 4, lyric: 'naik' },
+        { noteIndex: 6, lyric: 'ke' },
+        { noteIndex: 7, lyric: 'pun-' },
+        { noteIndex: 6, lyric: 'cak' },
+        { noteIndex: 4, lyric: 'gu-' },
+        { noteIndex: 2, lyric: 'nung!' }
       ]
     }
   ];
@@ -84,6 +124,7 @@ export class MusicStudioScene extends BaseGameScene {
   private catMascotContainer?: Phaser.GameObjects.Container;
   private dinoMascotContainer?: Phaser.GameObjects.Container;
   private spotlightGfxList: Phaser.GameObjects.Graphics[] = [];
+  private instrumentButtons: Phaser.GameObjects.Container[] = [];
 
   constructor() {
     super('MusicStudioScene');
@@ -91,9 +132,10 @@ export class MusicStudioScene extends BaseGameScene {
 
   init(data: BaseSceneConfig) {
     super.init(data);
-    this.promptText = '🎵 Studio Musik Arkan!';
+    this.promptText = '🎵 Studio Pianika & Musik Arkan!';
     this.currentRoundIndex = 0;
     this.currentSequenceStep = 0;
+    this.currentInstrument = 'piano';
   }
 
   create() {
@@ -107,17 +149,18 @@ export class MusicStudioScene extends BaseGameScene {
     // Stage Floor
     const floor = this.add.graphics();
     floor.fillStyle(0x431407, 1);
-    floor.fillRect(0, height - 220, width, 220);
+    floor.fillRect(0, height - 230, width, 230);
 
     // Wooden Stage Planks
     for (let x = 0; x < width; x += 120) {
       floor.lineStyle(2, 0x78350f, 0.6);
-      floor.strokeRect(x, height - 220, 120, 220);
+      floor.strokeRect(x, height - 230, 120, 230);
     }
 
     this.createStageLights();
     this.createUI();
     this.createBandMembers();
+    this.createInstrumentSelector();
     this.createRainbowPiano();
 
     this.startRound(this.currentRoundIndex);
@@ -146,11 +189,12 @@ export class MusicStudioScene extends BaseGameScene {
   }
 
   private createBandMembers() {
-    const { height } = this.scale;
+    const { height, width } = this.scale;
+    const centerX = width / 2;
 
     // 1. Arkan Lead Pianist (Center)
-    this.arkanMascotContainer = this.add.container(450, height - 260);
-    const arkanTxt = this.add.text(0, 0, '👦 🎹', { fontSize: '64px' }).setOrigin(0.5);
+    this.arkanMascotContainer = this.add.container(centerX, height - 250);
+    const arkanTxt = this.add.text(0, 0, '👦 🎹', { fontSize: '60px' }).setOrigin(0.5);
     const arkanLabel = this.add.text(0, 42, 'Arkan (Pianis)', {
       fontFamily: 'Fredoka, sans-serif',
       fontSize: '15px',
@@ -160,8 +204,8 @@ export class MusicStudioScene extends BaseGameScene {
     this.arkanMascotContainer.add([arkanTxt, arkanLabel]);
 
     // 2. Kucing Maracas (Left)
-    this.catMascotContainer = this.add.container(180, height - 250);
-    const catTxt = this.add.text(0, 0, '🐱 🪇', { fontSize: '56px' }).setOrigin(0.5);
+    this.catMascotContainer = this.add.container(centerX - 240, height - 240);
+    const catTxt = this.add.text(0, 0, '🐱 🪇', { fontSize: '52px' }).setOrigin(0.5);
     const catLabel = this.add.text(0, 38, 'Kucing Mimi', {
       fontFamily: 'Fredoka, sans-serif',
       fontSize: '14px',
@@ -171,8 +215,8 @@ export class MusicStudioScene extends BaseGameScene {
     this.catMascotContainer.add([catTxt, catLabel]);
 
     // 3. Dino Drummer (Right)
-    this.dinoMascotContainer = this.add.container(720, height - 250);
-    const dinoTxt = this.add.text(0, 0, '🦖 🥁', { fontSize: '56px' }).setOrigin(0.5);
+    this.dinoMascotContainer = this.add.container(centerX + 240, height - 240);
+    const dinoTxt = this.add.text(0, 0, '🦖 🥁', { fontSize: '52px' }).setOrigin(0.5);
     const dinoLabel = this.add.text(0, 38, 'Dino Drummer', {
       fontFamily: 'Fredoka, sans-serif',
       fontSize: '14px',
@@ -192,15 +236,72 @@ export class MusicStudioScene extends BaseGameScene {
     });
   }
 
+  private createInstrumentSelector() {
+    const { width } = this.scale;
+    const instruments: { type: InstrumentType; label: string; icon: string; colorHex: number }[] = [
+      { type: 'piano', label: 'Pianika', icon: '🎹', colorHex: 0x38bdf8 },
+      { type: 'marimba', label: 'Marimba', icon: '🪵', colorHex: 0xf59e0b },
+      { type: 'synth', label: 'Synth', icon: '⚡', colorHex: 0xa855f7 },
+      { type: 'drum', label: 'Perkusi', icon: '🥁', colorHex: 0xef4444 },
+    ];
+
+    const btnWidth = 105;
+    const btnHeight = 38;
+    const startX = width / 2 - (instruments.length * btnWidth) / 2 + btnWidth / 2;
+    const posY = 158;
+
+    instruments.forEach((inst, idx) => {
+      const posX = startX + idx * (btnWidth + 10);
+      const container = this.add.container(posX, posY);
+
+      const bg = this.add.graphics();
+      bg.fillStyle(inst.colorHex, 0.9);
+      bg.lineStyle(2, 0xffffff, 1);
+      bg.fillRoundedRect(-btnWidth / 2, -btnHeight / 2, btnWidth, btnHeight, 14);
+      bg.strokeRoundedRect(-btnWidth / 2, -btnHeight / 2, btnWidth, btnHeight, 14);
+      container.add(bg);
+
+      const label = this.add.text(0, 0, `${inst.icon} ${inst.label}`, {
+        fontFamily: 'Fredoka, sans-serif',
+        fontSize: '13px',
+        color: '#ffffff',
+        fontStyle: 'bold'
+      }).setOrigin(0.5);
+      container.add(label);
+
+      const hitArea = this.add.rectangle(0, 0, btnWidth, btnHeight);
+      hitArea.setInteractive({ useHandCursor: true });
+      container.add(hitArea);
+
+      hitArea.on('pointerdown', () => {
+        this.currentInstrument = inst.type;
+        this.playSfx('click');
+
+        // Highlight selected instrument button
+        this.instrumentButtons.forEach(btn => btn.setScale(1.0));
+        container.setScale(1.12);
+
+        this.showToast(`Alat Musik: ${inst.icon} ${inst.label}`, inst.colorHex);
+      });
+
+      this.instrumentButtons.push(container);
+    });
+
+    if (this.instrumentButtons[0]) {
+      this.instrumentButtons[0].setScale(1.12);
+    }
+  }
+
   private createRainbowPiano() {
     const { width, height } = this.scale;
-    const pianoY = height - 100;
-    const keyWidth = 92;
-    const keyHeight = 150;
+    const pianoY = height - 90;
+    const isMobile = width < 640;
+    const keyWidth = isMobile ? Math.min(80, (width * 0.95) / 8 - 4) : 88;
+    const keyHeight = isMobile ? 135 : 150;
     const startX = width / 2 - (this.pianoKeys.length * keyWidth) / 2 + keyWidth / 2;
 
     this.pianoKeys.forEach((keyData, idx) => {
-      const posX = startX + idx * (keyWidth + 6);
+      const posX = startX + idx * (keyWidth + 4);
       const container = this.add.container(posX, pianoY);
 
       // Key Shadow
@@ -228,7 +329,7 @@ export class MusicStudioScene extends BaseGameScene {
       // Solfeggio Name (Do, Re, Mi)
       const nameText = this.add.text(0, -25, keyData.solfeggio, {
         fontFamily: 'Fredoka, sans-serif',
-        fontSize: '26px',
+        fontSize: isMobile ? '22px' : '26px',
         color: '#ffffff',
         fontStyle: 'bold',
         shadow: { offsetX: 0, offsetY: 2, color: 'rgba(0,0,0,0.5)', blur: 4, fill: true }
@@ -238,7 +339,7 @@ export class MusicStudioScene extends BaseGameScene {
       // Note Frequency Code (C4, D4...)
       const codeText = this.add.text(0, 30, keyData.noteName, {
         fontFamily: 'Fredoka, sans-serif',
-        fontSize: '15px',
+        fontSize: isMobile ? '13px' : '15px',
         color: 'rgba(255,255,255,0.85)',
         fontStyle: 'bold'
       }).setOrigin(0.5);
@@ -258,10 +359,10 @@ export class MusicStudioScene extends BaseGameScene {
   }
 
   private handleKeyPress(keyIndex: number, keyData: PianoKey, container: Phaser.GameObjects.Container) {
-    // 1. Synthesize Piano Note Audio
-    soundService.playNote(keyData.freq, 0.6);
+    // 1. Synthesize Instrument Note Audio (NO TTS call here to avoid audio muffling!)
+    soundService.playNote(keyData.freq, 0.65, this.currentInstrument);
 
-    // 2. Press Animation
+    // 2. Key Press Animation
     this.tweens.add({
       targets: container,
       y: container.y + 12,
@@ -271,18 +372,27 @@ export class MusicStudioScene extends BaseGameScene {
       ease: 'Quad.easeOut'
     });
 
-    // 3. Spawn Musical Note Particles
+    // 3. Band Members Dance Jump Animation
+    if (this.arkanMascotContainer) {
+      this.tweens.add({
+        targets: this.arkanMascotContainer,
+        y: '-=18',
+        duration: 120,
+        yoyo: true,
+        ease: 'Cubic.easeOut'
+      });
+    }
+
+    // 4. Spawn Musical Note Particles
     this.spawnMusicNoteParticle(container.x, container.y - 80);
 
-    // 4. Evaluate Sequence Step
+    // 5. Evaluate Sequence Step
     const roundData = this.rounds[this.currentRoundIndex];
     if (!roundData) return;
 
     const currentTargetNote = roundData.notesSequence[this.currentSequenceStep];
     if (keyIndex === currentTargetNote.noteIndex) {
-      // ✅ Correct Note in Song Sequence
-      this.speak(currentTargetNote.lyric);
-
+      // ✅ Correct Note in Song Sequence: Display Lyric Visually (without TTS overlap!)
       if (this.currentLyricTextObj) {
         this.currentLyricTextObj.setText(`🎵 "${currentTargetNote.lyric}"`);
       }
@@ -300,13 +410,12 @@ export class MusicStudioScene extends BaseGameScene {
         });
       }
     } else {
-      // Wrong Key in Sequence (Free Play Note Sounded)
-      this.playSfx('wrong');
+      // Free play note sounded
     }
   }
 
   private spawnMusicNoteParticle(x: number, y: number) {
-    const emojis = ['🎵', '🎶', '🎼', '⭐', '✨'];
+    const emojis = ['🎵', '🎶', '🎼', '⭐', '✨', '🎸', '🎹'];
     const randomEmoji = Phaser.Utils.Array.GetRandom(emojis);
 
     const particle = this.add.text(x, y, randomEmoji, { fontSize: '28px' }).setOrigin(0.5);
@@ -332,9 +441,9 @@ export class MusicStudioScene extends BaseGameScene {
     this.currentSequenceStep = 0;
 
     if (!this.promptTextObj) {
-      this.promptTextObj = this.add.text(width / 2, 90, roundData.prompt, {
+      this.promptTextObj = this.add.text(width / 2, 75, roundData.prompt, {
         fontFamily: 'Fredoka, sans-serif',
-        fontSize: '22px',
+        fontSize: '20px',
         color: '#fef08a',
         fontStyle: 'bold',
         stroke: '#431407',
@@ -346,9 +455,9 @@ export class MusicStudioScene extends BaseGameScene {
     }
 
     if (!this.currentLyricTextObj) {
-      this.currentLyricTextObj = this.add.text(width / 2, 135, `Lagu: ${roundData.title}`, {
+      this.currentLyricTextObj = this.add.text(width / 2, 115, `Lagu: ${roundData.title}`, {
         fontFamily: 'Fredoka, sans-serif',
-        fontSize: '20px',
+        fontSize: '22px',
         color: '#67e8f9',
         fontStyle: 'bold'
       }).setOrigin(0.5);
@@ -356,7 +465,8 @@ export class MusicStudioScene extends BaseGameScene {
       this.currentLyricTextObj.setText(`Lagu: ${roundData.title}`);
     }
 
-    this.speak(roundData.title);
+    // Speak song title ONCE at round start (so piano play notes are clean and crystal clear)
+    this.speak(`Lagu ${roundData.title.replace(/^[^\s]+\s/, '')}`);
     this.updateTargetNoteHighlight();
   }
 
@@ -386,12 +496,41 @@ export class MusicStudioScene extends BaseGameScene {
 
   private advanceRound() {
     this.playSfx('win');
-    this.speak('Hebat sekali! Lagu selesai!');
+    this.speak('Hebat sekali! Lagu selesai dengan sempurna!');
     this.spawnRewardParticles(this.scale.width / 2, this.scale.height / 2);
 
-    this.time.delayedCall(1200, () => {
+    this.time.delayedCall(1500, () => {
       this.currentRoundIndex++;
       this.startRound(this.currentRoundIndex);
+    });
+  }
+
+  private showToast(message: string, colorHex: number) {
+    const { width, height } = this.scale;
+
+    const toastContainer = this.add.container(width / 2, height - 200);
+    const toastW = Math.min(300, width * 0.8);
+
+    const bg = this.add.graphics();
+    bg.fillStyle(colorHex, 0.95);
+    bg.fillRoundedRect(-toastW / 2, -20, toastW, 40, 16);
+    toastContainer.add(bg);
+
+    const txt = this.add.text(0, 0, message, {
+      fontFamily: 'Fredoka, sans-serif',
+      fontSize: '16px',
+      color: '#ffffff',
+      fontStyle: 'bold'
+    }).setOrigin(0.5);
+    toastContainer.add(txt);
+
+    this.tweens.add({
+      targets: toastContainer,
+      alpha: 0,
+      y: height - 230,
+      duration: 1400,
+      ease: 'Power2',
+      onComplete: () => toastContainer.destroy()
     });
   }
 }

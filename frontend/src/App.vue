@@ -2,6 +2,7 @@
   <q-layout view="lHh Lpr lFf">
     <HeaderBar
       v-if="currentTab !== 'beranda' || store.isGameActive"
+      :class="{ 'hide-on-mobile-catalog': currentTab === 'game' || currentTab === 'petualangan' }"
       @go-home="goHome"
       @open-map="openMap"
       @launch-game="(sceneKey) => launchDirectGame(sceneKey, 'katalog')"
@@ -52,13 +53,13 @@
 
     <!-- Modals & Global Audio -->
     <BackgroundAudio :pause-bgm="store.isGameActive || showStory || showVoiceQuiz || showDrawing || showPuzzle" />
-    <ParentDashboardModal />
-    <AvatarWardrobeModal v-model="showWardrobe" />
-    <BedtimeStoryModal v-model="showStory" />
-    <TrophyRoomModal v-model="showTrophy" />
-    <MagicDrawingModal v-model="showDrawing" />
-    <JigsawPuzzleModal v-model="showPuzzle" />
-    <VoiceQuizModal v-model="showVoiceQuiz" />
+    <ParentDashboardModal v-if="store.showParentDashboardModal" />
+    <AvatarWardrobeModal v-if="showWardrobe" v-model="showWardrobe" />
+    <BedtimeStoryModal v-if="showStory" v-model="showStory" />
+    <TrophyRoomModal v-if="showTrophy" v-model="showTrophy" />
+    <MagicDrawingModal v-if="showDrawing" v-model="showDrawing" />
+    <JigsawPuzzleModal v-if="showPuzzle" v-model="showPuzzle" />
+    <VoiceQuizModal v-if="showVoiceQuiz" v-model="showVoiceQuiz" />
     <PwaInstallPromptModal />
   </q-layout>
 </template>
@@ -134,4 +135,9 @@ onMounted(() => {
 
 <style>
 /* App Layout Custom Global Styles */
+@media (max-width: 600px) {
+  .hide-on-mobile-catalog {
+    display: none !important;
+  }
+}
 </style>

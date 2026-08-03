@@ -1,5 +1,5 @@
-const CACHE_NAME = 'arkan-game-v29-3d-pwa-icon';
-const MEDIA_CACHE_NAME = 'arkan-media-v15';
+const CACHE_NAME = 'arkan-game-v31-night-room-bg';
+const MEDIA_CACHE_NAME = 'arkan-media-v17';
 
 const ASSETS_TO_CACHE = [
   '/',

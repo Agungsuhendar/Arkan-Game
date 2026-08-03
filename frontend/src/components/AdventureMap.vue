@@ -23,39 +23,37 @@
       <div class="cloud cloud-5">☁️</div>
     </div>
     
-    <!-- Floating Sparkles, Stars & Magic Bubbles Overhead -->
+    <!-- Floating Sparkles & Magic Bubbles Overhead -->
     <div class="sparkles-overlay">
       <span class="sparkle s1">✨</span>
-      <span class="sparkle s2">⭐</span>
-      <span class="sparkle s3">🌟</span>
       <span class="sparkle s4">✨</span>
       <span class="sparkle s5">🎨</span>
       <span class="sparkle s6">🌈</span>
       <span class="sparkle s7">🚀</span>
-      <span class="sparkle s8">⭐</span>
     </div>
 
     <!-- 1. Integrated Top Navigation Header Bar -->
     <div class="adventure-top-bar row items-center justify-between q-px-lg q-pt-md relative-position">
-      <button class="btn-3d-cartoon btn-accent-pink shadow-6 font-fredoka btn-back-home" @click="handleBackHome">
-        ⬅️ Beranda Rumah
-      </button>
+      <!-- Left spacer to center title -->
+      <div class="header-left-space hide-on-mobile"></div>
 
       <div class="map-title-badge column items-center">
-        <div class="text-h3 font-fredoka text-bold text-white title-glow-3d row items-center q-gutter-x-sm">
-          <span>🗺️</span>
-          <span>PETA DUNIA PETUALANGAN</span>
-          <span>🌟</span>
+        <div class="text-h3 font-fredoka text-bold text-white title-glow-3d row items-center">
+          <span>PETA PETUALANGAN</span>
         </div>
         <span class="text-subtitle1 font-fredoka text-amber-3 text-bold subtitle-sparkle">
-          Pilih Pulau Petualangan dan Kumpulkan Semua Bintang Emas!
+          Pilih Pulau Petualangan Favoritmu di Bawah Ini! 🚀
         </span>
       </div>
 
-      <div class="stat-pill bg-white shadow-6 row items-center q-px-md q-py-xs rounded-borders-lg">
-        <span class="stat-icon-star">⭐</span>
-        <span class="stat-value-xp font-fredoka text-amber-10 text-h6 text-bold q-ml-xs">{{ store.child.xp }} Bintang</span>
-      </div>
+      <!-- Top Right Close (X) Button -->
+      <button
+        class="close-map-btn flex flex-center font-fredoka shadow-6 cursor-pointer"
+        title="Kembali ke Beranda"
+        @click="handleBackHome"
+      >
+        ✖️
+      </button>
     </div>
 
     <!-- 2. Interactive Island Map Cards Grid (Scrollable Container) -->
@@ -76,9 +74,6 @@
             <div class="card-top-ribbon row items-center justify-between q-px-md q-pt-sm">
               <span class="world-number-badge font-fredoka shadow-3">
                 Pulau #{{ index + 1 }}
-              </span>
-              <span class="stars-earned-badge font-fredoka shadow-3">
-                ⭐⭐⭐ 3/3
               </span>
             </div>
 
@@ -449,13 +444,56 @@ const handleMouseUpOrLeave = () => {
   z-index: 20;
 }
 
-.btn-back-home {
-  font-size: 15px;
-  padding: 10px 20px;
+.header-left-space {
+  width: 46px;
+  height: 46px;
+}
+
+.close-map-btn {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+  border: 3px solid #ffffff;
+  box-shadow: 0 5px 0 #991b1b, 0 8px 16px rgba(0, 0, 0, 0.35);
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease, background 0.22s ease;
+}
+
+.close-map-btn:hover {
+  transform: scale(1.15) rotate(90deg);
+  box-shadow: 0 7px 0 #991b1b, 0 12px 24px rgba(239, 68, 68, 0.6);
+  background: linear-gradient(180deg, #f87171 0%, #ef4444 100%);
+}
+
+.close-map-btn:active {
+  transform: scale(0.95) rotate(90deg);
+  box-shadow: 0 2px 0 #991b1b !important;
 }
 
 .title-glow-3d {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
   text-shadow: 0 4px 0 #0284c7, 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+@media (max-width: 600px) {
+  .adventure-top-bar {
+    padding-top: 10px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  .map-title-badge .text-h3 {
+    font-size: 1.4rem !important;
+    white-space: nowrap;
+  }
+  .map-title-badge .text-subtitle1 {
+    font-size: 0.8rem !important;
+  }
 }
 
 .subtitle-sparkle {

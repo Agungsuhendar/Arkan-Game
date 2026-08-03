@@ -13,34 +13,32 @@
     
     <div class="sparkles-overlay">
       <span class="sparkle s1">✨</span>
-      <span class="sparkle s2">⭐</span>
-      <span class="sparkle s3">🌟</span>
       <span class="sparkle s4">🎨</span>
       <span class="sparkle s5">🚀</span>
-      <span class="sparkle s6">🎮</span>
     </div>
 
     <!-- 1. Top Header Bar -->
     <div class="catalog-top-bar row items-center justify-between q-px-lg q-pt-md relative-position z-top">
-      <button class="btn-3d-cartoon btn-accent-pink shadow-6 font-fredoka btn-back-home" @click="handleBackHome">
-        ⬅️ Beranda Rumah
-      </button>
+      <!-- Left spacer to center title -->
+      <div class="header-left-space hide-on-mobile"></div>
 
       <div class="catalog-title-badge column items-center">
-        <div class="text-h3 font-fredoka text-bold text-white title-glow-3d row items-center q-gutter-x-sm">
-          <span>🎮</span>
-          <span>KATALOG GAME & KREASI ARKAN</span>
-          <span>✨</span>
+        <div class="catalog-main-title font-fredoka text-bold text-white title-glow-3d row items-center">
+          <span>KATALOG GAME</span>
         </div>
         <span class="text-subtitle1 font-fredoka text-amber-3 text-bold subtitle-sparkle">
-          Pilih Kategori atau Permainan Favoritmu di Bawah Ini! 🚀
+          Pilih Permainan Favoritmu di Bawah Ini! 🚀
         </span>
       </div>
 
-      <div class="stat-pill bg-white shadow-6 row items-center q-px-md q-py-xs rounded-borders-lg">
-        <span class="stat-icon-star">⭐</span>
-        <span class="stat-value-xp font-fredoka text-amber-10 text-h6 text-bold q-ml-xs">{{ store.child.xp }} Bintang</span>
-      </div>
+      <!-- Top Right Close (X) Button -->
+      <button
+        class="close-catalog-btn flex flex-center font-fredoka shadow-6 cursor-pointer"
+        title="Kembali ke Beranda"
+        @click="handleBackHome"
+      >
+        ✖️
+      </button>
     </div>
 
     <!-- 2. Category Filter Tabs Bar -->
@@ -75,9 +73,6 @@
             <div class="card-top-tag row items-center justify-between q-px-md q-pt-sm">
               <span class="category-pill font-fredoka shadow-2">
                 {{ game.category }}
-              </span>
-              <span class="xp-badge font-fredoka shadow-2">
-                ⭐ +50 XP
               </span>
             </div>
 
@@ -173,7 +168,7 @@ const games: GameItem[] = [
   // 1. Membaca & Bahasa
   {
     id: 'tarik_garis',
-    title: 'Tarik Garis Cocokkan',
+    title: 'Tarik Garis',
     category: 'Tarik Garis',
     group: 'belajar',
     description: 'Tarik garis untuk mencocokkan hewan, makanan, & benda!',
@@ -183,7 +178,7 @@ const games: GameItem[] = [
   },
   {
     id: 'spelling_garden',
-    title: 'Taman Ejaan Kata',
+    title: 'Ejaan Kata',
     category: 'Ejaan Kata',
     group: 'belajar',
     description: 'Susun huruf menjadi kata yang benar di taman ajaib!',
@@ -193,7 +188,7 @@ const games: GameItem[] = [
   },
   {
     id: 'kuis_suara',
-    title: 'Kuis Suara Pintar',
+    title: 'Kuis Suara',
     category: 'Suara & Bicara',
     group: 'belajar',
     description: 'Jawab tebakan seru hewan, angka & warna dengan suaramu!',
@@ -215,7 +210,7 @@ const games: GameItem[] = [
   // 2. Hitung & Angka
   {
     id: 'kebun_angka',
-    title: 'Kebun Angka & Berhitung',
+    title: 'Kebun Angka',
     category: 'Matematika',
     group: 'matematika',
     description: 'Belajar berhitung, menjumlah, & mengenali angka buah!',
@@ -227,7 +222,7 @@ const games: GameItem[] = [
   // 3. Melukis & Musik (Kreasi)
   {
     id: 'studio_melukis',
-    title: 'Studio Melukis Ajaib',
+    title: 'Studio Melukis',
     category: 'Kreativitas',
     group: 'kreasi',
     description: 'Lukis & warnai gambar ajaib warna-warni bersama Arkan!',
@@ -237,7 +232,7 @@ const games: GameItem[] = [
   },
   {
     id: 'music_studio',
-    title: 'Studio Pianika & Musik',
+    title: 'Studio Musik',
     category: 'Musik & Nada',
     group: 'kreasi',
     description: 'Mainkan nada musik piano & dengarkan irama lagu edukasi!',
@@ -247,7 +242,7 @@ const games: GameItem[] = [
   },
   {
     id: 'kota_warna',
-    title: 'Kota Warna & Bentuk',
+    title: 'Warna & Bentuk',
     category: 'Seni & Warna',
     group: 'kreasi',
     description: 'Tebak warna ajaib dan bentuk benda di sekitar!',
@@ -259,7 +254,7 @@ const games: GameItem[] = [
   // 4. Puzzle & Sains
   {
     id: 'istana_puzzle',
-    title: 'Istana Puzzle Jigsaw',
+    title: 'Puzzle Jigsaw',
     category: 'Puzzle Gambar',
     group: 'puzzle',
     description: 'Susun kepingan puzzle gambar petualangan yang menyenangkan!',
@@ -269,7 +264,7 @@ const games: GameItem[] = [
   },
   {
     id: 'kastil_puzzle',
-    title: 'Kastil Puzzle Logika',
+    title: 'Puzzle Logika',
     category: 'Asah Otak',
     group: 'puzzle',
     description: 'Permainan puzzle logika susun kastil kerajaan!',
@@ -279,7 +274,7 @@ const games: GameItem[] = [
   },
   {
     id: 'fish_rescue',
-    title: 'Penyelamatan Ikan Laut',
+    title: 'Penyelamatan Ikan',
     category: 'Petualangan Laut',
     group: 'puzzle',
     description: 'Selamatkan ikan laut yang terperangkap dalam jaring!',
@@ -289,7 +284,7 @@ const games: GameItem[] = [
   },
   {
     id: 'sains_angkasa',
-    title: 'Sains Luar Angkasa',
+    title: 'Sains Angkasa',
     category: 'Sains & Antariksa',
     group: 'puzzle',
     description: 'Jelajahi planet, bintang, dan pengetahuan alam!',
@@ -299,7 +294,7 @@ const games: GameItem[] = [
   },
   {
     id: 'pulau_hewan',
-    title: 'Pulau Satwa & Suara',
+    title: 'Pulau Satwa',
     category: 'Sains Satwa',
     group: 'puzzle',
     description: 'Mengenal nama, jenis, dan suara hewan hutan lucu!',
@@ -311,7 +306,7 @@ const games: GameItem[] = [
   // 5. Aksi & Balapan (Petualangan)
   {
     id: 'bike_race',
-    title: 'Balap Sepeda Arkan',
+    title: 'Balap Sepeda',
     category: 'Balapan',
     group: 'petualangan',
     description: 'Balapan sepeda seru bersama Arkan, Ayah & Ibu!',
@@ -321,7 +316,7 @@ const games: GameItem[] = [
   },
   {
     id: 'balloon_game',
-    title: 'Pop Balon Huruf & Angka',
+    title: 'Pop Balon',
     category: 'Ketangkasan',
     group: 'petualangan',
     description: 'Pecahkan balon berisi huruf & angka sebelum melayang tinggi!',
@@ -331,7 +326,7 @@ const games: GameItem[] = [
   },
   {
     id: 'panjat_gunung',
-    title: 'Panjat Gunung XP',
+    title: 'Panjat Gunung',
     category: 'Petualangan',
     group: 'petualangan',
     description: 'Panjat tebing tinggi, kumpulkan koin & bintang emas!',
@@ -454,13 +449,42 @@ const handleMouseUpOrLeave = () => {
   100% { transform: scale(1.3) translateY(-8px); opacity: 1; filter: drop-shadow(0 0 10px #fde047); }
 }
 
-.btn-back-home {
-  font-size: 15px;
-  padding: 10px 20px;
+.header-left-space {
+  width: 46px;
+  height: 46px;
+}
+
+.close-catalog-btn {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+  border: 3px solid #ffffff;
+  box-shadow: 0 5px 0 #991b1b, 0 8px 16px rgba(0, 0, 0, 0.35);
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease, background 0.22s ease;
+}
+
+.close-catalog-btn:hover {
+  transform: scale(1.15) rotate(90deg);
+  box-shadow: 0 7px 0 #991b1b, 0 12px 24px rgba(239, 68, 68, 0.6);
+  background: linear-gradient(180deg, #f87171 0%, #ef4444 100%);
+}
+
+.close-catalog-btn:active {
+  transform: scale(0.95) rotate(90deg);
+  box-shadow: 0 2px 0 #991b1b !important;
+}
+
+.catalog-main-title {
+  font-size: clamp(1.3rem, 2vw, 1.8rem) !important;
+  line-height: 1.2;
 }
 
 .title-glow-3d {
-  text-shadow: 0 4px 0 #311042, 0 8px 20px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 3px 0 #311042, 0 6px 15px rgba(0, 0, 0, 0.5);
 }
 
 .subtitle-sparkle {
@@ -601,6 +625,13 @@ const handleMouseUpOrLeave = () => {
   backdrop-filter: blur(8px);
   border-radius: 22px;
   margin: 8px;
+}
+
+.line-clamp-1 {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .play-now-btn {
