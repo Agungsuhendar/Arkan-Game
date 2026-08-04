@@ -33,6 +33,7 @@
         @open-puzzle="showPuzzle = true"
         @open-voice-quiz="showVoiceQuiz = true"
         @open-story="showStory = true"
+        @open-certificate="showCertificate = true"
       />
 
       <!-- Mode 4: Home Base Room (Beranda) -->
@@ -48,11 +49,12 @@
         @open-puzzle="showPuzzle = true"
         @open-voice-quiz="showVoiceQuiz = true"
         @open-family="store.showParentDashboardModal = true"
+        @open-smart-talk="showSmartTalk = true"
       />
     </q-page-container>
 
     <!-- Modals & Global Audio -->
-    <BackgroundAudio :pause-bgm="store.isGameActive || showStory || showVoiceQuiz || showDrawing || showPuzzle" />
+    <BackgroundAudio :pause-bgm="store.isGameActive || showStory || showVoiceQuiz || showDrawing || showPuzzle || showSmartTalk || showCertificate" />
     <ParentDashboardModal v-if="store.showParentDashboardModal" />
     <AvatarWardrobeModal v-if="showWardrobe" v-model="showWardrobe" />
     <BedtimeStoryModal v-if="showStory" v-model="showStory" />
@@ -60,6 +62,8 @@
     <MagicDrawingModal v-if="showDrawing" v-model="showDrawing" />
     <JigsawPuzzleModal v-if="showPuzzle" v-model="showPuzzle" />
     <VoiceQuizModal v-if="showVoiceQuiz" v-model="showVoiceQuiz" />
+    <SmartTalkingModal v-if="showSmartTalk" v-model="showSmartTalk" />
+    <WorldCertificateModal v-if="showCertificate" v-model="showCertificate" />
     <PwaInstallPromptModal />
   </q-layout>
 </template>
@@ -83,6 +87,8 @@ const TrophyRoomModal = defineAsyncComponent(() => import('./components/TrophyRo
 const MagicDrawingModal = defineAsyncComponent(() => import('./components/MagicDrawingModal.vue'));
 const JigsawPuzzleModal = defineAsyncComponent(() => import('./components/JigsawPuzzleModal.vue'));
 const VoiceQuizModal = defineAsyncComponent(() => import('./components/VoiceQuizModal.vue'));
+const SmartTalkingModal = defineAsyncComponent(() => import('./components/SmartTalkingModal.vue'));
+const WorldCertificateModal = defineAsyncComponent(() => import('./components/WorldCertificateModal.vue'));
 const PwaInstallPromptModal = defineAsyncComponent(() => import('./components/PwaInstallPromptModal.vue'));
 
 const store = useGameStore();
@@ -95,6 +101,8 @@ const showTrophy = ref(false);
 const showDrawing = ref(false);
 const showPuzzle = ref(false);
 const showVoiceQuiz = ref(false);
+const showSmartTalk = ref(false);
+const showCertificate = ref(false);
 
 const launchDirectGame = (sceneKey?: string, source: 'katalog' | 'petualangan' = 'katalog') => {
   entrySource.value = source;

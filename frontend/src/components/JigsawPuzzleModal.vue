@@ -3,24 +3,40 @@
     <q-card class="jigsaw-puzzle-card column no-wrap fit font-quicksand relative-position">
       <!-- Top Bar Header -->
       <div class="puzzle-header-bar row items-center justify-between q-px-lg q-py-sm">
-        <div class="row items-center q-gutter-x-md">
+        <div class="row items-center q-gutter-x-md col-grow overflow-hidden">
           <span class="text-h4 title-emoji-pulse">🧩✨</span>
-          <div class="column">
-            <div class="text-h5 font-fredoka text-bold text-amber-3 header-title-glow">
+          <div class="column col ellipsis">
+            <div class="text-h5 font-fredoka text-bold text-amber-3 header-title-glow ellipsis">
               Mainan Puzzle Gambar Ajaib Arkan
             </div>
-            <div class="text-caption text-purple-2 font-fredoka">
-              Geser atau sentuh kepingan gambar asli ke tempat yang cocok & susun gambarnya!
+            <div class="text-caption text-purple-2 font-fredoka ellipsis">
+              {{ currentStep === 'select' ? 'Pilih Gambar & Jumlah Kepingan Puzzle Di Bawah Ini!' : 'Geser atau sentuh kepingan gambar ke tempat yang cocok!' }}
             </div>
           </div>
         </div>
 
-        <div class="row items-center q-gutter-x-sm q-mr-lg">
-          <button class="btn-puzzle-action btn-hint-sparkle font-fredoka shadow-6" @click="handleSparkleHint">
+        <!-- Desktop Top Action Buttons -->
+        <div class="row items-center q-gutter-x-sm q-mr-md hide-on-mobile">
+          <!-- Back to Selection Screen Button (Visible in Play Mode) -->
+          <button
+            v-if="currentStep === 'play'"
+            class="btn-puzzle-action btn-change-theme font-fredoka shadow-6"
+            @click="currentStep = 'select'"
+            title="Pilih Gambar Lain"
+          >
+            🖼️ Ganti Gambar
+          </button>
+
+          <button
+            v-if="currentStep === 'play'"
+            class="btn-puzzle-action btn-hint-sparkle font-fredoka shadow-6"
+            @click="handleSparkleHint"
+          >
             💡 Petunjuk Sparkle
           </button>
 
           <button
+            v-if="currentStep === 'play'"
             class="btn-puzzle-action font-fredoka shadow-6"
             :class="showGhostHint ? 'btn-ghost-on' : 'btn-ghost-off'"
             @click="showGhostHint = !showGhostHint"
@@ -39,10 +55,75 @@
         </button>
       </div>
 
-      <!-- Main Workspace -->
-      <div class="puzzle-workspace row col no-wrap overflow-hidden">
-        <!-- Left Sidebar: Theme Selector & Grid Size Selector -->
-        <div class="puzzle-controls-sidebar column q-pa-md q-gutter-y-md">
+      <!-- STEP 1: Picture & Difficulty Selection Workspace (Katalog Gambar) -->
+      <div v-if="currentStep === 'select'" class="selection-workspace column col items-center q-pa-md overflow-auto z-top relative-position">
+        <div class="selection-container column items-center full-width">
+          <!-- Difficulty Selection Bar -->
+          <div class="difficulty-picker-card column items-center q-pa-sm q-mb-md rounded-borders shadow-12">
+            <div class="text-subtitle1 font-fredoka text-bold text-amber-3 q-mb-xs">
+              🧩 Pilih Jumlah Kepingan Puzzle:
+            </div>
+            <div class="row q-gutter-xs justify-center full-width wrap">
+              <button
+                v-for="grid in gridOptions"
+                :key="grid.size"
+                class="btn-grid-select font-fredoka shadow-4"
+                :class="{ active: currentGridSize === grid.size }"
+                @click="changeGridSize(grid.size)"
+              >
+                <span class="text-h6 q-mr-xs">{{ grid.icon }}</span>
+                <span>{{ grid.label }}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Picture Catalog Cards Grid Header -->
+          <div class="text-h6 font-fredoka text-bold text-amber-3 q-mb-sm text-center full-width">
+            🖼️ Pilih Gambar Favoritmu Di Bawah Ini:
+          </div>
+
+          <!-- Picture Catalog Cards Grid -->
+          <div class="row q-col-gutter-md justify-center full-width">
+            <div
+              v-for="theme in puzzleThemesList"
+              :key="theme.id"
+              class="col-12 col-sm-6 col-md-4"
+            >
+              <div
+                class="picture-catalog-card column no-wrap overflow-hidden shadow-16 cursor-pointer relative-position animate-pop"
+                :class="{ active: currentThemeId === theme.id }"
+                @click="selectThemeAndPlay(theme.id)"
+              >
+                <div class="catalog-image-box full-width relative-position">
+                  <img :src="theme.imageSrc" class="catalog-card-img" :alt="theme.title" />
+                  <div class="piece-count-badge font-fredoka shadow-4">
+                    🧩 {{ currentGridSize * currentGridSize }} Keping
+                  </div>
+                  <div class="emoji-corner-badge flex flex-center font-fredoka shadow-4">
+                    {{ theme.emoji }}
+                  </div>
+                </div>
+                <div class="catalog-card-body column q-pa-md bg-purple-9 text-white">
+                  <div class="text-h6 font-fredoka text-bold text-amber-3 line-clamp-1">
+                    {{ theme.title }}
+                  </div>
+                  <div class="text-caption font-fredoka text-purple-2 q-mb-xs">
+                    {{ theme.tag }}
+                  </div>
+                  <button class="btn-play-theme font-fredoka text-bold shadow-6 q-mt-xs">
+                    🎮 Mainkan Gambar Ini ➔
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2: Main Gameplay Board Workspace -->
+      <div v-else class="puzzle-workspace row col no-wrap overflow-hidden">
+        <!-- Left Sidebar: Theme Selector & Grid Size Selector (Desktop View) -->
+        <div class="puzzle-controls-sidebar column q-pa-md q-gutter-y-md hide-on-mobile">
           <!-- Grid Size Picker -->
           <div class="sidebar-section">
             <div class="text-caption text-bold text-amber-4 q-mb-xs font-fredoka">🧩 Jumlah Kepingan:</div>
@@ -61,24 +142,19 @@
 
           <!-- Theme Picture Selector -->
           <div class="sidebar-section col column overflow-auto">
-            <div class="text-caption text-bold text-amber-4 q-mb-xs font-fredoka">🖼️ Pilih Gambar Puzzle:</div>
+            <div class="text-caption text-bold text-amber-4 q-mb-xs font-fredoka">🖼️ Pilih Gambar:</div>
             <div class="column q-gutter-y-xs">
               <button
-                v-for="theme in puzzleThemes"
+                v-for="theme in puzzleThemesList"
                 :key="theme.id"
                 class="btn-theme-choice font-fredoka row items-center q-pa-xs shadow-3"
                 :class="{ active: currentThemeId === theme.id }"
                 @click="changeTheme(theme.id)"
               >
-                <div
-                  class="theme-badge-preview flex flex-center font-fredoka q-mr-sm shadow-2"
-                  :style="{ backgroundImage: `url(${theme.imageSrc})` }"
-                >
-                  <span class="theme-emoji-icon">{{ theme.emoji }}</span>
-                </div>
-                <div class="column text-left">
+                <img :src="theme.imageSrc" class="theme-thumb-img q-mr-sm shadow-2" :alt="theme.title" />
+                <div class="column text-left col">
                   <span class="text-subtitle2 text-bold line-clamp-1">{{ theme.title }}</span>
-                  <span class="text-caption text-purple-2">{{ theme.tag }}</span>
+                  <span class="text-caption text-purple-2 line-clamp-1">{{ theme.tag }}</span>
                 </div>
               </button>
             </div>
@@ -86,7 +162,23 @@
         </div>
 
         <!-- Center Stage: Target Board Grid -->
-        <div class="puzzle-board-stage col flex flex-center relative-position q-pa-md">
+        <div class="puzzle-board-stage col flex flex-center column relative-position q-pa-sm">
+          <!-- Dedicated Mobile Gameplay Action Toolbar -->
+          <div class="mobile-action-bar row items-center justify-center gap-xs q-mb-xs show-on-mobile hide-on-desktop full-width">
+            <button class="btn-puzzle-action btn-change-theme font-fredoka shadow-4" @click="currentStep = 'select'">
+              🖼️ Ganti Gambar
+            </button>
+            <button class="btn-puzzle-action btn-hint-sparkle font-fredoka shadow-4" @click="handleSparkleHint">
+              💡 Petunjuk
+            </button>
+            <button
+              class="btn-puzzle-action font-fredoka shadow-4"
+              :class="showGhostHint ? 'btn-ghost-on' : 'btn-ghost-off'"
+              @click="showGhostHint = !showGhostHint"
+            >
+              👁️ {{ showGhostHint ? 'Bayangan ON' : 'Bayangan OFF' }}
+            </button>
+          </div>
           <div class="board-frame shadow-24 relative-position">
             <!-- Ghost Image Background Hint -->
             <div
@@ -112,9 +204,9 @@
                 :key="`slot-${idx}`"
                 class="puzzle-slot-cell flex flex-center relative-position cursor-pointer overflow-hidden"
                 :class="{ locked: slot.isFilled, highlighted: highlightedSlotIndex === idx }"
+                :data-slot-index="idx"
                 @dragover.prevent
                 @drop="handleDrop($event, idx)"
-                @click="handleSlotClick(idx)"
               >
                 <!-- Render Sliced Real Image Piece when Filled -->
                 <div
@@ -139,9 +231,14 @@
                   <span>🪙 +30 Koin</span>
                   <span>⭐ +50 XP</span>
                 </div>
-                <button class="btn-play-again font-fredoka shadow-8" @click="resetCurrentPuzzle">
-                  🔄 Main Lagi!
-                </button>
+                <div class="row q-gutter-x-sm">
+                  <button class="btn-play-again font-fredoka shadow-8" @click="resetCurrentPuzzle">
+                    🔄 Main Lagi!
+                  </button>
+                  <button class="btn-play-again btn-change-theme font-fredoka shadow-8" @click="currentStep = 'select'">
+                    🖼️ Pilih Gambar Lain
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -157,15 +254,30 @@
             <div
               v-for="piece in remainingPieces"
               :key="`piece-${piece.targetIdx}`"
-              class="draggable-piece-card flex flex-center shadow-8 cursor-pointer relative-position overflow-hidden"
+              class="draggable-piece-card flex flex-center shadow-8 cursor-grab relative-position overflow-hidden"
               :style="getPieceStyle(piece.targetIdx, currentTheme.imageSrc)"
               draggable="true"
               @dragstart="handleDragStart($event, piece.targetIdx)"
-              @click="handlePieceClick(piece.targetIdx)"
+              @touchstart.prevent="handleTouchStart($event, piece.targetIdx)"
+              @touchmove.prevent="handleTouchMove($event)"
+              @touchend.prevent="handleTouchEnd(piece.targetIdx)"
             >
               <span class="piece-label font-fredoka">#{{ piece.targetIdx + 1 }}</span>
             </div>
           </div>
+        </div>
+
+        <!-- Floating Touch Drag Ghost Preview -->
+        <div
+          v-if="touchingPieceIdx !== null"
+          class="floating-touch-ghost fixed pointer-events-none shadow-24"
+          :style="{
+            left: `${touchPos.x - 45}px`,
+            top: `${touchPos.y - 45}px`,
+            ...getPieceStyle(touchingPieceIdx, currentTheme.imageSrc)
+          }"
+        >
+          <span class="piece-label font-fredoka">#{{ touchingPieceIdx + 1 }}</span>
         </div>
       </div>
     </q-card>
@@ -185,6 +297,7 @@ const isOpen = computed({
   set: (val) => emit('update:modelValue', val)
 });
 
+const currentStep = ref<'select' | 'play'>('select');
 const currentGridSize = ref(2); // 2x2 default
 const showGhostHint = ref(true);
 const currentThemeId = ref('hutan');
@@ -192,9 +305,9 @@ const isCompleted = ref(false);
 const highlightedSlotIndex = ref<number | null>(null);
 
 const gridOptions = [
-  { size: 2, label: '2 x 2' },
-  { size: 3, label: '3 x 3' },
-  { size: 4, label: '4 x 4' }
+  { size: 2, label: '2 x 2 (Mudah)', icon: '🟢' },
+  { size: 3, label: '3 x 3 (Sedang)', icon: '🟡' },
+  { size: 4, label: '4 x 4 (Tantangan)', icon: '🔴' }
 ];
 
 interface PuzzleTheme {
@@ -209,7 +322,7 @@ const puzzleThemes: Record<string, PuzzleTheme> = {
   hutan: {
     id: 'hutan',
     title: 'Hutan Ajaib Dino',
-    tag: 'Petualangan 🦖',
+    tag: 'Petualangan Dinosaurus 🦖',
     emoji: '🦖',
     imageSrc: '/arkan_hutan_cover.png'
   },
@@ -243,6 +356,7 @@ const puzzleThemes: Record<string, PuzzleTheme> = {
   }
 };
 
+const puzzleThemesList = computed(() => Object.values(puzzleThemes));
 const currentTheme = computed(() => puzzleThemes[currentThemeId.value] || puzzleThemes.hutan);
 const totalPiecesCount = computed(() => currentGridSize.value * currentGridSize.value);
 
@@ -257,6 +371,17 @@ interface PieceItem {
 
 const slots = ref<SlotItem[]>([]);
 const remainingPieces = ref<PieceItem[]>([]);
+
+// Touch Dragging State for Mobile & Touch Devices
+const touchingPieceIdx = ref<number | null>(null);
+const touchPos = ref({ x: 0, y: 0 });
+
+function selectThemeAndPlay(themeId: string) {
+  currentThemeId.value = themeId;
+  store.playSfx('whoosh');
+  initPuzzle();
+  currentStep.value = 'play';
+}
 
 function getPieceStyle(idx: number, imageUrl: string) {
   const N = currentGridSize.value;
@@ -277,6 +402,7 @@ function getPieceStyle(idx: number, imageUrl: string) {
 function initPuzzle() {
   isCompleted.value = false;
   highlightedSlotIndex.value = null;
+  touchingPieceIdx.value = null;
   const count = totalPiecesCount.value;
 
   slots.value = Array.from({ length: count }, (_, i) => ({
@@ -323,15 +449,51 @@ function handleDrop(e: DragEvent, slotIdx: number) {
   }
 }
 
-function handleSlotClick(slotIdx: number) {
-  const matchingInTray = remainingPieces.value.find(p => p.targetIdx === slotIdx);
-  if (matchingInTray) {
-    placePieceInSlot(slotIdx);
+// Touch Dragging Event Handlers
+function handleTouchStart(e: TouchEvent, targetIdx: number) {
+  if (e.touches.length > 0) {
+    touchingPieceIdx.value = targetIdx;
+    touchPos.value = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY
+    };
+    store.playSfx('click');
   }
 }
 
-function handlePieceClick(targetIdx: number) {
-  placePieceInSlot(targetIdx);
+function handleTouchMove(e: TouchEvent) {
+  if (touchingPieceIdx.value !== null && e.touches.length > 0) {
+    touchPos.value = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY
+    };
+  }
+}
+
+function handleTouchEnd(targetIdx: number) {
+  if (touchingPieceIdx.value === null) return;
+
+  const dropX = touchPos.value.x;
+  const dropY = touchPos.value.y;
+  touchingPieceIdx.value = null;
+
+  // Find element under touch position
+  const element = document.elementFromPoint(dropX, dropY);
+  if (element) {
+    const slotEl = element.closest('[data-slot-index]');
+    if (slotEl) {
+      const slotIdxAttr = slotEl.getAttribute('data-slot-index');
+      if (slotIdxAttr !== null) {
+        const slotIdx = parseInt(slotIdxAttr, 10);
+        if (!isNaN(slotIdx) && slotIdx === targetIdx) {
+          placePieceInSlot(targetIdx);
+          return;
+        }
+      }
+    }
+  }
+
+  store.playSfx('wrong');
 }
 
 function placePieceInSlot(targetIdx: number) {
@@ -383,6 +545,11 @@ function closeModal() {
 
 watch(isOpen, (newVal) => {
   if (newVal) {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      currentStep.value = 'select';
+    } else {
+      currentStep.value = 'play';
+    }
     initPuzzle();
   }
 });
@@ -404,6 +571,100 @@ watch(isOpen, (newVal) => {
   text-shadow: 0 0 10px rgba(253, 224, 71, 0.5);
 }
 
+/* Step 1 Selection Cards */
+.selection-container {
+  max-width: 1050px;
+  margin: 0 auto;
+}
+
+.difficulty-picker-card {
+  width: 100%;
+  max-width: 750px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+}
+
+.btn-grid-select {
+  padding: 8px 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-grid-select.active {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border-color: #fde047;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+}
+
+.picture-catalog-card {
+  border-radius: 24px;
+  border: 3.5px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.picture-catalog-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  border-color: #fde047;
+}
+
+.catalog-image-box {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  position: relative;
+  background: #0f172a;
+}
+
+.catalog-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.picture-catalog-card:hover .catalog-card-img {
+  transform: scale(1.08);
+}
+
+.piece-count-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(124, 58, 237, 0.9);
+  border: 1.5px solid #d8b4fe;
+  color: white;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.emoji-corner-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.85);
+  border: 2px solid #f59e0b;
+  backdrop-filter: blur(4px);
+  font-size: 20px;
+}
+
+.btn-play-theme {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: white;
+  border: 2px solid #bbf7d0;
+  border-radius: 16px;
+  padding: 8px;
+  cursor: pointer;
+}
+
 .btn-puzzle-action {
   border-radius: 18px;
   padding: 8px 16px;
@@ -416,6 +677,12 @@ watch(isOpen, (newVal) => {
 
 .btn-puzzle-action:hover {
   transform: scale(1.05);
+}
+
+.btn-change-theme {
+  background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+  border-color: #93c5fd;
+  color: white;
 }
 
 .btn-hint-sparkle {
@@ -448,236 +715,243 @@ watch(isOpen, (newVal) => {
   border: 3px solid #ffffff;
   box-shadow: 0 5px 0 #991b1b, 0 8px 16px rgba(0, 0, 0, 0.35);
   color: white;
-  font-size: 18px;
-  font-weight: bold;
-  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease, background 0.22s ease;
+  font-size: 1.3rem;
 }
 
-.close-puzzle-btn:hover {
-  transform: scale(1.15) rotate(90deg);
-  box-shadow: 0 7px 0 #991b1b, 0 12px 24px rgba(239, 68, 68, 0.6);
-  background: linear-gradient(180deg, #f87171 0%, #ef4444 100%);
-}
-
-.close-puzzle-btn:active {
-  transform: scale(0.95) rotate(90deg);
-  box-shadow: 0 2px 0 #991b1b !important;
-}
-
-.puzzle-controls-sidebar, .puzzle-tray-sidebar {
-  width: 220px;
-  background: rgba(255, 255, 255, 0.06);
+.puzzle-controls-sidebar {
+  width: 210px;
+  background: rgba(255, 255, 255, 0.08);
   border-right: 2px solid rgba(255, 255, 255, 0.1);
 }
 
-.puzzle-tray-sidebar {
-  border-right: none;
-  border-left: 2px solid rgba(255, 255, 255, 0.1);
-}
-
 .btn-grid-chip {
-  background: rgba(255, 255, 255, 0.12);
-  color: white;
-  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  padding: 6px 4px;
   border-radius: 12px;
-  padding: 8px 2px;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
   font-size: 12px;
+  font-weight: bold;
   cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-grid-chip:hover {
-  background: rgba(255, 255, 255, 0.22);
 }
 
 .btn-grid-chip.active {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   border-color: #fde047;
-  font-weight: bold;
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
 }
 
 .btn-theme-choice {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  border: 1.5px solid rgba(255, 255, 255, 0.18);
   border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  color: white;
   cursor: pointer;
-  width: 100%;
   transition: all 0.2s ease;
 }
 
-.btn-theme-choice:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateX(2px);
-}
-
 .btn-theme-choice.active {
-  background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%);
-  border-color: #e9d5ff;
-  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.4);
+  background: rgba(245, 158, 11, 0.25);
+  border-color: #f59e0b;
 }
 
-.theme-badge-preview {
-  width: 42px;
-  height: 42px;
+.theme-thumb-img {
+  width: 48px;
+  height: 48px;
   border-radius: 12px;
-  background-size: cover;
-  background-position: center;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  position: relative;
+  border: 2px solid #f59e0b;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
-.theme-emoji-icon {
-  font-size: 18px;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+.puzzle-board-stage {
+  background: radial-gradient(circle at center, rgba(168, 85, 247, 0.2) 0%, transparent 70%);
 }
 
 .board-frame {
   width: 520px;
   height: 520px;
-  border-radius: 28px;
-  border: 6px solid #818cf8;
-  overflow: hidden;
+  max-width: 85vw;
+  max-height: 58vh;
+  aspect-ratio: 1 / 1;
   background: rgba(15, 23, 42, 0.85);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  border: 6px solid #f59e0b;
+  border-radius: 28px;
+  overflow: hidden;
 }
 
 .ghost-hint-background {
-  opacity: 0.15;
+  opacity: 0.1;
   transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
 .ghost-hint-background.opacity-active {
-  opacity: 0.45;
+  opacity: 0.35;
 }
 
 .puzzle-grid-container {
   display: grid;
-  gap: 4px;
-  padding: 8px;
+  gap: 2px;
 }
 
 .puzzle-slot-cell {
-  border-radius: 14px;
-  border: 2px dashed rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed rgba(255, 255, 255, 0.25);
   transition: all 0.2s ease;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.4);
-}
-
-.puzzle-slot-cell.locked {
-  border-style: solid;
-  border-color: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5), inset 0 0 0 2px rgba(255, 255, 255, 0.4);
 }
 
 .puzzle-slot-cell.highlighted {
-  border-color: #f59e0b;
-  border-style: solid;
-  border-width: 4px;
-  animation: pulse 0.6s infinite alternate;
+  border: 3px solid #f59e0b;
+  background: rgba(245, 158, 11, 0.3);
+  animation: pulseHighlight 0.6s infinite alternate;
 }
 
-.slot-piece-image {
-  border-radius: 12px;
-  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.4);
+@keyframes pulseHighlight {
+  0% { transform: scale(0.98); }
+  100% { transform: scale(1.02); }
 }
 
 .slot-lock-badge {
   position: absolute;
   top: 4px;
-  right: 6px;
-  color: #fde047;
-  font-weight: bold;
-  font-size: 16px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  right: 4px;
+  background: #22c55e;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .slot-number-hint {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 20px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+}
+
+.puzzle-tray-sidebar {
+  width: 170px;
+  background: rgba(255, 255, 255, 0.06);
+  border-left: 2px solid rgba(255, 255, 255, 0.1);
 }
 
 .draggable-piece-card {
-  width: 104px;
-  height: 104px;
-  border-radius: 18px;
-  border: 3px solid rgba(255, 255, 255, 0.8);
-  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.4), 0 8px 18px rgba(0, 0, 0, 0.4);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  width: 95px;
+  height: 95px;
+  border-radius: 16px;
+  border: 3px solid #fde047;
+  transition: transform 0.2s ease;
 }
 
 .draggable-piece-card:hover {
-  transform: scale(1.1) translateY(-3px);
-  border-color: #fde047;
-  box-shadow: 0 14px 28px rgba(253, 224, 71, 0.4);
+  transform: scale(1.08) rotate(2deg);
 }
 
 .piece-label {
   position: absolute;
-  bottom: 4px;
-  right: 8px;
-  font-size: 11px;
-  color: white;
-  font-weight: bold;
-  background: rgba(0, 0, 0, 0.65);
-  padding: 2px 6px;
+  bottom: 2px;
+  right: 4px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fde047;
+  padding: 1px 6px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.floating-touch-ghost {
+  width: 90px;
+  height: 90px;
+  border-radius: 16px;
+  border: 3.5px solid #fde047;
+  z-index: 9999;
+  transform: scale(1.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
 }
 
 .victory-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(15, 23, 42, 0.88);
-  backdrop-filter: blur(12px);
-  z-index: 100;
+  background: rgba(15, 23, 42, 0.9);
+  z-index: 50;
 }
 
 .victory-banner {
-  background: linear-gradient(135deg, #1e1b4b 0%, #311b92 100%);
-  border: 4px solid #818cf8;
-  border-radius: 32px;
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  border: 3.5px solid #bbf7d0;
+  border-radius: 28px;
+  max-width: 90%;
 }
 
 .btn-play-again {
-  background: linear-gradient(180deg, #16a34a 0%, #15803d 100%);
+  background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+  border: 2px solid #fde047;
   color: white;
-  border: 2px solid #bbf7d0;
-  border-radius: 22px;
-  padding: 10px 28px;
-  font-size: 18px;
+  border-radius: 18px;
+  padding: 10px 20px;
+  font-size: 16px;
   font-weight: bold;
   cursor: pointer;
-  transition: transform 0.2s ease;
 }
 
-.btn-play-again:hover {
-  transform: scale(1.06);
+.puzzle-header-bar {
+  background: rgba(15, 23, 42, 0.85);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  padding-right: 70px !important;
+}
+
+@media (min-width: 769px) {
+  .show-on-mobile {
+    display: none !important;
+  }
 }
 
 @media (max-width: 768px) {
-  .puzzle-workspace {
-    flex-direction: column;
-    overflow-y: auto;
+  .hide-on-mobile {
+    display: none !important;
   }
-  .puzzle-controls-sidebar, .puzzle-tray-sidebar {
-    width: 100%;
-    border: none;
+  .show-on-mobile {
+    display: flex !important;
+  }
+  .puzzle-header-bar {
+    padding-left: 12px !important;
+    padding-right: 64px !important;
+  }
+  .header-title-glow {
+    font-size: 1.1rem !important;
+  }
+  .btn-grid-select {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+  }
+  .btn-grid-select span.text-h6 {
+    font-size: 14px !important;
+  }
+  .selection-workspace {
+    padding: 10px !important;
   }
   .board-frame {
-    width: 320px;
-    height: 320px;
+    width: 310px;
+    height: 310px;
+    max-width: 90vw;
+  }
+  .puzzle-tray-sidebar {
+    width: 110px;
+    padding: 8px !important;
   }
   .draggable-piece-card {
-    width: 72px;
-    height: 72px;
+    width: 70px;
+    height: 70px;
   }
-  .tray-pieces-wrapper {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
+  .btn-puzzle-action {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    border-radius: 14px !important;
   }
 }
 </style>

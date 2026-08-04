@@ -1,5 +1,5 @@
-const CACHE_NAME = 'arkan-game-v31-night-room-bg';
-const MEDIA_CACHE_NAME = 'arkan-media-v17';
+const CACHE_NAME = 'arkan-game-v32-full-offline';
+const MEDIA_CACHE_NAME = 'arkan-media-v18-offline-ready';
 
 const ASSETS_TO_CACHE = [
   '/',
@@ -10,13 +10,27 @@ const ASSETS_TO_CACHE = [
   '/pwa_icon_180.png',
   '/pwa_icon_192.png',
   '/pwa_icon_512.png',
-  '/family_photo.png?v=family_v2'
+  '/arkan_character.png',
+  '/arkan_character_v2.png',
+  '/arkan_avatar_card.png',
+  '/cat_character_v2.png',
+  '/dino_character_v2.png',
+  '/chest_character.png',
+  '/family_photo.png?v=family_v2',
+  '/home_room_bg.webp',
+  '/home_room_day.webp',
+  '/home_room_night.webp',
+  '/adventure_map_world_4k_bg.png',
+  '/adventure_map_world_bg.png',
+  '/world_map_4k_hd.png'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
+      return cache.addAll(ASSETS_TO_CACHE).catch((err) => {
+        console.warn('Pre-cache warning:', err);
+      });
     })
   );
   self.skipWaiting();
@@ -40,7 +54,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Cache-First Strategy for Images & Audio Assets (0ms Instant Load from Local Cache)
+  // Cache-First Strategy for Images & Audio Assets (0ms Instant Load from Local Offline Cache)
   if (
     event.request.method === 'GET' &&
     (url.pathname.match(/\.(png|jpg|jpeg|webp|svg|ico|gif|mp3|woff2)$/i) ||
@@ -59,7 +73,7 @@ self.addEventListener('fetch', (event) => {
             })
             .catch(() => cachedResponse);
 
-          // Return instant cached response if available, otherwise wait for network fetch
+          // Return instant cached response if available, otherwise fallback to network fetch
           return cachedResponse || fetchPromise;
         });
       })
@@ -67,7 +81,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Stale-While-Revalidate Strategy for HTML/JS/CSS
+  // Stale-While-Revalidate Strategy for HTML/JS/CSS with offline fallback
   event.respondWith(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.match(event.request).then((cachedResponse) => {
@@ -85,4 +99,3 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
-

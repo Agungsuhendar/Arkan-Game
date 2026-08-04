@@ -20,6 +20,10 @@
             📸 Simpan Karya 🌟
           </button>
 
+          <button class="btn-drawing-action btn-print-artwork font-fredoka shadow-6" @click="handlePrintArtwork">
+            🖨️ Cetak Karya
+          </button>
+
           <button class="btn-close-fullscreen flex flex-center shadow-4 q-ml-md" @click="closeModal" title="Tutup Studio">
             ✕
           </button>
@@ -449,16 +453,55 @@ function handleClearCanvas() {
 }
 
 function handleSaveArtwork() {
-  if (!canvasRef.value) return;
+  if (!canvasRef.value || !ctx) return;
 
   store.playSfx('win');
   store.speak('Wah, karya lukisan Arkan sangat indah sekali!');
 
+  // Draw artist signature stamp on corner before exporting
+  ctx.save();
+  ctx.fillStyle = '#f59e0b';
+  ctx.font = 'bold 16px sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText(`🎨 Karya ${store.child.name} • ${new Date().toLocaleDateString('id-ID')}`, canvasRef.value.width - 20, canvasRef.value.height - 20);
+  ctx.restore();
+
   // Trigger image download
   const link = document.createElement('a');
-  link.download = `Karya_Melukis_Arkan_${Date.now()}.png`;
+  link.download = `Karya_Melukis_${store.child.name}_${Date.now()}.png`;
   link.href = canvasRef.value.toDataURL('image/png');
   link.click();
+}
+
+function handlePrintArtwork() {
+  if (!canvasRef.value) return;
+
+  store.playSfx('click');
+  store.speak('Mencetak hasil karya seni!');
+
+  // Open print dialog
+  const printWindow = window.open('', '_blank');
+  if (printWindow) {
+    const dataUrl = canvasRef.value.toDataURL('image/png');
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Cetak Karya - Arkan-Game</title>
+          <style>
+            body { margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: sans-serif; }
+            img { max-width: 90vw; max-height: 80vh; border: 8px solid #f59e0b; border-radius: 16px; margin: 20px; }
+            h2 { color: #7c3aed; }
+          </style>
+        </head>
+        <body>
+          <h2>🎨 Studio Melukis Ajaib - Karya ${store.child.name}</h2>
+          <img src="${dataUrl}" />
+          <script>window.onload = function() { window.print(); window.close(); }<\/script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  }
 }
 
 function closeModal() {
@@ -502,6 +545,11 @@ onMounted(() => {
 
 .btn-save-artwork {
   background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+}
+
+.btn-print-artwork {
+  background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
   color: white;
 }
 

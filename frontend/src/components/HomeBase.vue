@@ -124,6 +124,13 @@
           </div>
           <span class="btn-text font-fredoka">Keluarga</span>
         </button>
+
+        <button class="nav-3d-btn bg-amber-btn animate-pulse" @click="$emit('open-smart-talk')">
+          <div class="btn-icon-box flex flex-center">
+            <span class="btn-icon">🎙️</span>
+          </div>
+          <span class="btn-text font-fredoka">Tanya Arkan</span>
+        </button>
       </div>
 
       <!-- 3. ANIMATED CHARACTERS LAYER (Positioned on central floor rug) -->
@@ -195,7 +202,7 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useGameStore } from '../application/stores/gameStore';
 
-defineEmits(['open-map', 'launch-game', 'open-game-picker', 'open-wardrobe', 'open-story', 'open-trophy', 'open-drawing', 'open-puzzle', 'open-voice-quiz', 'open-family']);
+defineEmits(['open-map', 'launch-game', 'open-game-picker', 'open-wardrobe', 'open-story', 'open-trophy', 'open-drawing', 'open-puzzle', 'open-voice-quiz', 'open-family', 'open-smart-talk']);
 const store = useGameStore();
 
 const showRightWidgets = ref(typeof window !== 'undefined' ? window.innerWidth >= 768 : true);

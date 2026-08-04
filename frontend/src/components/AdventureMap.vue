@@ -46,14 +46,25 @@
         </span>
       </div>
 
-      <!-- Top Right Close (X) Button -->
-      <button
-        class="close-map-btn flex flex-center font-fredoka shadow-6 cursor-pointer"
-        title="Kembali ke Beranda"
-        @click="handleBackHome"
-      >
-        ✖️
-      </button>
+      <!-- Top Right Header Actions -->
+      <div class="row items-center q-gutter-x-sm">
+        <button
+          class="btn-cert-header font-fredoka shadow-6 cursor-pointer row items-center q-px-md q-py-xs"
+          title="Lihat Sertifikat Kelulusan Dunia"
+          @click="openModal('open-certificate')"
+        >
+          <span class="q-mr-xs text-h6">📜</span>
+          <span>Sertifikat</span>
+        </button>
+
+        <button
+          class="close-map-btn flex flex-center font-fredoka shadow-6 cursor-pointer"
+          title="Kembali ke Beranda"
+          @click="handleBackHome"
+        >
+          ✖️
+        </button>
+      </div>
     </div>
 
     <!-- 2. Interactive Island Map Cards Grid (Scrollable Container) -->
@@ -240,7 +251,7 @@ import { ref, onMounted } from 'vue';
 import { useGameStore } from '../application/stores/gameStore';
 import { World } from '../domain/types';
 
-const emit = defineEmits(['back', 'select-level', 'open-drawing', 'open-puzzle', 'open-voice-quiz', 'open-story']);
+const emit = defineEmits(['back', 'select-level', 'open-drawing', 'open-puzzle', 'open-voice-quiz', 'open-story', 'open-certificate']);
 const store = useGameStore();
 
 onMounted(() => {
@@ -471,6 +482,20 @@ const handleMouseUpOrLeave = () => {
 .close-map-btn:active {
   transform: scale(0.95) rotate(90deg);
   box-shadow: 0 2px 0 #991b1b !important;
+}
+
+.btn-cert-header {
+  border-radius: 20px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border: 2px solid #fef08a;
+  color: white;
+  font-weight: bold;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-cert-header:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.5);
 }
 
 .title-glow-3d {
