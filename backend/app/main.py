@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routers import auth, game, parent
+from app.api.routers import auth, game, parent, ai
 from app.infrastructure.database import Base, engine, AsyncSessionLocal
 from app.domain.models import World, Chapter, Level, GameEngineConfig, Question, QuestionOption, User, Parent, Child
 
@@ -22,6 +22,7 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(game.router, prefix="/api/v1")
 app.include_router(parent.router, prefix="/api/v1")
+app.include_router(ai.router, prefix="/api/v1")
 
 @app.on_event("startup")
 async def startup_event():

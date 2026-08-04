@@ -79,13 +79,19 @@
           "{{ activeQuestionText }}"
         </div>
 
-        <!-- Interactive Syllables Breakdown Pill Guide -->
+        <!-- Interactive Syllables Breakdown Pill Guide with Karaoke Highlight & Tap to Speak -->
         <div v-if="currentQuestion.syllables" class="syllables-container row items-center justify-center gap-xs q-mb-sm">
           <span class="text-caption text-purple-2 font-fredoka q-mr-xs">Suku Kata:</span>
           <span
             v-for="(syl, idx) in currentQuestion.syllables"
             :key="idx"
-            class="syllable-pill font-fredoka text-bold animate-pulse"
+            class="syllable-pill font-fredoka text-bold cursor-pointer"
+            :class="{
+              'active-karaoke': activeSyllableIndex === idx,
+              'animate-pulse': activeSyllableIndex === -1
+            }"
+            @click="speakSingleSyllable(syl, idx)"
+            :title="`Tekan untuk membunyikan '${syl}'`"
           >
             {{ syl }}
           </span>
@@ -151,6 +157,21 @@
         <div v-if="currentQuestion.phoneticTip" class="text-caption text-purple-2 font-fredoka text-center q-mt-xs tip-box q-pa-xs rounded-borders">
           💡 <strong>Tips Artikulasi:</strong> {{ currentQuestion.phoneticTip }}
         </div>
+
+        <!-- Child Audio Playback Button ("Dengarkan Suaramu") -->
+        <button
+          v-if="recordedAudioUrl"
+          class="btn-play-child-audio font-fredoka row items-center justify-center q-px-md q-py-sm shadow-6 q-mt-sm full-width cursor-pointer"
+          :class="{ playing: isPlayingChildAudio }"
+          @click="playRecordedAudio"
+        >
+          <span class="q-mr-xs text-h6">{{ isPlayingChildAudio ? '🔊' : '🎧' }}</span>
+          <span class="text-bold font-fredoka text-subtitle2">
+            {{ isPlayingChildAudio
+              ? (selectedLang === 'en-US' ? 'Playing Your Voice...' : 'Memutar Suaramu...')
+              : (selectedLang === 'en-US' ? '🎧 Hear Your Recorded Voice!' : '🎧 Dengarkan Rekaman Suaramu!') }}
+          </span>
+        </button>
       </div>
 
       <!-- Pulsing Interactive Microphone Button -->
@@ -227,7 +248,7 @@ interface OptionChoice {
 }
 
 interface VoiceQuestion {
-  category: 'hewan' | 'angka' | 'warna' | 'kata';
+  category: 'hewan' | 'angka' | 'warna' | 'kata' | 'buah' | 'kendaraan';
   questionText: string;
   enQuestionText?: string;
   validTargets: string[];
@@ -245,9 +266,11 @@ const categories = [
   { id: 'angka', label: 'Hitung Angka', labelEn: 'Count Numbers', emoji: '🔢' },
   { id: 'warna', label: 'Tebak Warna', labelEn: 'Guess Colors', emoji: '🎨' },
   { id: 'kata', label: 'Latihan Kata', labelEn: 'Word Practice', emoji: '🔤' },
+  { id: 'buah', label: 'Buah & Sayur', labelEn: 'Fruits & Veggies', emoji: '🍎' },
+  { id: 'kendaraan', label: 'Transportasi', labelEn: 'Vehicles', emoji: '🚗' },
 ];
 
-const currentCategory = ref<'hewan' | 'angka' | 'warna' | 'kata'>('hewan');
+const currentCategory = ref<'hewan' | 'angka' | 'warna' | 'kata' | 'buah' | 'kendaraan'>('hewan');
 
 const allQuestions: VoiceQuestion[] = [
   // Category: Hewan
@@ -466,6 +489,70 @@ const allQuestions: VoiceQuestion[] = [
       { name: 'Bulan', nameEn: 'Moon', emoji: '🌙' },
       { name: 'Matahari', nameEn: 'Sun', emoji: '☀️' }
     ]
+  },
+
+  // Category: Buah & Sayur
+  {
+    category: 'buah',
+    questionText: 'Buah manis berwarna kuning kesukaan monyet?',
+    enQuestionText: 'Which yellow fruit do monkeys love?',
+    validTargets: ['pisang', 'banana'],
+    enValidTargets: ['banana'],
+    emoji: '🍌',
+    syllables: ['PI', 'SANG'],
+    phoneticTip: 'Katupkan kedua bibir pada konsonan "P" lalu bunyikan "SANG".',
+    options: [
+      { name: 'Pisang', nameEn: 'Banana', emoji: '🍌' },
+      { name: 'Apel', nameEn: 'Apple', emoji: '🍎' },
+      { name: 'Jeruk', nameEn: 'Orange', emoji: '🍊' }
+    ]
+  },
+  {
+    category: 'buah',
+    questionText: 'Sayur orange sehat kesukaan kelinci?',
+    enQuestionText: 'Which orange veggie do rabbits love?',
+    validTargets: ['wortel', 'carrot'],
+    enValidTargets: ['carrot'],
+    emoji: '🥕',
+    syllables: ['WOR', 'TEL'],
+    phoneticTip: 'Bentuk bibir melingkar untuk "WOR" lalu hembuskan "TEL".',
+    options: [
+      { name: 'Wortel', nameEn: 'Carrot', emoji: '🥕' },
+      { name: 'Pisang', nameEn: 'Banana', emoji: '🍌' },
+      { name: 'Semangka', nameEn: 'Watermelon', emoji: '🍉' }
+    ]
+  },
+
+  // Category: Transportasi
+  {
+    category: 'kendaraan',
+    questionText: 'Kendaraan yang terbang tinggi di langit?',
+    enQuestionText: 'Which vehicle flies high in the sky?',
+    validTargets: ['pesawat', 'airplane', 'plane'],
+    enValidTargets: ['airplane', 'plane'],
+    emoji: '✈️',
+    syllables: ['PE', 'SA', 'WAT'],
+    phoneticTip: 'Ucapkan "PE" dilanjutkan "SA" lalu tegaskan akhiran "WAT".',
+    options: [
+      { name: 'Pesawat', nameEn: 'Airplane', emoji: '✈️' },
+      { name: 'Mobil', nameEn: 'Car', emoji: '🚗' },
+      { name: 'Kapal', nameEn: 'Ship', emoji: '🚢' }
+    ]
+  },
+  {
+    category: 'kendaraan',
+    questionText: 'Kendaraan roda empat di jalan raya?',
+    enQuestionText: 'Which four-wheeled vehicle drives on the road?',
+    validTargets: ['mobil', 'car', 'oto'],
+    enValidTargets: ['car', 'auto'],
+    emoji: '🚗',
+    syllables: ['MO', 'BIL'],
+    phoneticTip: 'Bulatkan bibir untuk "MO" lalu perjelas "BIL".',
+    options: [
+      { name: 'Mobil', nameEn: 'Car', emoji: '🚗' },
+      { name: 'Pesawat', nameEn: 'Airplane', emoji: '✈️' },
+      { name: 'Sepeda', nameEn: 'Bicycle', emoji: '🚲' }
+    ]
   }
 ];
 
@@ -485,6 +572,17 @@ const pronunciationScore = ref(0);
 const pronunciationStars = ref(0);
 const pronunciationBadge = ref('');
 const scoreColor = ref('#22c55e');
+
+// Child Voice Recording States
+const recordedAudioUrl = ref<string | null>(null);
+const isPlayingChildAudio = ref(false);
+let mediaRecorder: MediaRecorder | null = null;
+let audioChunks: Blob[] = [];
+let recordedAudioElement: HTMLAudioElement | null = null;
+
+// Syllable Karaoke Highlight States
+const activeSyllableIndex = ref<number>(-1);
+let syllableKaraokeTimer: any = null;
 
 const currentQuestion = computed(() => {
   const list = activeQuestions.value;
@@ -553,6 +651,7 @@ function initSpeechRecognition() {
         spokenTranscript.value = `"${text}"`;
         if (event.results[0].isFinal) {
           isListening.value = false;
+          stopMediaRecorder();
           evaluateAnswer(text, confidence);
         }
       };
@@ -560,20 +659,85 @@ function initSpeechRecognition() {
       recognition.onerror = (err: any) => {
         console.warn('Speech Recognition error:', err);
         isListening.value = false;
+        stopMediaRecorder();
       };
 
       recognition.onend = () => {
         isListening.value = false;
+        stopMediaRecorder();
       };
     }
   }
+}
+
+function startMediaRecorder() {
+  if (typeof navigator !== 'undefined' && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    audioChunks = [];
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunks.push(event.data);
+        }
+      };
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        if (recordedAudioUrl.value) {
+          URL.revokeObjectURL(recordedAudioUrl.value);
+        }
+        recordedAudioUrl.value = URL.createObjectURL(audioBlob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+      mediaRecorder.start();
+    }).catch(err => {
+      console.warn('Microphone recording error:', err);
+    });
+  }
+}
+
+function stopMediaRecorder() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    try {
+      mediaRecorder.stop();
+    } catch (e) {
+      console.warn('MediaRecorder stop error:', e);
+    }
+  }
+}
+
+function playRecordedAudio() {
+  if (!recordedAudioUrl.value) return;
+
+  if (recordedAudioElement) {
+    recordedAudioElement.pause();
+    recordedAudioElement = null;
+  }
+
+  store.playSfx('click');
+  isPlayingChildAudio.value = true;
+  recordedAudioElement = new Audio(recordedAudioUrl.value);
+
+  recordedAudioElement.onended = () => {
+    isPlayingChildAudio.value = false;
+  };
+  recordedAudioElement.onerror = () => {
+    isPlayingChildAudio.value = false;
+  };
+
+  recordedAudioElement.play().catch(e => {
+    console.warn('Child audio play error:', e);
+    isPlayingChildAudio.value = false;
+  });
 }
 
 function startListening() {
   store.playSfx('click');
   spokenTranscript.value = '';
   showAssessmentCard.value = false;
+  recordedAudioUrl.value = null;
+  isPlayingChildAudio.value = false;
   isListening.value = true;
+  startMediaRecorder();
 
   if (recognition) {
     try {
@@ -587,10 +751,51 @@ function startListening() {
       ? 'Microphone not supported in this browser. Use picture buttons below!'
       : 'Mikrofon tidak didukung di browser ini. Gunakan pilihan gambar di bawah!';
     isListening.value = false;
+    stopMediaRecorder();
   }
 }
 
+function triggerSyllableKaraoke() {
+  if (syllableKaraokeTimer) {
+    clearInterval(syllableKaraokeTimer);
+    syllableKaraokeTimer = null;
+  }
+
+  const syllables = currentQuestion.value.syllables;
+  if (!syllables || syllables.length === 0) return;
+
+  activeSyllableIndex.value = 0;
+  let idx = 0;
+  const intervalMs = Math.max(400, Math.floor(1400 / syllables.length));
+
+  syllableKaraokeTimer = setInterval(() => {
+    idx++;
+    if (idx < syllables.length) {
+      activeSyllableIndex.value = idx;
+    } else {
+      clearInterval(syllableKaraokeTimer);
+      syllableKaraokeTimer = null;
+      setTimeout(() => {
+        activeSyllableIndex.value = -1;
+      }, 500);
+    }
+  }, intervalMs);
+}
+
+function speakSingleSyllable(syl: string, idx: number) {
+  store.playSfx('click');
+  activeSyllableIndex.value = idx;
+  store.speak(syl, 0.85);
+
+  setTimeout(() => {
+    if (activeSyllableIndex.value === idx) {
+      activeSyllableIndex.value = -1;
+    }
+  }, 800);
+}
+
 function speakCurrentQuestion() {
+  triggerSyllableKaraoke();
   const audioKey = `q_${currentCategory.value}_${currentRoundIndex.value}`;
   playNaturalVoice(audioKey, activeQuestionText.value);
 }
@@ -684,6 +889,36 @@ function handleManualOptionClick(optionName: string) {
   evaluateAnswer(optionName.toLowerCase(), 0.95);
 }
 
+function playRealisticQuestionSound() {
+  const targets = currentQuestion.value.validTargets || [];
+  const targetStr = targets.join(' ').toLowerCase();
+
+  const soundMap: Record<string, string> = {
+    kucing: 'Meong meong! 🐱',
+    cat: 'Meow meow! 🐱',
+    anjing: 'Guk guk! 🐶',
+    dog: 'Woof woof! 🐶',
+    sapi: 'Mooo! 🐮',
+    jerapah: 'Suara jerapah di padang rumput! 🦒',
+    bebek: 'Kwek kwek! 🦆',
+    duck: 'Quack quack! 🦆',
+    mobil: 'Brum brum! 🚗',
+    car: 'Vroom vroom! 🚗',
+    apel: 'Nyam nyam apel segar! 🍎',
+    bintang: 'Ting ting bintang bercahaya! ⭐'
+  };
+
+  for (const key of Object.keys(soundMap)) {
+    if (targetStr.includes(key)) {
+      setTimeout(() => {
+        store.playSfx('star');
+        store.speak(soundMap[key], 1.1);
+      }, 1000);
+      break;
+    }
+  }
+}
+
 function handleCorrectAnswer() {
   isAnsweredCorrectly.value = true;
   store.playSfx('win');
@@ -693,6 +928,7 @@ function handleCorrectAnswer() {
   const fallbackPraise = selectedLang.value === 'en-US' ? 'Wonderful! Great pronunciation!' : 'Pintar sekali! Artikulasi suaramu luar biasa!';
 
   playNaturalVoice(randomPraiseKey, fallbackPraise);
+  playRealisticQuestionSound();
 
   store.child.coins += 30;
   store.child.xp += 30 * pronunciationStars.value;
@@ -712,7 +948,7 @@ function handleCorrectAnswer() {
           : 'Hore! Kamu berhasil menyelesaikan semua kuis di kategori ini!'
       );
     }
-  }, 2600);
+  }, 2800);
 }
 
 function closeModal() {
@@ -1001,6 +1237,38 @@ onMounted(() => {
 .tip-box {
   background: rgba(255, 255, 255, 0.08);
   border: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.btn-play-child-audio {
+  background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+  border: 2px solid #38bdf8;
+  border-radius: 16px;
+  color: #ffffff;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.btn-play-child-audio:hover {
+  transform: translateY(-2px) scale(1.02);
+  filter: brightness(1.1);
+}
+
+.btn-play-child-audio.playing {
+  background: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
+  border-color: #f472b6;
+  animation: pulse 1s infinite alternate;
+}
+
+.syllable-pill {
+  transition: all 0.25s ease;
+}
+
+.syllable-pill.active-karaoke {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  color: #ffffff !important;
+  border-color: #fef08a !important;
+  transform: scale(1.22) !important;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.9) !important;
+  z-index: 5;
 }
 
 /* Microphone Ripple Rings */

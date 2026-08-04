@@ -29,7 +29,7 @@
         <div class="speech-bubble-response q-pa-md shadow-8 relative-position q-mb-md full-width">
           <div class="row items-center gap-xs q-mb-xs justify-center">
             <span class="text-caption font-fredoka text-amber-3 text-bold">
-              {{ isSpeaking ? '🔊 Arkan Sedang Berbicara...' : '💬 Jawaban Arkan:' }}
+              {{ isThinking ? '✨ Arkan Sedang Berpikir...' : (isSpeaking ? '🔊 Arkan Sedang Berbicara...' : '💬 Jawaban Arkan:') }}
             </span>
           </div>
           <div class="text-subtitle1 font-fredoka text-white text-bold response-text">
@@ -185,6 +185,7 @@ const userQuery = ref('');
 const activeAnswerText = ref('Halo! Aku Arkan. Tekan mikrofon atau pilih pertanyaan di bawah untuk bertanya padaku!');
 const isListening = ref(false);
 const isSpeaking = ref(false);
+const isThinking = ref(false);
 
 let recognition: any = null;
 
@@ -243,7 +244,28 @@ function askPresetQuestion(item: QAItem) {
   respondWithAnswer(item.answer);
 }
 
-function processUserQuestion(text: string) {
+async function processUserQuestion(text: string) {
+  isThinking.value = true;
+  activeAnswerText.value = '✨ Arkan sedang berpikir...';
+
+  try {
+    const res = await fetch('/api/v1/ai/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: text, language: 'id-ID' })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      isThinking.value = false;
+      respondWithAnswer(data.answer);
+      return;
+    }
+  } catch (err) {
+    console.warn('AI endpoint error, using local fallback:', err);
+  }
+
+  isThinking.value = false;
   const lower = text.toLowerCase();
   let matchedQA = presetQuestions.find(q =>
     q.keywords.some(k => lower.includes(k))
@@ -252,8 +274,7 @@ function processUserQuestion(text: string) {
   if (matchedQA) {
     respondWithAnswer(matchedQA.answer);
   } else {
-    // Friendly fallback response for any other kid question
-    const fallbackAnswer = `Pertanyaan yang bagus sekali tentang "${text}"! Dunia ini penuh dengan hal ajaib. Ayo kita pelajari bersama Arkan melalui game dan petualangan!`;
+    const fallbackAnswer = `Pertanyaan yang bagus sekali tentang "${text}"! 🌟 Dunia ini penuh dengan keajaiban sains dan alam. Ayo kita pelajari bersama Arkan melalui game dan petualangan! 🚀`;
     respondWithAnswer(fallbackAnswer);
   }
 }

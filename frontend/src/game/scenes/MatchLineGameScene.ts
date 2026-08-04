@@ -80,6 +80,33 @@ export class MatchLineGameScene extends BaseGameScene {
         { left: { id: 'pelukis', label: 'Pelukis', imageKey: 'emoji:🎨' }, right: { id: 'pelukis', label: 'Kuas Lukis', imageKey: 'emoji:🖌️' } },
         { left: { id: 'polisi', label: 'Pak Polisi', imageKey: 'emoji:👮' }, right: { id: 'polisi', label: 'Mobil Polisi', imageKey: 'emoji:🚔' } }
       ]
+    },
+    {
+      title: 'Level 7: Bahasa Inggris & Indonesia! 🇬🇧🇮🇩',
+      pairs: [
+        { left: { id: 'cat', label: 'Cat', imageKey: 'icon_cat' }, right: { id: 'cat', label: 'Kucing', imageKey: 'icon_cat' } },
+        { left: { id: 'dog', label: 'Dog', imageKey: 'icon_dog' }, right: { id: 'dog', label: 'Anjing', imageKey: 'icon_dog' } },
+        { left: { id: 'sun', label: 'Sun', imageKey: 'emoji:☀️' }, right: { id: 'sun', label: 'Matahari', imageKey: 'emoji:☀️' } },
+        { left: { id: 'car', label: 'Car', imageKey: 'icon_car' }, right: { id: 'car', label: 'Mobil', imageKey: 'icon_car' } }
+      ]
+    },
+    {
+      title: 'Level 8: Bayangan & Siluet Benda! 👥',
+      pairs: [
+        { left: { id: 'apel', label: 'Apel Merah', imageKey: 'emoji:🍎' }, right: { id: 'apel', label: 'Siluet Apel', imageKey: 'emoji:🍏' } },
+        { left: { id: 'mobil', label: 'Mobil Merah', imageKey: 'icon_car' }, right: { id: 'mobil', label: 'Siluet Mobil', imageKey: 'emoji:🚙' } },
+        { left: { id: 'kucing', label: 'Kucing Orange', imageKey: 'icon_cat' }, right: { id: 'kucing', label: 'Siluet Kucing', imageKey: 'emoji:🐈‍⬛' } },
+        { left: { id: 'burung', label: 'Burung Biru', imageKey: 'emoji:🐦' }, right: { id: 'burung', label: 'Siluet Burung', imageKey: 'emoji:🦅' } }
+      ]
+    },
+    {
+      title: 'Level 9: Bentuk Geometri & Objek! 📐',
+      pairs: [
+        { left: { id: 'lingkaran', label: 'Lingkaran', imageKey: 'emoji:🔴' }, right: { id: 'lingkaran', label: 'Bola Sepak', imageKey: 'emoji:⚽' } },
+        { left: { id: 'persegi', label: 'Persegi', imageKey: 'emoji:🟦' }, right: { id: 'persegi', label: 'Dadu Mainan', imageKey: 'emoji:🎲' } },
+        { left: { id: 'segitiga', label: 'Segitiga', imageKey: 'emoji:🔺' }, right: { id: 'segitiga', label: 'Potongan Pizza', imageKey: 'emoji:🍕' } },
+        { left: { id: 'bintang', label: 'Bintang', imageKey: 'emoji:⭐' }, right: { id: 'bintang', label: 'Bintang Laut', imageKey: 'emoji:🪸' } }
+      ]
     }
   ];
 
@@ -92,15 +119,22 @@ export class MatchLineGameScene extends BaseGameScene {
   private hintTimer?: Phaser.Time.TimerEvent;
   private connectedPairsCount: number = 0;
   private titleTextObj?: Phaser.GameObjects.Text;
+  private titleBannerBg?: Phaser.GameObjects.Graphics;
   private arkanMascotContainer?: Phaser.GameObjects.Container;
   private arkanSpeechBubble?: Phaser.GameObjects.Container;
   private arkanSpeechText?: Phaser.GameObjects.Text;
+  private currentLineStyle: 'rainbow' | 'nature' | 'heart' = 'rainbow';
+  private lineStyleButtons: { btn: Phaser.GameObjects.Container; style: 'rainbow' | 'nature' | 'heart'; glow: Phaser.GameObjects.Graphics }[] = [];
+  private bgImage?: Phaser.GameObjects.Image;
 
   constructor() {
     super('MatchLineGameScene');
   }
 
   preload() {
+    // Preload Forest Background provided by user
+    this.load.image('matchline_bg', '/matchline_bg.jpg');
+
     // Preload 3D Pixar Icon Images
     this.load.image('icon_dog', '/icon_dog.png');
     this.load.image('icon_bone', '/icon_bone.png');
@@ -118,7 +152,7 @@ export class MatchLineGameScene extends BaseGameScene {
 
   init(data: BaseSceneConfig) {
     super.init(data);
-    this.promptText = '🔗 Tarik Garis & Cocokkan Gambar!';
+    this.promptText = '';
     this.currentRoundIndex = 0;
     this.connectedPairsCount = 0;
   }
@@ -126,28 +160,31 @@ export class MatchLineGameScene extends BaseGameScene {
   create() {
     const { width, height } = this.scale;
 
-    // Premium Vibrant Playground Background Gradient
-    const bg = this.add.graphics();
-    bg.fillGradientStyle(0x38bdf8, 0x38bdf8, 0x818cf8, 0x818cf8, 1);
-    bg.fillRect(0, 0, width, height);
-
-    // Soft Background Sunburst Pattern
-    const sunburst = this.add.graphics();
-    sunburst.fillStyle(0xffffff, 0.08);
-    for (let i = 0; i < 12; i++) {
-      sunburst.beginPath();
-      sunburst.moveTo(width / 2, height / 2);
-      const a1 = (i * 30 * Math.PI) / 180;
-      const a2 = ((i * 30 + 15) * Math.PI) / 180;
-      sunburst.lineTo(width / 2 + 800 * Math.cos(a1), height / 2 + 800 * Math.sin(a1));
-      sunburst.lineTo(width / 2 + 800 * Math.cos(a2), height / 2 + 800 * Math.sin(a2));
-      sunburst.closePath();
-      sunburst.fillPath();
+    // 1. Forest Landscape Background
+    if (this.textures.exists('matchline_bg')) {
+      this.bgImage = this.add.image(width / 2, height / 2, 'matchline_bg');
+      const scaleX = width / this.bgImage.width;
+      const scaleY = height / this.bgImage.height;
+      const scale = Math.max(scaleX, scaleY);
+      this.bgImage.setScale(scale).setScrollFactor(0);
+    } else {
+      const bg = this.add.graphics();
+      bg.fillGradientStyle(0x15803d, 0x15803d, 0x166534, 0x166534, 1);
+      bg.fillRect(0, 0, width, height);
     }
+
+    // Soft Ambient Overlay to make cards & text pop clearly over nature background
+    const overlay = this.add.graphics();
+    overlay.fillStyle(0x0f172a, 0.15);
+    overlay.fillRect(0, 0, width, height);
+
+    // Floating Nature Particles (Fireflies & Floating Leaves)
+    this.createAmbientNatureParticles();
 
     this.createDecorations();
     this.createUI();
     this.createArkanMascot();
+    this.createLineStyleSelector();
 
     // Permanent connected lines layer (glowing double-path)
     this.connectedLinesGraphics = this.add.graphics();
@@ -166,15 +203,26 @@ export class MatchLineGameScene extends BaseGameScene {
         const startX = this.activeStartNode.nodeX || 0;
         const startY = this.activeStartNode.nodeY || 0;
 
-        // Outer Neon Rainbow Glow Layer
-        this.currentDragLineGraphics.lineStyle(14, 0xfacc15, 0.45);
+        let auraColor = 0xfacc15;
+        let coreColor = 0xffffff;
+
+        if (this.currentLineStyle === 'nature') {
+          auraColor = 0x10b981;
+          coreColor = 0xecfdf5;
+        } else if (this.currentLineStyle === 'heart') {
+          auraColor = 0xf43f5e;
+          coreColor = 0xfff1f2;
+        }
+
+        // Outer Glowing Magic Aura
+        this.currentDragLineGraphics.lineStyle(14, auraColor, 0.5);
         this.currentDragLineGraphics.beginPath();
         this.currentDragLineGraphics.moveTo(startX, startY);
         this.currentDragLineGraphics.lineTo(pointer.x, pointer.y);
         this.currentDragLineGraphics.strokePath();
 
-        // Inner Bright White Magic Core
-        this.currentDragLineGraphics.lineStyle(6, 0xffffff, 0.95);
+        // Inner Core Line
+        this.currentDragLineGraphics.lineStyle(6, coreColor, 0.95);
         this.currentDragLineGraphics.beginPath();
         this.currentDragLineGraphics.moveTo(startX, startY);
         this.currentDragLineGraphics.lineTo(pointer.x, pointer.y);
@@ -185,10 +233,41 @@ export class MatchLineGameScene extends BaseGameScene {
       }
     });
 
-    // Global pointerup: clear dragging line if not dropped on target
-    this.input.on('pointerup', () => {
+    // Global pointerup: forgiving kid-friendly drag release hit detection
+    this.input.on('pointerup', (pointer: Phaser.Input.Pointer) => {
       this.resetHintTimer();
-      if (this.activeStartNode && this.currentDragLineGraphics) {
+
+      if (this.activeStartNode) {
+        const oppositeItems = this.activeStartNode.side === 'left' ? this.rightItems : this.leftItems;
+        const availableTargets = oppositeItems.filter(item => !item.connected);
+
+        let bestTarget: MatchItem | null = null;
+        let minDistance = 140; // Super generous 140px snap radius for children!
+
+        availableTargets.forEach(target => {
+          const nodeX = target.nodeX || 0;
+          const nodeY = target.nodeY || 0;
+          const distToNode = Phaser.Math.Distance.Between(pointer.x, pointer.y, nodeX, nodeY);
+
+          const cardX = target.x || 0;
+          const cardY = target.y || 0;
+          const distToCard = Phaser.Math.Distance.Between(pointer.x, pointer.y, cardX, cardY);
+
+          const effectiveDist = Math.min(distToNode, distToCard);
+          if (effectiveDist < minDistance) {
+            minDistance = effectiveDist;
+            bestTarget = target;
+          }
+        });
+
+        if (bestTarget) {
+          this.evaluateMatch(this.activeStartNode, bestTarget);
+        } else {
+          this.deselectActiveItem();
+        }
+      }
+
+      if (this.currentDragLineGraphics) {
         this.currentDragLineGraphics.clear();
       }
     });
@@ -196,7 +275,31 @@ export class MatchLineGameScene extends BaseGameScene {
     this.startRound(this.currentRoundIndex);
   }
 
+  private createAmbientNatureParticles() {
+    const { width, height } = this.scale;
+    const particleSymbols = ['✨', '🍃', '🌟', '🟡', '🍀'];
 
+    for (let i = 0; i < 16; i++) {
+      const x = Phaser.Math.Between(30, width - 30);
+      const y = Phaser.Math.Between(40, height - 40);
+      const sym = Phaser.Utils.Array.GetRandom(particleSymbols);
+      const p = this.add.text(x, y, sym, {
+        fontSize: Phaser.Math.Between(14, 24) + 'px'
+      }).setAlpha(Phaser.Math.FloatBetween(0.35, 0.75));
+
+      this.tweens.add({
+        targets: p,
+        y: p.y - Phaser.Math.Between(30, 80),
+        x: p.x + Phaser.Math.Between(-35, 35),
+        alpha: { from: p.alpha, to: 0.1 },
+        duration: Phaser.Math.Between(3200, 6500),
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut',
+        delay: i * 180
+      });
+    }
+  }
 
   private resetHintTimer() {
     if (this.hintTimer) {
@@ -280,31 +383,29 @@ export class MatchLineGameScene extends BaseGameScene {
 
     this.arkanMascotContainer = this.add.container(width / 2, mascotY);
 
-    const bannerW = Math.min(360, width * 0.85);
+    const bannerW = Math.min(380, width * 0.88);
     const mascotCardBg = this.add.graphics();
-    mascotCardBg.fillStyle(0x0f172a, 0.2);
-    mascotCardBg.fillRoundedRect(-bannerW / 2, -24, bannerW, 48, 20);
-
-    mascotCardBg.fillStyle(0xffffff, 0.96);
-    mascotCardBg.lineStyle(3, 0xf59e0b, 1);
-    mascotCardBg.fillRoundedRect(-bannerW / 2, -28, bannerW, 48, 20);
-    mascotCardBg.strokeRoundedRect(-bannerW / 2, -28, bannerW, 48, 20);
+    // Glassmorphism Dark Emerald Slate Box
+    mascotCardBg.fillStyle(0x064e3b, 0.85);
+    mascotCardBg.lineStyle(3, 0x34d399, 1);
+    mascotCardBg.fillRoundedRect(-bannerW / 2, -26, bannerW, 52, 22);
+    mascotCardBg.strokeRoundedRect(-bannerW / 2, -26, bannerW, 52, 22);
     this.arkanMascotContainer.add(mascotCardBg);
 
     const fontSize = Math.min(15, Math.max(12, width * 0.017)) + 'px';
-    const mascotText = this.add.text(0, -4, '👦 Arkan: "Tarik garis atau sentuh gambar ke pasangannya!"', {
+    const mascotText = this.add.text(0, 0, '👦 Arkan: "Hubungkan gambar dengan pasangannya ya!"', {
       fontFamily: 'Fredoka, sans-serif',
       fontSize,
-      color: '#1e293b',
+      color: '#ffffff',
       fontStyle: 'bold'
     }).setOrigin(0.5);
     this.arkanMascotContainer.add(mascotText);
 
-    // Arkan Speech Bubble
-    this.arkanSpeechBubble = this.add.container(width / 2, mascotY - 58);
-    const bubbleW = Math.min(320, width * 0.75);
+    // Arkan Speech Bubble Popup
+    this.arkanSpeechBubble = this.add.container(width / 2, mascotY - 60);
+    const bubbleW = Math.min(340, width * 0.78);
     const bubbleBg = this.add.graphics();
-    bubbleBg.fillStyle(0xfef08a, 1);
+    bubbleBg.fillStyle(0xfef08a, 0.98);
     bubbleBg.lineStyle(3, 0xca8a04, 1);
     bubbleBg.fillRoundedRect(-bubbleW / 2, -18, bubbleW, 38, 16);
     bubbleBg.strokeRoundedRect(-bubbleW / 2, -18, bubbleW, 38, 16);
@@ -352,9 +453,94 @@ export class MatchLineGameScene extends BaseGameScene {
     }
   }
 
+  private createLineStyleSelector() {
+    const selectorContainer = this.add.container(20, 20);
+
+    const bg = this.add.graphics();
+    bg.fillStyle(0x0f172a, 0.75);
+    bg.lineStyle(2, 0xf59e0b, 0.8);
+    bg.fillRoundedRect(0, 0, 140, 44, 22);
+    bg.strokeRoundedRect(0, 0, 140, 44, 22);
+    selectorContainer.add(bg);
+
+    const styles: { style: 'rainbow' | 'nature' | 'heart'; emoji: string }[] = [
+      { style: 'rainbow', emoji: '🌈' },
+      { style: 'nature', emoji: '🍃' },
+      { style: 'heart', emoji: '💖' }
+    ];
+
+    this.lineStyleButtons = [];
+
+    styles.forEach((item, i) => {
+      const btnX = 24 + i * 44;
+      const btnY = 22;
+
+      const btnContainer = this.add.container(btnX, btnY);
+
+      const glow = this.add.graphics();
+      glow.lineStyle(3, 0xfde047, 1);
+      glow.strokeCircle(0, 0, 17);
+      glow.setAlpha(this.currentLineStyle === item.style ? 1 : 0);
+      btnContainer.add(glow);
+
+      const circle = this.add.graphics();
+      circle.fillStyle(0xffffff, 0.95);
+      circle.fillCircle(0, 0, 15);
+      btnContainer.add(circle);
+
+      const icon = this.add.text(0, 0, item.emoji, { fontSize: '18px' }).setOrigin(0.5);
+      btnContainer.add(icon);
+
+      const hit = this.add.circle(0, 0, 20);
+      hit.setInteractive({ useHandCursor: true });
+      btnContainer.add(hit);
+
+      hit.on('pointerdown', (_p: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
+        event.stopPropagation();
+        this.setLineStyle(item.style);
+      });
+
+      selectorContainer.add(btnContainer);
+      this.lineStyleButtons.push({ btn: btnContainer, style: item.style, glow });
+    });
+  }
+
+  private setLineStyle(style: 'rainbow' | 'nature' | 'heart') {
+    this.currentLineStyle = style;
+    this.playSfx('click');
+
+    this.lineStyleButtons.forEach(b => {
+      if (b.glow) {
+        b.glow.setAlpha(b.style === style ? 1 : 0);
+      }
+      if (b.style === style) {
+        this.tweens.add({
+          targets: b.btn,
+          scaleX: 1.25,
+          scaleY: 1.25,
+          duration: 150,
+          yoyo: true,
+          ease: 'Back.easeOut'
+        });
+      }
+    });
+
+    const msgs = {
+      rainbow: '🌈 Garis Pelangi Dipilih!',
+      nature: '🍃 Garis Daun Hutan Dipilih!',
+      heart: '💖 Garis Bintang Cinta Dipilih!'
+    };
+    this.showToast(msgs[style], style === 'rainbow' ? 0xf59e0b : style === 'nature' ? 0x10b981 : 0xf43f5e);
+  }
+
   private spawnTrailSparkle(x: number, y: number) {
     if (Math.random() > 0.35) return;
-    const sparkle = this.add.text(x + (Math.random() * 20 - 10), y + (Math.random() * 20 - 10), '✨', {
+    let pool = ['✨', '⭐', '🌟'];
+    if (this.currentLineStyle === 'nature') pool = ['🍃', '🍀', '✨'];
+    if (this.currentLineStyle === 'heart') pool = ['💖', '🌸', '✨'];
+
+    const sym = Phaser.Utils.Array.GetRandom(pool);
+    const sparkle = this.add.text(x + (Math.random() * 20 - 10), y + (Math.random() * 20 - 10), sym, {
       fontSize: '16px'
     }).setOrigin(0.5);
 
@@ -381,16 +567,29 @@ export class MatchLineGameScene extends BaseGameScene {
     if (this.currentDragLineGraphics) this.currentDragLineGraphics.clear();
     if (this.currentHintGraphics) this.currentHintGraphics.clear();
 
-    const titleFontSize = Math.min(24, Math.max(16, width * 0.026)) + 'px';
+    // Styled Header Level Title Banner
+    const bannerW = Math.min(480, width * 0.88);
+    const bannerH = 48;
+    const bannerY = 70;
+
+    if (!this.titleBannerBg) {
+      this.titleBannerBg = this.add.graphics();
+    }
+    this.titleBannerBg.clear();
+    // Glassmorphic Forest Dark Emerald Backdrop with Amber Gold Border
+    this.titleBannerBg.fillStyle(0x0f172a, 0.75);
+    this.titleBannerBg.lineStyle(3, 0xf59e0b, 1);
+    this.titleBannerBg.fillRoundedRect(width / 2 - bannerW / 2, bannerY - bannerH / 2, bannerW, bannerH, 24);
+    this.titleBannerBg.strokeRoundedRect(width / 2 - bannerW / 2, bannerY - bannerH / 2, bannerW, bannerH, 24);
+
+    const titleFontSize = Math.min(22, Math.max(15, width * 0.024)) + 'px';
     if (!this.titleTextObj) {
-      this.titleTextObj = this.add.text(width / 2, 72, roundData.title, {
+      this.titleTextObj = this.add.text(width / 2, bannerY, roundData.title, {
         fontFamily: 'Fredoka, sans-serif',
         fontSize: titleFontSize,
         color: '#ffffff',
         fontStyle: 'bold',
-        stroke: '#1e1b4b',
-        strokeThickness: 5,
-        shadow: { offsetX: 0, offsetY: 3, color: 'rgba(0,0,0,0.3)', blur: 5, fill: true }
+        shadow: { offsetX: 0, offsetY: 2, color: 'rgba(0,0,0,0.5)', blur: 4, fill: true }
       }).setOrigin(0.5);
     } else {
       this.titleTextObj.setText(roundData.title);
@@ -410,7 +609,7 @@ export class MatchLineGameScene extends BaseGameScene {
     const leftList = roundData.pairs.map(p => ({ ...p.left, side: 'left' as const }));
     const rightList = Phaser.Utils.Array.Shuffle(roundData.pairs.map(p => ({ ...p.right, side: 'right' as const })));
 
-    // Adaptive Card Sizing & Spacing for Small Screens and Tablets
+    // Adaptive Card Sizing & Spacing
     const numPairs = roundData.pairs.length;
     const startY = 135;
     const availableHeight = height - startY - 70;
@@ -475,24 +674,24 @@ export class MatchLineGameScene extends BaseGameScene {
 
     // 3D Card Shadow
     const shadow = this.add.graphics();
-    shadow.fillStyle(0x0f172a, 0.18);
-    shadow.fillRoundedRect(-halfW, -halfH + 4, cardW, cardH, 18);
+    shadow.fillStyle(0x0f172a, 0.22);
+    shadow.fillRoundedRect(-halfW + 2, -halfH + 4, cardW, cardH, 18);
     container.add(shadow);
 
     // Active Golden Selection Glow (hidden initially)
     const activeGlow = this.add.graphics();
-    activeGlow.lineStyle(6, 0xf59e0b, 0.9);
+    activeGlow.lineStyle(6, 0xf59e0b, 0.95);
     activeGlow.strokeRoundedRect(-halfW - 3, -halfH - 3, cardW + 6, cardH + 6, 20);
     activeGlow.setAlpha(0);
     container.add(activeGlow);
     item.activeGlow = activeGlow;
 
-    // 3D Card Glass Background Box
+    // 3D Premium Glass Background Box
     const bg = this.add.graphics();
-    const primaryColor = isLeft ? 0x0284c7 : 0xdb2777;
-    const fillColor = isLeft ? 0xf0f9ff : 0xfdf2f8;
+    const primaryColor = isLeft ? 0x059669 : 0xd97706; // Emerald for left, Amber/Gold for right
+    const fillColor = 0xffffff;
 
-    bg.fillStyle(fillColor, 0.96);
+    bg.fillStyle(fillColor, 0.94);
     bg.lineStyle(3, primaryColor, 1);
     bg.fillRoundedRect(-halfW, -halfH, cardW, cardH, 18);
     bg.strokeRoundedRect(-halfW, -halfH, cardW, cardH, 18);
@@ -501,30 +700,38 @@ export class MatchLineGameScene extends BaseGameScene {
 
     // Top Glossy Highlight Line
     const gloss = this.add.graphics();
-    gloss.fillStyle(0xffffff, 0.55);
-    gloss.fillRoundedRect(-halfW + 4, -halfH + 2, cardW - 8, Math.max(10, cardH * 0.22), { tl: 16, tr: 16, bl: 0, br: 0 });
+    gloss.fillStyle(0xffffff, 0.65);
+    gloss.fillRoundedRect(-halfW + 4, -halfH + 2, cardW - 8, Math.max(10, cardH * 0.24), { tl: 16, tr: 16, bl: 0, br: 0 });
     container.add(gloss);
 
-    // High Definition 3D Pixar Icon Image or Emoji Fallback
+    // Circular White Badge Backing for Icons so emojis & images pop vividly
     const isMobile = this.scale.width < 640;
-    const iconSize = Math.min(54, Math.max(36, cardH * 0.78));
+    const iconSize = Math.min(52, Math.max(36, cardH * 0.76));
     const iconPadding = isMobile ? 6 : 10;
     const iconOffsetX = isLeft ? -halfW + (iconSize / 2) + iconPadding : halfW - (iconSize / 2) - iconPadding;
 
+    const iconBadge = this.add.graphics();
+    iconBadge.fillStyle(isLeft ? 0xecfdf5 : 0xfffbe6, 1);
+    iconBadge.fillCircle(iconOffsetX, 0, (iconSize / 2) + 2);
+    iconBadge.lineStyle(2, primaryColor, 0.5);
+    iconBadge.strokeCircle(iconOffsetX, 0, (iconSize / 2) + 2);
+    container.add(iconBadge);
+
+    // High Definition 3D Pixar Icon Image or Emoji Fallback
     if (item.imageKey.startsWith('emoji:')) {
       const emojiStr = item.imageKey.replace('emoji:', '');
       const emojiTxt = this.add.text(iconOffsetX, 0, emojiStr, {
-        fontSize: Math.min(36, iconSize) + 'px'
+        fontSize: Math.min(34, iconSize - 6) + 'px'
       }).setOrigin(0.5);
       container.add(emojiTxt);
     } else if (this.textures.exists(item.imageKey)) {
       const iconImg = this.add.image(iconOffsetX, 0, item.imageKey);
-      iconImg.setDisplaySize(iconSize, iconSize);
+      iconImg.setDisplaySize(iconSize - 4, iconSize - 4);
       container.add(iconImg);
     } else {
       const fallbackTxt = this.add.text(iconOffsetX, 0, item.label.charAt(0) || '⭐', {
-        fontSize: '32px',
-        color: isLeft ? '#0369a1' : '#be185d',
+        fontSize: '28px',
+        color: isLeft ? '#047857' : '#b45309',
         fontFamily: 'Fredoka, sans-serif',
         fontStyle: 'bold'
       }).setOrigin(0.5);
@@ -532,12 +739,12 @@ export class MatchLineGameScene extends BaseGameScene {
     }
 
     // Label Text
-    const labelFontSize = Math.min(20, Math.max(13, cardW * 0.098)) + 'px';
+    const labelFontSize = Math.min(19, Math.max(13, cardW * 0.095)) + 'px';
     const labelOffsetX = isLeft ? 10 : -10;
     const labelText = this.add.text(labelOffsetX, 0, item.label, {
       fontFamily: 'Fredoka, sans-serif',
       fontSize: labelFontSize,
-      color: isLeft ? '#0369a1' : '#be185d',
+      color: isLeft ? '#065f46' : '#92400e',
       fontStyle: 'bold'
     }).setOrigin(0.5);
     container.add(labelText);
@@ -570,14 +777,14 @@ export class MatchLineGameScene extends BaseGameScene {
       ease: 'Sine.easeInOut'
     });
 
-    // Touch Target Area (Generous touch target for small mobile phone screens!)
-    const touchRadius = Math.max(36, cardH * 0.65);
+    // Generous Extra-Large Touch Target Area for Children
+    const touchRadius = Math.max(54, cardH * 0.9);
     const hitAreaNode = this.add.circle(nodeX, 0, touchRadius);
     hitAreaNode.setInteractive({ useHandCursor: true });
     container.add(hitAreaNode);
 
-    // Full Card Touch Area (Tap-to-Select / Tap-to-Connect support for mobile!)
-    const cardHitArea = this.add.rectangle(0, 0, cardW, cardH);
+    // Expanded Full Card Touch Area (Includes generous margins around card)
+    const cardHitArea = this.add.rectangle(0, 0, cardW + 30, cardH + 20);
     cardHitArea.setInteractive({ useHandCursor: true });
     container.add(cardHitArea);
 
@@ -670,30 +877,42 @@ export class MatchLineGameScene extends BaseGameScene {
       this.connectedPairsCount++;
 
       if (this.connectedLinesGraphics) {
-        this.connectedLinesGraphics.lineStyle(14, 0x10b981, 0.4);
+        let auraColor = 0x10b981;
+        let coreColor = 0x059669;
+
+        if (this.currentLineStyle === 'nature') {
+          auraColor = 0x10b981;
+          coreColor = 0x047857;
+        } else if (this.currentLineStyle === 'heart') {
+          auraColor = 0xf43f5e;
+          coreColor = 0xbe185d;
+        }
+
+        this.connectedLinesGraphics.lineStyle(14, auraColor, 0.45);
         this.connectedLinesGraphics.beginPath();
         this.connectedLinesGraphics.moveTo(startItem.nodeX || 0, startItem.nodeY || 0);
         this.connectedLinesGraphics.lineTo(targetItem.nodeX || 0, targetItem.nodeY || 0);
         this.connectedLinesGraphics.strokePath();
 
-        this.connectedLinesGraphics.lineStyle(8, 0x059669, 1);
+        this.connectedLinesGraphics.lineStyle(8, coreColor, 1);
         this.connectedLinesGraphics.beginPath();
         this.connectedLinesGraphics.moveTo(startItem.nodeX || 0, startItem.nodeY || 0);
         this.connectedLinesGraphics.lineTo(targetItem.nodeX || 0, targetItem.nodeY || 0);
         this.connectedLinesGraphics.strokePath();
 
-        this.connectedLinesGraphics.fillStyle(0x10b981, 1);
+        this.connectedLinesGraphics.fillStyle(auraColor, 1);
         this.connectedLinesGraphics.fillCircle(startItem.nodeX || 0, startItem.nodeY || 0, 14);
         this.connectedLinesGraphics.fillCircle(targetItem.nodeX || 0, targetItem.nodeY || 0, 14);
       }
 
-      // Card Match Bounce Animation
+      // Card Match Bounce & 360 Spin Celebration Animation!
       if (startItem.container && targetItem.container) {
         this.tweens.add({
           targets: [startItem.container, targetItem.container],
-          scaleX: 1.14,
-          scaleY: 1.14,
-          duration: 200,
+          scaleX: 1.2,
+          scaleY: 1.2,
+          angle: 360,
+          duration: 450,
           yoyo: true,
           ease: 'Back.easeOut'
         });
@@ -715,6 +934,7 @@ export class MatchLineGameScene extends BaseGameScene {
       const randomCheer = Phaser.Utils.Array.GetRandom(cheers);
       this.triggerArkanCheer(randomCheer);
       this.speak(`${startItem.label} cocok dengan ${targetItem.label}! Pintar!`);
+      this.playItemSoundEffect(startItem.id);
 
       this.deselectActiveItem();
       this.resetHintTimer();
@@ -791,7 +1011,7 @@ export class MatchLineGameScene extends BaseGameScene {
   spawnRewardParticles(x: number, y: number) {
     const particleCount = 10;
     for (let i = 0; i < particleCount; i++) {
-      const emoji = Phaser.Utils.Array.GetRandom(['⭐', '✨', '🌟', '🎉', '🎈']);
+      const emoji = Phaser.Utils.Array.GetRandom(['⭐', '✨', '🌟', '🎉', '🎈', '🍃']);
       const p = this.add.text(x, y, emoji, { fontSize: '20px' }).setOrigin(0.5);
 
       const angle = (i * 360) / particleCount;
@@ -809,6 +1029,35 @@ export class MatchLineGameScene extends BaseGameScene {
         duration: 800,
         ease: 'Cubic.easeOut',
         onComplete: () => p.destroy()
+      });
+    }
+  }
+
+  private playItemSoundEffect(id: string) {
+    const itemSoundMap: Record<string, string> = {
+      anjing: 'Guk guk! 🐶',
+      dog: 'Guk guk! 🐶',
+      kucing: 'Meong meong! 🐱',
+      cat: 'Meong meong! 🐱',
+      mobil: 'Brum brum! 🚗',
+      car: 'Brum brum! 🚗',
+      pesawat: 'Wushhh! ✈️',
+      plane: 'Wushhh! ✈️',
+      roket: 'Meluncurrr! 🚀',
+      rocket: 'Blast off! 🚀',
+      monyet: 'Uu aa aa! 🐒',
+      kelinci: 'Hap hap hap! 🐰',
+      dokter: 'Tet tot! 🩺',
+      polisi: 'Niu niu niu! 🚔',
+      sun: 'Shine bright! ☀️',
+      lingkaran: 'Golll! ⚽',
+      segitiga: 'Nyam nyam pizza! 🍕'
+    };
+
+    if (itemSoundMap[id]) {
+      this.playSfx('star');
+      this.time.delayedCall(1100, () => {
+        this.speak(itemSoundMap[id]);
       });
     }
   }

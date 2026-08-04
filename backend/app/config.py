@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     MINIO_BUCKET_NAME: str = "arkan-assets"
     MINIO_SECURE: bool = False
 
+    # AI Integration
+    GEMINI_API_KEY: Optional[str] = ""
+
     class Config:
         case_sensitive = True
         env_file = ".env"  # baca dari file .env jika ada

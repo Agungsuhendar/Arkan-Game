@@ -29,20 +29,22 @@ export class BaseGameScene extends Phaser.Scene {
   createUI() {
     const { width } = this.scale;
 
-    // Header Prompt Banner (Glassmorphism rounded card style)
-    const bannerBg = this.add.graphics();
-    bannerBg.fillStyle(0xffffff, 0.9);
-    bannerBg.fillRoundedRect(width / 2 - 250, 20, 500, 60, 24);
+    if (this.promptText && this.promptText.trim() !== '') {
+      // Header Prompt Banner (Glassmorphism rounded card style)
+      const bannerBg = this.add.graphics();
+      bannerBg.fillStyle(0xffffff, 0.9);
+      bannerBg.fillRoundedRect(width / 2 - 250, 20, 500, 60, 24);
 
-    this.add.text(width / 2, 50, this.promptText, {
-      fontFamily: 'Fredoka, sans-serif',
-      fontSize: '22px',
-      color: '#2d3748',
-      align: 'center'
-    }).setOrigin(0.5);
+      this.add.text(width / 2, 50, this.promptText, {
+        fontFamily: 'Fredoka, sans-serif',
+        fontSize: '22px',
+        color: '#2d3748',
+        align: 'center'
+      }).setOrigin(0.5);
 
-    // Speak prompt text for narration
-    soundService.speak(this.promptText);
+      // Speak prompt text for narration
+      soundService.speak(this.promptText);
+    }
 
     // Score Counter Top Right
     const scoreBg = this.add.graphics();

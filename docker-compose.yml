@@ -44,6 +44,7 @@ services:
     environment:
       - DATABASE_URL=postgresql+asyncpg://arkan_user:arkan_password@postgres:5432/arkan_db
       - REDIS_URL=redis://redis:6379/0
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
     ports:
       - "8005:8000"
     depends_on:
