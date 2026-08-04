@@ -1,21 +1,21 @@
 <template>
-  <q-dialog v-model="isOpen" persistent transition-show="scale" transition-hide="scale">
-    <q-card class="voice-quiz-card font-quicksand q-pa-lg text-white column no-wrap shadow-24 relative-position overflow-hidden">
+  <q-dialog v-model="isOpen" persistent maximized transition-show="slide-up" transition-hide="slide-down">
+    <q-card class="voice-quiz-card font-quicksand q-pa-sm q-pa-md-md text-white column no-wrap shadow-24 relative-position overflow-hidden full-width full-height">
       <!-- Glow background decorations -->
       <div class="glow-orb-1"></div>
       <div class="glow-orb-2"></div>
 
       <!-- Top Bar Header -->
-      <div class="row items-center justify-between q-mb-md header-bar relative-position z-top">
+      <div class="row items-center justify-between q-mb-xs header-bar relative-position z-top flex-shrink-0 full-width">
         <div class="row items-center q-gutter-x-sm">
           <div class="avatar-circle-sm relative-position shadow-4">
             <img src="/arkan_character.png" class="avatar-img" alt="Arkan" />
           </div>
           <div>
-            <div class="text-h5 font-fredoka text-bold text-amber-3 row items-center gap-xs">
+            <div class="text-h5 font-fredoka text-bold text-amber-3 row items-center gap-xs modal-title-text">
               <span>🎙️✨ Kuis Suara & Artikulasi Arkan</span>
             </div>
-            <div class="text-caption text-purple-2 font-fredoka">
+            <div class="text-caption text-purple-2 font-fredoka modal-subtitle-text">
               Penilaian Pengucapan Suara & Kelancaran Bicara 🔊
             </div>
           </div>
@@ -47,19 +47,24 @@
         </div>
       </div>
 
-      <!-- Category Selector Tabs -->
-      <div class="row q-gutter-x-xs justify-center q-mb-md relative-position z-top">
-        <button
-          v-for="cat in categories"
-          :key="cat.id"
-          class="category-tab-btn font-fredoka shadow-3"
-          :class="{ active: currentCategory === cat.id }"
-          @click="selectCategory(cat.id)"
-        >
-          <span class="q-mr-xs">{{ cat.emoji }}</span>
-          <span>{{ selectedLang === 'en-US' ? cat.labelEn : cat.label }}</span>
-        </button>
+      <!-- Category Selector Tabs (Horizontal Touch Scrollable) -->
+      <div class="category-scroll-wrapper full-width relative-position z-top q-mb-sm flex-shrink-0">
+        <div class="category-scroll-container row no-wrap q-gutter-x-xs items-center justify-start justify-md-center scroll-x q-pb-xs">
+          <button
+            v-for="cat in categories"
+            :key="cat.id"
+            class="category-tab-btn font-fredoka shadow-3 flex-shrink-0"
+            :class="{ active: currentCategory === cat.id }"
+            @click="selectCategory(cat.id)"
+          >
+            <span class="q-mr-xs">{{ cat.emoji }}</span>
+            <span>{{ selectedLang === 'en-US' ? cat.labelEn : cat.label }}</span>
+          </button>
+        </div>
       </div>
+
+      <!-- Scrollable Main Quiz Body Container for Ultra-Responsive Fitting -->
+      <div class="quiz-scroll-body column items-center full-width col-grow scroll q-px-xs q-pb-md relative-position z-top">
 
       <!-- Question Speech Box with Arkan Companion Avatar -->
       <div class="question-display-box column items-center text-center q-pa-md shadow-12 relative-position q-mb-md z-top">
@@ -202,27 +207,28 @@
         <div class="text-caption text-bold text-purple-2 q-mb-xs font-fredoka text-center">
           💡 {{ selectedLang === 'en-US' ? 'Or Tap Choice Cards Below:' : 'Atau Tekan Pilihan Gambar di Bawah:' }}
         </div>
-        <div class="row q-gutter-sm justify-center">
+        <div class="row q-gutter-xs justify-center full-width">
           <button
             v-for="opt in currentQuestion.options"
             :key="opt.name"
-            class="btn-fallback-choice font-fredoka row items-center justify-center q-px-md q-py-sm col shadow-4"
+            class="btn-fallback-choice font-fredoka row items-center justify-center q-px-sm q-py-xs col-12 col-sm shadow-4"
             @click="handleManualOptionClick(opt.name)"
           >
-            <span class="text-h5 q-mr-xs">{{ opt.emoji }}</span>
-            <span class="text-bold">{{ selectedLang === 'en-US' && opt.nameEn ? opt.nameEn : opt.name }}</span>
+            <span class="text-h6 q-mr-xs">{{ opt.emoji }}</span>
+            <span class="text-bold text-body2">{{ selectedLang === 'en-US' && opt.nameEn ? opt.nameEn : opt.name }}</span>
           </button>
         </div>
       </div>
 
       <!-- Round Victory Banner -->
-      <div v-if="isAnsweredCorrectly" class="victory-banner column items-center q-mt-md q-pa-md rounded-borders text-center shadow-12 animate-pop relative-position z-top">
-        <div class="text-h5 font-fredoka text-bold text-amber-3">🎉 LUAR BIASA! JAWABAN BENAR!</div>
-        <div class="row q-gutter-x-md text-bold text-white q-mt-xs font-fredoka text-subtitle1">
+      <div v-if="isAnsweredCorrectly" class="victory-banner column items-center q-mt-sm q-pa-sm rounded-borders text-center shadow-12 animate-pop relative-position z-top full-width">
+        <div class="text-h6 font-fredoka text-bold text-amber-3">🎉 LUAR BIASA! JAWABAN BENAR!</div>
+        <div class="row q-gutter-x-md text-bold text-white q-mt-xs font-fredoka text-subtitle2">
           <span>🪙 +30 Koin</span>
           <span>⭐ +{{ 30 * pronunciationStars }} XP</span>
           <span v-if="comboStreak > 1" class="text-amber-3">🔥 Bonus Combo!</span>
         </div>
+      </div>
       </div>
     </q-card>
   </q-dialog>
@@ -982,11 +988,31 @@ onMounted(() => {
 
 <style scoped>
 .voice-quiz-card {
-  width: 660px;
-  max-width: 95vw;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  border-radius: 0px !important;
+  border: none !important;
   background: linear-gradient(145deg, #1e1b4b 0%, #311b92 60%, #4c1d95 100%);
-  border-radius: 32px !important;
-  border: 3.5px solid #818cf8;
+}
+
+.category-scroll-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.category-scroll-container {
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.quiz-scroll-body {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Background Glow Orbs */
@@ -1335,5 +1361,40 @@ onMounted(() => {
   background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
   border: 2px solid #bbf7d0;
   border-radius: 20px;
+}
+
+@media (max-width: 600px) {
+  .modal-title-text {
+    font-size: 1rem !important;
+  }
+  .modal-subtitle-text {
+    display: none;
+  }
+  .question-text-glow {
+    font-size: clamp(1.1rem, 4.5vw, 1.6rem) !important;
+    margin: 4px 0 !important;
+  }
+  .question-display-box {
+    padding: 10px !important;
+    border-radius: 16px !important;
+  }
+  .animal-emoji-giant {
+    font-size: 42px !important;
+  }
+  .revealed-animal-box {
+    width: 70px !important;
+    height: 70px !important;
+  }
+  .mic-button-wrapper {
+    height: 80px !important;
+  }
+  .btn-mic-pulse {
+    width: 75px !important;
+    height: 75px !important;
+  }
+  .ring-1, .ring-2, .ring-3 {
+    width: 75px !important;
+    height: 75px !important;
+  }
 }
 </style>
