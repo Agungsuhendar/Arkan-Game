@@ -4,16 +4,19 @@ from app.infrastructure.database import get_db
 from app.domain.schemas import ParentAnalyticsResponse, ParentCategoryProgress
 from app.repositories.user_repository import UserRepository
 
+from app.api.deps import verify_child_ownership
+from app.domain.models import Child
+
 router = APIRouter(prefix="/parent", tags=["Parent Dashboard"])
 
 @router.get("/analytics/{child_id}", response_model=ParentAnalyticsResponse)
-async def get_parent_analytics(child_id: str, db: AsyncSession = Depends(get_db)):
+async def get_parent_analytics(
+    child: Child = Depends(verify_child_ownership),
+    db: AsyncSession = Depends(get_db)
+):
     repo = UserRepository(db)
-    child = await repo.get_child_by_id(child_id)
-    if not child:
-        raise HTTPException(status_code=404, detail="Child profile not found")
+    history = await repo.get_child_progress_history(child.id)
 
-    history = await repo.get_child_progress_history(child_id)
 
     total_time = sum(p.time_spent_seconds for p in history) // 60
     total_stars = sum(p.stars for p in history)

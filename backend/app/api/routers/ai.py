@@ -113,7 +113,10 @@ def fallback_kid_ai(question: str) -> str:
         "Ayo kita jelajahi bersama Arkan melalui game dan petualangan seru! 🚀"
     )
 
-@router.post("/ask")
+from fastapi import APIRouter, HTTPException, Depends
+from app.middleware.rate_limiter import ai_rate_limiter
+
+@router.post("/ask", dependencies=[Depends(ai_rate_limiter)])
 async def ask_arkan_ai(req: AIAskRequest):
     q = req.question.strip()
     if not q:
@@ -135,3 +138,4 @@ async def ask_arkan_ai(req: AIAskRequest):
         "answer": local_answer,
         "source": "arkan_knowledge_engine"
     }
+

@@ -1,12 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from app.infrastructure.database import get_db
 from app.domain.schemas import (
-    WorldSchema, LevelSchema, GameStartRequest, GameFinishRequest, GameFinishResponse, ChildProfile, StoryGenerateRequest
+    WorldSchema, LevelSchema, GameStartRequest, GameStartResponse,
+    GameEventRequest, GameFinishRequest, GameFinishResponse, ChildProfile, StoryGenerateRequest
 )
 from app.repositories.game_repository import GameRepository
 from app.repositories.user_repository import UserRepository
+from app.domain.game_integrity_service import GameIntegrityService
 
 router = APIRouter(prefix="/game", tags=["Game"])
 
@@ -32,7 +34,7 @@ async def get_level_config(level_id: str, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Level not found")
     return level
 
-@router.post("/start")
+@router.post("/start", response_model=GameStartResponse)
 async def start_game_session(req: GameStartRequest, db: AsyncSession = Depends(get_db)):
     game_repo = GameRepository(db)
     user_repo = UserRepository(db)
@@ -42,7 +44,38 @@ async def start_game_session(req: GameStartRequest, db: AsyncSession = Depends(g
     if not level or not child:
         raise HTTPException(status_code=404, detail="Invalid level or child ID")
 
-    return {"status": "started", "level_id": req.level_id, "child_id": req.child_id}
+    questions_count = len(level.questions) if level.questions else 1
+    max_score = GameIntegrityService.calculate_max_score(questions_count)
+    min_time = GameIntegrityService.calculate_min_time_seconds(questions_count)
+
+    session = await game_repo.create_game_session(
+        child_id=child.id,
+        level_id=level.id,
+        max_score=max_score
+    )
+
+    return GameStartResponse(
+        status="started",
+        session_token=session.session_token,
+        child_id=child.id,
+        level_id=level.id,
+        max_score=max_score,
+        min_time_seconds=min_time,
+        level=level
+    )
+
+@router.post("/event")
+async def record_game_event(req: GameEventRequest, db: AsyncSession = Depends(get_db)):
+    game_repo = GameRepository(db)
+    session = await game_repo.get_session_by_token(req.session_token)
+    if not session or session.status != "active":
+        raise HTTPException(
+            status_code=400,
+            detail="Sesi game tidak aktif atau token sesi tidak valid."
+        )
+
+    await game_repo.log_game_event(session.id, req.event_type, req.event_data)
+    return {"status": "recorded", "event_type": req.event_type}
 
 @router.get("/child/{child_id}", response_model=ChildProfile)
 async def get_child_profile(child_id: str, db: AsyncSession = Depends(get_db)):
@@ -57,27 +90,58 @@ async def finish_game_session(req: GameFinishRequest, db: AsyncSession = Depends
     game_repo = GameRepository(db)
     user_repo = UserRepository(db)
 
-    level = await game_repo.get_level_by_id(req.level_id)
-    if not level:
-        raise HTTPException(status_code=404, detail="Level not found")
+    session = await game_repo.get_session_by_token(req.session_token)
+    if not session:
+        raise HTTPException(status_code=404, detail="Token sesi game tidak ditemukan.")
 
-    coins_earned = level.reward_coins * req.stars
-    xp_earned = level.reward_xp * req.stars
+    level = await game_repo.get_level_by_id(session.level_id)
+    if not level:
+        raise HTTPException(status_code=404, detail="Level tidak ditemukan.")
+
+    questions_count = len(level.questions) if level.questions else 1
+
+    # Authoritative Game Integrity & Anti-cheat Validation
+    val_result = GameIntegrityService.validate_session_completion(
+        session=session,
+        claimed_score=req.score,
+        time_spent_seconds=req.time_spent_seconds,
+        questions_count=questions_count
+    )
+
+    if not val_result.is_valid:
+        await game_repo.invalidate_session(session)
+        await game_repo.log_game_event(
+            session.id,
+            "cheat_flagged",
+            {"reason": val_result.rejection_reason, "claimed_score": req.score, "time_spent": req.time_spent_seconds}
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=val_result.rejection_reason
+        )
+
+    coins_earned = level.reward_coins * val_result.verified_stars
+    xp_earned = level.reward_xp * val_result.verified_stars
 
     # Record progress & reward child
-    await game_repo.record_progress(
-        child_id=req.child_id,
-        level_id=req.level_id,
-        stars=req.stars,
-        score=req.score,
+    await game_repo.upsert_progress(
+        child_id=session.child_id,
+        level_id=session.level_id,
+        stars=val_result.verified_stars,
+        score=val_result.verified_score,
         time_spent=req.time_spent_seconds,
         category=req.category
     )
-    updated_child = await user_repo.update_child_rewards(req.child_id, coins_earned, xp_earned)
+    updated_child = await user_repo.update_child_rewards(session.child_id, coins_earned, xp_earned)
+
+    # Mark session as completed
+    await game_repo.complete_session(session)
 
     return GameFinishResponse(
         status="success",
-        stars_awarded=req.stars,
+        session_token=session.session_token,
+        stars_awarded=val_result.verified_stars,
+        score_verified=val_result.verified_score,
         coins_earned=coins_earned,
         xp_earned=xp_earned,
         new_total_coins=updated_child.coins if updated_child else coins_earned,
@@ -94,3 +158,4 @@ async def generate_ai_story(req: StoryGenerateRequest):
         target_age=req.target_age or 4
     )
     return story_book
+

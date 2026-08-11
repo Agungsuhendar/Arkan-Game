@@ -35,10 +35,7 @@ app.include_router(ai.router, prefix="/api/v1")
 
 @app.on_event("startup")
 async def startup_event():
-    # Auto-create tables for development/runtime schema setup
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
+    # Database schema management is delegated to Alembic migrations (alembic upgrade head).
     # Seed initial game worlds and engines if empty or missing
     async with AsyncSessionLocal() as session:
         from sqlalchemy.future import select
