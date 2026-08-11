@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from typing import Optional
-from app.domain.models import GameSession
+from typing import Optional, List
+from app.domain.models import GameSession, GameEvent
 
 @dataclass
 class ValidationResult:
@@ -35,9 +35,10 @@ class GameIntegrityService:
             return 0
 
     @classmethod
-    def validate_session_completion(
+    def validate_session_events_and_score(
         cls,
         session: GameSession,
+        events: List[GameEvent],
         claimed_score: int,
         time_spent_seconds: int,
         questions_count: int
@@ -63,22 +64,30 @@ class GameIntegrityService:
                 verified_score=0
             )
 
-        # Check 3: Score upper bound check
-        if claimed_score > max_score or claimed_score < 0:
-            return ValidationResult(
-                is_valid=False,
-                rejection_reason=f"Deteksi anomali skor ({claimed_score} melebihi batas maksimal {max_score}).",
-                verified_stars=0,
-                verified_score=0
+        # Check 3: Process recorded events if available
+        question_events = [e for e in events if e.event_type == "question_answered"]
+        if question_events:
+            correct_count = sum(
+                1 for e in question_events 
+                if isinstance(e.event_data, dict) and (e.event_data.get("is_correct") is True or e.event_data.get("correct") is True)
             )
+            verified_score = min(correct_count * 100, max_score)
+        else:
+            if claimed_score > max_score or claimed_score < 0:
+                return ValidationResult(
+                    is_valid=False,
+                    rejection_reason=f"Deteksi anomali skor ({claimed_score} melebihi batas maksimal {max_score}).",
+                    verified_stars=0,
+                    verified_score=0
+                )
+            verified_score = claimed_score
 
-        # Calculate verified stars and score
-        verified_score = claimed_score
-        stars = cls.calculate_star_rating(verified_score, max_score)
+        verified_stars = cls.calculate_star_rating(verified_score, max_score)
 
         return ValidationResult(
             is_valid=True,
             rejection_reason=None,
-            verified_stars=stars,
+            verified_stars=verified_stars,
             verified_score=verified_score
         )
+

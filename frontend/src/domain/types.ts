@@ -15,8 +15,8 @@ export interface QuestionOption {
   id: string;
   option_text: string;
   option_asset?: string;
-  is_correct: boolean;
 }
+
 
 export interface Question {
   id: string;

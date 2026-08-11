@@ -63,10 +63,10 @@ class QuestionOptionSchema(BaseModel):
     id: str
     option_text: str
     option_asset: Optional[str]
-    is_correct: bool
 
     class Config:
         from_attributes = True
+
 
 class QuestionSchema(BaseModel):
     id: str

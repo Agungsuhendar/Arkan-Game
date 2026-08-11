@@ -68,9 +68,9 @@ export const gameApi = {
             prompt_text: 'Letuskan balon yang berisi huruf A!',
             category: 'huruf',
             options: [
-              { id: 'o1', option_text: 'A', is_correct: true },
-              { id: 'o2', option_text: 'B', is_correct: false },
-              { id: 'o3', option_text: 'C', is_correct: false }
+              { id: 'o1', option_text: 'A' },
+              { id: 'o2', option_text: 'B' },
+              { id: 'o3', option_text: 'C' }
             ]
           }
         ]
@@ -97,18 +97,13 @@ export const gameApi = {
     } catch (e) {
       return {
         child_name: 'Arkan',
-        total_playtime_minutes: 45,
-        total_stars: 18,
-        categories: [
-          { category: 'Huruf', score_percentage: 90, total_levels_completed: 6 },
-          { category: 'Angka', score_percentage: 75, total_levels_completed: 5 },
-          { category: 'Warna', score_percentage: 85, total_levels_completed: 4 },
-          { category: 'Memori', score_percentage: 70, total_levels_completed: 3 },
-          { category: 'Logika', score_percentage: 60, total_levels_completed: 2 },
-        ]
+        total_playtime_minutes: 0,
+        total_stars: 0,
+        categories: []
       };
     }
   },
+
 
   async getChildProfile(childId: string): Promise<ChildProfile> {
     try {

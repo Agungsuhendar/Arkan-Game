@@ -10,6 +10,9 @@ from app.repositories.game_repository import GameRepository
 from app.repositories.user_repository import UserRepository
 from app.domain.game_integrity_service import GameIntegrityService
 
+from app.api.deps import get_current_user, get_current_parent, verify_child_ownership
+from app.domain.models import Parent, Child
+
 router = APIRouter(prefix="/game", tags=["Game"])
 
 @router.get("/worlds", response_model=List[WorldSchema])
@@ -35,7 +38,11 @@ async def get_level_config(level_id: str, db: AsyncSession = Depends(get_db)):
     return level
 
 @router.post("/start", response_model=GameStartResponse)
-async def start_game_session(req: GameStartRequest, db: AsyncSession = Depends(get_db)):
+async def start_game_session(
+    req: GameStartRequest,
+    current_parent: Parent = Depends(get_current_parent),
+    db: AsyncSession = Depends(get_db)
+):
     game_repo = GameRepository(db)
     user_repo = UserRepository(db)
 
@@ -43,6 +50,13 @@ async def start_game_session(req: GameStartRequest, db: AsyncSession = Depends(g
     child = await user_repo.get_child_by_id(req.child_id)
     if not level or not child:
         raise HTTPException(status_code=404, detail="Invalid level or child ID")
+
+    # Ownership check
+    if child.parent_id != current_parent.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Akses ditolak. Anda tidak memiliki hak untuk memulai game untuk anak ini."
+        )
 
     questions_count = len(level.questions) if level.questions else 1
     max_score = GameIntegrityService.calculate_max_score(questions_count)
@@ -65,7 +79,11 @@ async def start_game_session(req: GameStartRequest, db: AsyncSession = Depends(g
     )
 
 @router.post("/event")
-async def record_game_event(req: GameEventRequest, db: AsyncSession = Depends(get_db)):
+async def record_game_event(
+    req: GameEventRequest,
+    current_parent: Parent = Depends(get_current_parent),
+    db: AsyncSession = Depends(get_db)
+):
     game_repo = GameRepository(db)
     session = await game_repo.get_session_by_token(req.session_token)
     if not session or session.status != "active":
@@ -74,19 +92,30 @@ async def record_game_event(req: GameEventRequest, db: AsyncSession = Depends(ge
             detail="Sesi game tidak aktif atau token sesi tidak valid."
         )
 
+    # Ownership check on session's child
+    user_repo = UserRepository(db)
+    child = await user_repo.get_child_by_id(session.child_id)
+    if not child or child.parent_id != current_parent.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Akses ditolak. Anda tidak memiliki hak untuk mencatat event sesi ini."
+        )
+
     await game_repo.log_game_event(session.id, req.event_type, req.event_data)
     return {"status": "recorded", "event_type": req.event_type}
 
 @router.get("/child/{child_id}", response_model=ChildProfile)
-async def get_child_profile(child_id: str, db: AsyncSession = Depends(get_db)):
-    user_repo = UserRepository(db)
-    child = await user_repo.get_child_by_id(child_id)
-    if not child:
-        raise HTTPException(status_code=404, detail="Child profile not found")
+async def get_child_profile(
+    child: Child = Depends(verify_child_ownership)
+):
     return child
 
 @router.post("/finish", response_model=GameFinishResponse)
-async def finish_game_session(req: GameFinishRequest, db: AsyncSession = Depends(get_db)):
+async def finish_game_session(
+    req: GameFinishRequest,
+    current_parent: Parent = Depends(get_current_parent),
+    db: AsyncSession = Depends(get_db)
+):
     game_repo = GameRepository(db)
     user_repo = UserRepository(db)
 
@@ -94,15 +123,25 @@ async def finish_game_session(req: GameFinishRequest, db: AsyncSession = Depends
     if not session:
         raise HTTPException(status_code=404, detail="Token sesi game tidak ditemukan.")
 
+    # Ownership check on session's child
+    child = await user_repo.get_child_by_id(session.child_id)
+    if not child or child.parent_id != current_parent.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Akses ditolak. Anda tidak memiliki hak untuk menyelesaikan sesi anak ini."
+        )
+
     level = await game_repo.get_level_by_id(session.level_id)
     if not level:
         raise HTTPException(status_code=404, detail="Level tidak ditemukan.")
 
     questions_count = len(level.questions) if level.questions else 1
 
-    # Authoritative Game Integrity & Anti-cheat Validation
-    val_result = GameIntegrityService.validate_session_completion(
+    # Authoritative Game Integrity & Event-driven Score Validation
+    # client score -> GameSession -> GameEvent -> server validation -> verified score -> reward
+    val_result = GameIntegrityService.validate_session_events_and_score(
         session=session,
+        events=session.events or [],
         claimed_score=req.score,
         time_spent_seconds=req.time_spent_seconds,
         questions_count=questions_count
@@ -147,6 +186,8 @@ async def finish_game_session(req: GameFinishRequest, db: AsyncSession = Depends
         new_total_coins=updated_child.coins if updated_child else coins_earned,
         new_total_xp=updated_child.xp if updated_child else xp_earned
     )
+
+
 
 @router.post("/story/generate")
 async def generate_ai_story(req: StoryGenerateRequest):

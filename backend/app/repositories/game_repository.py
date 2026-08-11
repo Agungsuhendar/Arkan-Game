@@ -72,9 +72,12 @@ class GameRepository:
 
     async def get_session_by_token(self, session_token: str) -> Optional[GameSession]:
         result = await self.db.execute(
-            select(GameSession).filter(GameSession.session_token == session_token)
+            select(GameSession)
+            .options(selectinload(GameSession.events))
+            .filter(GameSession.session_token == session_token)
         )
         return result.scalars().first()
+
 
     async def log_game_event(self, session_id: str, event_type: str, event_data: dict) -> GameEvent:
         event = GameEvent(

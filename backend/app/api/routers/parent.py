@@ -28,7 +28,7 @@ async def get_parent_analytics(
 
     category_progress = []
     for cat_name, scores in categories_map.items():
-        avg_score = (sum(scores) / len(scores)) if scores else 85.0
+        avg_score = (sum(scores) / len(scores)) if scores else 0.0
         category_progress.append(
             ParentCategoryProgress(
                 category=cat_name.capitalize(),
@@ -39,7 +39,8 @@ async def get_parent_analytics(
 
     return ParentAnalyticsResponse(
         child_name=child.name,
-        total_playtime_minutes=total_time if total_time > 0 else 45,
-        total_stars=total_stars if total_stars > 0 else 18,
+        total_playtime_minutes=total_time,
+        total_stars=total_stars,
         categories=category_progress
     )
+
