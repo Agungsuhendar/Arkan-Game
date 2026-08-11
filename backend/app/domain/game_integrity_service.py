@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, List
+from typing import Optional, List, Set
 from app.domain.models import GameSession, GameEvent
 
 @dataclass
@@ -41,9 +41,10 @@ class GameIntegrityService:
         events: List[GameEvent],
         claimed_score: int,
         time_spent_seconds: int,
-        questions_count: int
+        questions_count: int,
+        correct_option_ids: Optional[Set[str]] = None
     ) -> ValidationResult:
-        # Check 1: Session Status
+        # Step 1: Session Status Check
         if session.status != "active":
             return ValidationResult(
                 is_valid=False,
@@ -55,7 +56,7 @@ class GameIntegrityService:
         max_score = cls.calculate_max_score(questions_count)
         min_time = cls.calculate_min_time_seconds(questions_count)
 
-        # Check 2: Anti-cheat duration check
+        # Step 2: Duration check (Anti-cheat)
         if time_spent_seconds < min_time:
             return ValidationResult(
                 is_valid=False,
@@ -64,15 +65,22 @@ class GameIntegrityService:
                 verified_score=0
             )
 
-        # Check 3: Process recorded events if available
+        # Step 3: GameEvent / Answer Validation
         question_events = [e for e in events if e.event_type == "question_answered"]
         if question_events:
-            correct_count = sum(
-                1 for e in question_events 
-                if isinstance(e.event_data, dict) and (e.event_data.get("is_correct") is True or e.event_data.get("correct") is True)
-            )
+            correct_count = 0
+            for e in question_events:
+                if isinstance(e.event_data, dict):
+                    opt_id = e.event_data.get("option_id")
+                    if correct_option_ids and opt_id in correct_option_ids:
+                        correct_count += 1
+                    elif e.event_data.get("is_correct") is True or e.event_data.get("correct") is True:
+                        correct_count += 1
+
+            # Step 4: Server calculates verified score
             verified_score = min(correct_count * 100, max_score)
         else:
+            # Upper bound score check if events were not streamed
             if claimed_score > max_score or claimed_score < 0:
                 return ValidationResult(
                     is_valid=False,
@@ -82,6 +90,7 @@ class GameIntegrityService:
                 )
             verified_score = claimed_score
 
+        # Step 5: Server calculates verified stars
         verified_stars = cls.calculate_star_rating(verified_score, max_score)
 
         return ValidationResult(
@@ -90,4 +99,5 @@ class GameIntegrityService:
             verified_stars=verified_stars,
             verified_score=verified_score
         )
+
 

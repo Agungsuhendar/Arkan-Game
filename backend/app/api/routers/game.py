@@ -137,15 +137,26 @@ async def finish_game_session(
 
     questions_count = len(level.questions) if level.questions else 1
 
-    # Authoritative Game Integrity & Event-driven Score Validation
-    # client score -> GameSession -> GameEvent -> server validation -> verified score -> reward
+    # Build DB correct_option_ids set for server-side answer validation
+    correct_option_ids = set()
+    if level.questions:
+        for q in level.questions:
+            if q.options:
+                for opt in q.options:
+                    if opt.is_correct:
+                        correct_option_ids.add(opt.id)
+
+    # Authoritative Game Integrity & Event-driven Score Validation Pipeline:
+    # get_current_parent() -> verify child ownership -> GameSession -> GameEvent / answer validation -> GameIntegrityService -> server calculates score -> server calculates stars -> server calculates reward -> save progress
     val_result = GameIntegrityService.validate_session_events_and_score(
         session=session,
         events=session.events or [],
         claimed_score=req.score,
         time_spent_seconds=req.time_spent_seconds,
-        questions_count=questions_count
+        questions_count=questions_count,
+        correct_option_ids=correct_option_ids
     )
+
 
     if not val_result.is_valid:
         await game_repo.invalidate_session(session)
