@@ -78,12 +78,20 @@ async def start_game_session(
         level=level
     )
 
+ALLOWED_EVENT_TYPES = {"question_answered", "item_collected", "powerup_used", "hint_used"}
+
 @router.post("/event")
 async def record_game_event(
     req: GameEventRequest,
     current_parent: Parent = Depends(get_current_parent),
     db: AsyncSession = Depends(get_db)
 ):
+    if req.event_type not in ALLOWED_EVENT_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Tipe event tidak valid: '{req.event_type}'. Tipe yang diperbolehkan: {', '.join(ALLOWED_EVENT_TYPES)}"
+        )
+
     game_repo = GameRepository(db)
     session = await game_repo.get_session_by_token(req.session_token)
     if not session or session.status != "active":
@@ -101,8 +109,22 @@ async def record_game_event(
             detail="Akses ditolak. Anda tidak memiliki hak untuk mencatat event sesi ini."
         )
 
-    await game_repo.log_game_event(session.id, req.event_type, req.event_data)
+    # Sanitize event_data (Strip any client-submitted is_correct flags)
+    raw_data = req.event_data or {}
+    sanitized_data = {k: v for k, v in raw_data.items() if k not in ("is_correct", "correct")}
+
+    if req.event_type == "question_answered":
+        question_id = sanitized_data.get("question_id")
+        option_id = sanitized_data.get("option_id")
+        if not question_id or not option_id:
+            raise HTTPException(
+                status_code=400,
+                detail="Event 'question_answered' wajib menyertakan 'question_id' dan 'option_id'."
+            )
+
+    await game_repo.log_game_event(session.id, req.event_type, sanitized_data)
     return {"status": "recorded", "event_type": req.event_type}
+
 
 @router.get("/child/{child_id}", response_model=ChildProfile)
 async def get_child_profile(

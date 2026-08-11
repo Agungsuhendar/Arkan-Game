@@ -65,30 +65,32 @@ class GameIntegrityService:
                 verified_score=0
             )
 
-        # Step 3: GameEvent / Answer Validation
+        # Step 3: GameEvent / Strict Server-Side Answer Validation
         question_events = [e for e in events if e.event_type == "question_answered"]
-        if question_events:
-            correct_count = 0
-            for e in question_events:
-                if isinstance(e.event_data, dict):
-                    opt_id = e.event_data.get("option_id")
-                    if correct_option_ids and opt_id in correct_option_ids:
-                        correct_count += 1
-                    elif e.event_data.get("is_correct") is True or e.event_data.get("correct") is True:
-                        correct_count += 1
+        
+        correct_count = 0
+        seen_questions = set()
 
-            # Step 4: Server calculates verified score
+        for e in question_events:
+            if isinstance(e.event_data, dict):
+                q_id = e.event_data.get("question_id")
+                opt_id = e.event_data.get("option_id")
+
+                # Deduplicate multiple submissions for the same question
+                if q_id and q_id in seen_questions:
+                    continue
+                if q_id:
+                    seen_questions.add(q_id)
+
+                # STRICT: Only trust database-matched option_id in correct_option_ids
+                if correct_option_ids and opt_id and opt_id in correct_option_ids:
+                    correct_count += 1
+
+        # Step 4: Mandatory Server Score Calculation (Zero trust on raw claimed_score)
+        if questions_count > 0:
             verified_score = min(correct_count * 100, max_score)
         else:
-            # Upper bound score check if events were not streamed
-            if claimed_score > max_score or claimed_score < 0:
-                return ValidationResult(
-                    is_valid=False,
-                    rejection_reason=f"Deteksi anomali skor ({claimed_score} melebihi batas maksimal {max_score}).",
-                    verified_stars=0,
-                    verified_score=0
-                )
-            verified_score = claimed_score
+            verified_score = 0
 
         # Step 5: Server calculates verified stars
         verified_stars = cls.calculate_star_rating(verified_score, max_score)
@@ -99,5 +101,6 @@ class GameIntegrityService:
             verified_stars=verified_stars,
             verified_score=verified_score
         )
+
 
 
