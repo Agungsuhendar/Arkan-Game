@@ -94,3 +94,22 @@ def test_validate_perfect_completion_success():
     assert res.is_valid is True
     assert res.verified_score == 200
     assert res.verified_stars == 3
+
+def test_validate_cross_question_option_mismatch_rejected():
+    # Test Bug #1: Client submits Q1 with correct option of Q2 ("opt2")
+    session = GameSession(status="active", start_time=datetime.utcnow() - timedelta(seconds=20))
+    events = [
+        GameEvent(event_type="question_answered", question_id="q1", event_data={"question_id": "q1", "option_id": "opt2"}), # opt2 is correct for q2, NOT q1
+        GameEvent(event_type="question_answered", question_id="q2", event_data={"question_id": "q2", "option_id": "opt1"})  # opt1 is correct for q1, NOT q2
+    ]
+    correct_map = {"q1": "opt1", "q2": "opt2"}
+    res = GameIntegrityService.validate_session_events_and_score(
+        session=session,
+        events=events,
+        questions_count=2,
+        correct_options_map=correct_map
+    )
+    assert res.is_valid is True
+    assert res.verified_score == 0 # Both cross-matched options rejected!
+    assert res.verified_stars == 0
+
