@@ -115,9 +115,14 @@ def fallback_kid_ai(question: str) -> str:
 
 from fastapi import APIRouter, HTTPException, Depends
 from app.middleware.rate_limiter import ai_rate_limiter
+from app.api.deps import get_current_user
+from app.domain.models import User
 
 @router.post("/ask", dependencies=[Depends(ai_rate_limiter)])
-async def ask_arkan_ai(req: AIAskRequest):
+async def ask_arkan_ai(
+    req: AIAskRequest,
+    current_user: User = Depends(get_current_user)
+):
     q = req.question.strip()
     if not q:
         raise HTTPException(status_code=400, detail="Pertanyaan tidak boleh kosong.")
@@ -138,4 +143,5 @@ async def ask_arkan_ai(req: AIAskRequest):
         "answer": local_answer,
         "source": "arkan_knowledge_engine"
     }
+
 

@@ -23,6 +23,58 @@ export const apiClient = axios.create({
   },
 });
 
+// Automatically inject Bearer JWT token if user is logged in
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('access_token');
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+export const authApi = {
+  async login(email: string, password: string) {
+    const res = await apiClient.post('/auth/login', { email, password });
+    if (res.data?.access_token) {
+      localStorage.setItem('access_token', res.data.access_token);
+      if (res.data.refresh_token) {
+        localStorage.setItem('refresh_token', res.data.refresh_token);
+      }
+    }
+    return res.data;
+  },
+
+  async register(email: string, password: string, fullName: string, phone?: string) {
+    const res = await apiClient.post('/auth/register', {
+      email,
+      password,
+      full_name: fullName,
+      phone
+    });
+    if (res.data?.access_token) {
+      localStorage.setItem('access_token', res.data.access_token);
+      if (res.data.refresh_token) {
+        localStorage.setItem('refresh_token', res.data.refresh_token);
+      }
+    }
+    return res.data;
+  },
+
+  logout() {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+  },
+
+  getAccessToken() {
+    return localStorage.getItem('access_token');
+  }
+};
+
+
+
 export const gameApi = {
   async getWorlds(): Promise<World[]> {
     try {
@@ -91,6 +143,16 @@ export const gameApi = {
   },
 
   async getParentAnalytics(childId: string): Promise<ParentAnalytics> {
+    const token = localStorage.getItem('access_token');
+    if (!token || childId === 'arkan_default_child_id') {
+      return {
+        child_name: 'Arkan',
+        total_playtime_minutes: 0,
+        total_stars: 0,
+        categories: []
+      };
+    }
+
     try {
       const res = await apiClient.get<ParentAnalytics>(`/parent/analytics/${childId}`);
       return res.data;
@@ -105,12 +167,27 @@ export const gameApi = {
   },
 
 
+
   async getChildProfile(childId: string): Promise<ChildProfile> {
+    const token = localStorage.getItem('access_token');
+    if (!token || childId === 'arkan_default_child_id') {
+      return {
+        id: childId,
+        name: 'Arkan',
+        age: 5,
+        level: 2,
+        xp: 150,
+        coins: 250,
+        diamonds: 15,
+        energy: 100,
+        hearts: 5,
+      };
+    }
+
     try {
       const res = await apiClient.get<ChildProfile>(`/game/child/${childId}`);
       return res.data;
     } catch (e) {
-      // Fallback: return default profile jika server tidak tersedia
       return {
         id: childId,
         name: 'Arkan',
@@ -124,6 +201,7 @@ export const gameApi = {
       };
     }
   },
+
 
   async generateAiStory(topic: string, moralValue: string, category: string = 'Petualangan 🚩', targetAge: number = 4): Promise<any> {
     try {

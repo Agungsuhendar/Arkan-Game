@@ -201,7 +201,10 @@ async def finish_game_session(
 
 
 @router.post("/story/generate")
-async def generate_ai_story(req: StoryGenerateRequest):
+async def generate_ai_story(
+    req: StoryGenerateRequest,
+    current_parent: Parent = Depends(get_current_parent)
+):
     from app.domain.story_generator_service import StoryGeneratorService
     story_book = StoryGeneratorService.generate_story(
         topic=req.topic,
@@ -210,4 +213,5 @@ async def generate_ai_story(req: StoryGenerateRequest):
         target_age=req.target_age or 4
     )
     return story_book
+
 
