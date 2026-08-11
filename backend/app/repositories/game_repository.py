@@ -34,18 +34,7 @@ class GameRepository:
             )
             .filter(Level.id == level_id)
         )
-        level = result.scalars().first()
-        if not level:
-            # Fallback to first level in database
-            fallback_res = await self.db.execute(
-                select(Level)
-                .options(
-                    selectinload(Level.engine),
-                    selectinload(Level.questions).selectinload(Question.options)
-                )
-            )
-            level = fallback_res.scalars().first()
-        return level
+        return result.scalars().first()
 
     async def create_game_session(self, child_id: str, level_id: str, max_score: int = 100) -> GameSession:
         # Check attempts count for this level by child
@@ -78,17 +67,24 @@ class GameRepository:
         )
         return result.scalars().first()
 
-
-    async def log_game_event(self, session_id: str, event_type: str, event_data: dict) -> GameEvent:
+    async def log_game_event(
+        self,
+        session_id: str,
+        event_type: str,
+        event_data: dict,
+        question_id: Optional[str] = None
+    ) -> GameEvent:
         event = GameEvent(
             session_id=session_id,
             event_type=event_type,
+            question_id=question_id,
             event_data=event_data,
             created_at=datetime.utcnow()
         )
         self.db.add(event)
         await self.db.flush()
         return event
+
 
     async def invalidate_session(self, session: GameSession) -> None:
         session.status = "invalidated"

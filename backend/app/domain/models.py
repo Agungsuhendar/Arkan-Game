@@ -232,13 +232,18 @@ class GameSession(Base):
 
 class GameEvent(Base):
     __tablename__ = "game_event"
+    __table_args__ = (
+        UniqueConstraint("session_id", "question_id", name="uq_game_event_session_question"),
+    )
 
     id = Column(String, primary_key=True, default=generate_uuid)
     session_id = Column(String, ForeignKey("game_session.id", ondelete="CASCADE"), nullable=False, index=True)
     event_type = Column(String, nullable=False, index=True) # question_answered, item_collected, powerup_used, hint_used, cheat_flagged
+    question_id = Column(String, nullable=True, index=True)
     event_data = Column(JSON, default={})
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     session = relationship("GameSession", back_populates="events")
+
 
 
