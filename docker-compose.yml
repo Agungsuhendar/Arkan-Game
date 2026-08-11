@@ -4,11 +4,11 @@ services:
     container_name: arkan_postgres
     restart: always
     environment:
-      POSTGRES_USER: arkan_user
-      POSTGRES_PASSWORD: arkan_password
-      POSTGRES_DB: arkan_db
-    ports:
-      - "5440:5432"
+      POSTGRES_USER: ${POSTGRES_USER:-arkan_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-arkan_db}
+    networks:
+      - backend_net
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -16,8 +16,8 @@ services:
     image: redis:7-alpine
     container_name: arkan_redis
     restart: always
-    ports:
-      - "6379:6379"
+    networks:
+      - backend_net
     volumes:
       - redis_data:/data
 
@@ -26,12 +26,11 @@ services:
     container_name: arkan_minio
     restart: always
     environment:
-      MINIO_ROOT_USER: minio_admin
-      MINIO_ROOT_PASSWORD: minio_password
-    ports:
-      - "9000:9000"
-      - "9001:9001"
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio_admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     command: server /data --console-address ":9001"
+    networks:
+      - backend_net
     volumes:
       - minio_data:/data
 
@@ -42,11 +41,19 @@ services:
     container_name: arkan_game_backend
     restart: always
     environment:
-      - DATABASE_URL=postgresql+asyncpg://arkan_user:arkan_password@postgres:5432/arkan_db
-      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-arkan_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-arkan_db}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=${MINIO_ROOT_USER:-minio_admin}
+      - MINIO_SECRET_KEY=${MINIO_ROOT_PASSWORD}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-https://mini.arsaku.web.id,http://localhost:3000,http://localhost:8080}
+      - ENVIRONMENT=${ENVIRONMENT:-production}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
-    ports:
-      - "8005:8000"
+      - SEED_DEFAULT_DATA=${SEED_DEFAULT_DATA:-false}
+    networks:
+      - backend_net
+      - frontend_net
     depends_on:
       - postgres
       - redis
@@ -57,8 +64,8 @@ services:
       dockerfile: Dockerfile
     container_name: arkan_game_frontend
     restart: always
-    ports:
-      - "3005:80"
+    networks:
+      - frontend_net
     depends_on:
       - backend
 
@@ -68,6 +75,8 @@ services:
     restart: always
     ports:
       - "8080:80"
+    networks:
+      - frontend_net
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
@@ -84,6 +93,8 @@ services:
     entrypoint: ["cloudflared", "--config", "/etc/cloudflared/miniarsaku.yml", "tunnel", "run"]
     # Mode 2: Untuk menggunakan TUNNEL_TOKEN dari .env, ganti entrypoint dengan baris di bawah ini:
     # entrypoint: ["cloudflared", "tunnel", "--no-autoupdate", "run", "--token", "${CLOUDFLARED_TUNNEL_TOKEN}"]
+    networks:
+      - frontend_net
     volumes:
       - ./cloudflared:/etc/cloudflared:ro
       - ${HOME}/.cloudflared:/home/nonroot/.cloudflared:ro
@@ -92,12 +103,19 @@ services:
       - frontend
       - backend
 
+networks:
+  backend_net:
+    driver: bridge
+  frontend_net:
+    driver: bridge
+
 volumes:
   postgres_data:
   redis_data:
   minio_data:
   caddy_data:
   caddy_config:
+
 
 
 

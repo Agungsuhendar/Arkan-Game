@@ -3,20 +3,29 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routers import auth, game, parent, ai
 from app.infrastructure.database import Base, engine, AsyncSessionLocal
 from app.domain.models import World, Chapter, Level, GameEngineConfig, Question, QuestionOption, User, Parent, Child
+from app.config import settings
+
+# Control API documentation visibility in production
+docs_url = "/docs" if (settings.ENVIRONMENT != "production" or settings.ENABLE_DOCS) else None
+redoc_url = "/redoc" if (settings.ENVIRONMENT != "production" or settings.ENABLE_DOCS) else None
+openapi_url = "/openapi.json" if (settings.ENVIRONMENT != "production" or settings.ENABLE_DOCS) else None
 
 app = FastAPI(
     title="Petualangan Arkan - Backend API",
     description="Clean Architecture API for Arkan Kids Educational Game Platform",
-    version="1.0.0"
+    version="1.0.0",
+    docs_url=docs_url,
+    redoc_url=redoc_url,
+    openapi_url=openapi_url
 )
 
-# CORS configuration
+# CORS configuration restricted to whitelisted origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_headers=["Content-Type", "Authorization", "X-Requested-With", "Accept"],
 )
 
 app.include_router(auth.router, prefix="/api/v1")
@@ -26,7 +35,7 @@ app.include_router(ai.router, prefix="/api/v1")
 
 @app.on_event("startup")
 async def startup_event():
-    # Auto-create tables for local development
+    # Auto-create tables for development/runtime schema setup
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
@@ -81,41 +90,47 @@ async def startup_event():
         if added_any or not existing_worlds:
             await session.commit()
 
-        # Check default user & child
-        from app.domain.models import User, Parent, Child
-        result_user = await session.execute(select(User))
-        users = result_user.scalars().all()
-        if not users:
-            import bcrypt
-            default_user = User(
-                email="parent@arkan.com",
-                hashed_password=bcrypt.hashpw("arkan123".encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
-                full_name="Orang Tua Arkan"
-            )
-            session.add(default_user)
-            await session.flush()
+        # Seed default test credentials ONLY in development mode when explicitly enabled
+        if settings.SEED_DEFAULT_DATA and settings.ENVIRONMENT != "production":
+            from app.domain.models import User, Parent, Child
+            result_user = await session.execute(select(User))
+            users = result_user.scalars().all()
+            if not users:
+                import bcrypt
+                default_user = User(
+                    email="parent@arkan.com",
+                    hashed_password=bcrypt.hashpw("arkan123".encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
+                    full_name="Orang Tua Arkan"
+                )
+                session.add(default_user)
+                await session.flush()
 
-            parent_prof = Parent(user_id=default_user.id)
-            session.add(parent_prof)
-            await session.flush()
+                parent_prof = Parent(user_id=default_user.id)
+                session.add(parent_prof)
+                await session.flush()
 
-            default_child = Child(
-                id="arkan_default_child_id",
-                parent_id=parent_prof.id,
-                name="Arkan",
-                age=5,
-                level=2,
-                xp=150,
-                coins=250,
-                diamonds=15
-            )
-            session.add(default_child)
-            await session.commit()
+                default_child = Child(
+                    id="arkan_default_child_id",
+                    parent_id=parent_prof.id,
+                    name="Arkan",
+                    age=5,
+                    level=2,
+                    xp=150,
+                    coins=250,
+                    diamonds=15
+                )
+                session.add(default_child)
+                await session.commit()
 
 @app.get("/")
 async def root():
-    return {
+    response = {
         "app": "Petualangan Arkan - Backend API",
         "version": "1.0.0",
-        "docs": "/docs"
+        "status": "healthy",
+        "environment": settings.ENVIRONMENT
     }
+    if settings.ENVIRONMENT != "production" or settings.ENABLE_DOCS:
+        response["docs"] = "/docs"
+    return response
+

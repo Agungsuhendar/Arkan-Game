@@ -186,8 +186,9 @@
               :class="{ 'opacity-active': showGhostHint }"
               :style="{
                 backgroundImage: `url(${currentTheme.imageSrc})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center'
+                backgroundSize: '100% 100%',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
               }"
             ></div>
 
@@ -250,7 +251,7 @@
             📦 Kepingan Puzzle ({{ remainingPieces.length }})
           </div>
 
-          <div class="tray-pieces-wrapper column items-center q-gutter-y-md">
+          <div class="tray-pieces-wrapper row items-center justify-center gap-xs">
             <div
               v-for="piece in remainingPieces"
               :key="`piece-${piece.targetIdx}`"
@@ -791,18 +792,24 @@ watch(isOpen, (newVal) => {
 
 .puzzle-grid-container {
   display: grid;
-  gap: 2px;
+  gap: 0px;
 }
 
 .puzzle-slot-cell {
   background: rgba(255, 255, 255, 0.05);
-  border: 1px dashed rgba(255, 255, 255, 0.25);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  box-sizing: border-box;
   transition: all 0.2s ease;
 }
 
+.puzzle-slot-cell.locked {
+  border: none !important;
+  background: transparent !important;
+}
+
 .puzzle-slot-cell.highlighted {
-  border: 3px solid #f59e0b;
-  background: rgba(245, 158, 11, 0.3);
+  border: 3px solid #f59e0b !important;
+  background: rgba(245, 158, 11, 0.35) !important;
   animation: pulseHighlight 0.6s infinite alternate;
 }
 
@@ -813,17 +820,19 @@ watch(isOpen, (newVal) => {
 
 .slot-lock-badge {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  background: #22c55e;
+  top: 3px;
+  right: 3px;
+  background: rgba(34, 197, 94, 0.85);
   color: white;
   border-radius: 50%;
-  width: 18px;
-  height: 18px;
-  font-size: 10px;
+  width: 16px;
+  height: 16px;
+  font-size: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 10;
+  pointer-events: none;
 }
 
 .slot-number-hint {
@@ -833,17 +842,28 @@ watch(isOpen, (newVal) => {
 }
 
 .puzzle-tray-sidebar {
-  width: 170px;
+  width: 210px;
   background: rgba(255, 255, 255, 0.06);
   border-left: 2px solid rgba(255, 255, 255, 0.1);
 }
 
+.tray-pieces-wrapper {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
 .draggable-piece-card {
-  width: 95px;
-  height: 95px;
-  border-radius: 16px;
-  border: 3px solid #fde047;
+  width: 80px;
+  height: 80px;
+  border-radius: 14px;
+  border: 2.5px solid #fde047;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   transition: transform 0.2s ease;
+  flex-shrink: 0;
 }
 
 .draggable-piece-card:hover {
@@ -853,12 +873,12 @@ watch(isOpen, (newVal) => {
 .piece-label {
   position: absolute;
   bottom: 2px;
-  right: 4px;
-  background: rgba(0, 0, 0, 0.7);
+  right: 3px;
+  background: rgba(0, 0, 0, 0.75);
   color: #fde047;
-  padding: 1px 6px;
-  border-radius: 8px;
-  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 6px;
+  font-size: 9px;
   font-weight: bold;
 }
 

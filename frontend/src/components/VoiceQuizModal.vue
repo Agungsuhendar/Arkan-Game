@@ -67,7 +67,7 @@
       <div class="quiz-scroll-body column items-center full-width col-grow scroll q-px-xs q-pb-md relative-position z-top">
 
       <!-- Question Speech Box with Arkan Companion Avatar -->
-      <div class="question-display-box column items-center text-center q-pa-md shadow-12 relative-position q-mb-md z-top">
+      <div class="question-display-box column items-center text-center q-pa-md shadow-12 relative-position q-mb-md z-top full-width">
         <div class="row items-center justify-between full-width q-px-sm q-mb-xs">
           <div class="round-badge font-fredoka shadow-4 row items-center q-gutter-x-xs">
             <span>🎯</span>
@@ -114,7 +114,7 @@
       </div>
 
       <!-- Real-time Spoken Transcript Box with Wave Equalizer -->
-      <div class="transcript-box column items-center justify-center q-py-sm q-px-lg rounded-borders text-center q-mb-md relative-position z-top">
+      <div class="transcript-box column items-center justify-center q-py-sm q-px-lg rounded-borders text-center q-mb-md relative-position z-top full-width">
         <div class="row items-center gap-xs q-mb-xs">
           <span class="text-caption text-bold text-purple-2 font-fredoka">🗣️ Terdeteksi Suara Kamu:</span>
           <!-- Audio Wave Equalizer when listening -->
@@ -133,7 +133,7 @@
       </div>
 
       <!-- Pronunciation Assessment Card (Show when evaluated) -->
-      <div v-if="showAssessmentCard" class="pronunciation-card column items-center q-pa-md q-mb-md rounded-borders shadow-12 animate-pop relative-position z-top">
+      <div v-if="showAssessmentCard" class="pronunciation-card column items-center q-pa-md q-mb-md rounded-borders shadow-12 animate-pop relative-position z-top full-width">
         <div class="row items-center justify-between full-width q-mb-xs">
           <div class="text-subtitle1 font-fredoka text-bold text-amber-3 row items-center gap-xs">
             <span>📊 Penilaian Artikulasi Suara</span>
@@ -203,7 +203,7 @@
       </div>
 
       <!-- Fallback Option Cards for Easy Touch / Mic Alternative -->
-      <div class="fallback-cards-section q-mt-xs relative-position z-top">
+      <div class="fallback-cards-section q-mt-xs relative-position z-top full-width">
         <div class="text-caption text-bold text-purple-2 q-mb-xs font-fredoka text-center">
           💡 {{ selectedLang === 'en-US' ? 'Or Tap Choice Cards Below:' : 'Atau Tekan Pilihan Gambar di Bawah:' }}
         </div>
@@ -223,7 +223,7 @@
       <!-- Round Victory Banner -->
       <div v-if="isAnsweredCorrectly" class="victory-banner column items-center q-mt-sm q-pa-sm rounded-borders text-center shadow-12 animate-pop relative-position z-top full-width">
         <div class="text-h6 font-fredoka text-bold text-amber-3">🎉 LUAR BIASA! JAWABAN BENAR!</div>
-        <div class="row q-gutter-x-md text-bold text-white q-mt-xs font-fredoka text-subtitle2">
+        <div class="row q-gutter-x-md text-bold text-white q-mt-xs font-fredoka text-subtitle2 flex-center flex-wrap">
           <span>🪙 +30 Koin</span>
           <span>⭐ +{{ 30 * pronunciationStars }} XP</span>
           <span v-if="comboStreak > 1" class="text-amber-3">🔥 Bonus Combo!</span>
@@ -1009,7 +1009,7 @@ onMounted(() => {
 
 .quiz-scroll-body {
   width: 100%;
-  max-width: 720px;
+  max-width: 960px;
   margin: 0 auto;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
