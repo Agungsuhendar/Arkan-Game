@@ -122,8 +122,22 @@ async def record_game_event(
                 detail="Event 'question_answered' wajib menyertakan 'question_id' dan 'option_id'."
             )
 
+        # Enforce 1 session + 1 question = 1 answer
+        existing_answers = [
+            e for e in (session.events or [])
+            if e.event_type == "question_answered"
+            and isinstance(e.event_data, dict)
+            and e.event_data.get("question_id") == question_id
+        ]
+        if existing_answers:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Pertanyaan '{question_id}' sudah dijawab dalam sesi ini."
+            )
+
     await game_repo.log_game_event(session.id, req.event_type, sanitized_data)
     return {"status": "recorded", "event_type": req.event_type}
+
 
 
 @router.get("/child/{child_id}", response_model=ChildProfile)

@@ -82,12 +82,19 @@ class GameIntegrityService:
                 if q_id:
                     seen_questions.add(q_id)
 
-                # STRICT: Only trust database-matched option_id in correct_option_ids
+                # STRICT: Only trust database-matched option_id in correct_option_ids (Zero client is_correct fallback)
                 if correct_option_ids and opt_id and opt_id in correct_option_ids:
                     correct_count += 1
 
-        # Step 4: Mandatory Server Score Calculation (Zero trust on raw claimed_score)
+        # Step 4: Strict Event Completeness Guard (REJECT completion if answer events incomplete)
         if questions_count > 0:
+            if len(seen_questions) < questions_count:
+                return ValidationResult(
+                    is_valid=False,
+                    rejection_reason=f"Event jawaban tidak lengkap ({len(seen_questions)} dari {questions_count} soal dijawab).",
+                    verified_stars=0,
+                    verified_score=0
+                )
             verified_score = min(correct_count * 100, max_score)
         else:
             verified_score = 0
@@ -101,6 +108,7 @@ class GameIntegrityService:
             verified_stars=verified_stars,
             verified_score=verified_score
         )
+
 
 
 
