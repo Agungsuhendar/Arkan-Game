@@ -171,7 +171,8 @@ async def finish_game_session(
     if not level:
         raise HTTPException(status_code=404, detail="Level tidak ditemukan.")
 
-    questions_count = len(level.questions) if level.questions else 1
+    questions_count = len(level.questions) if level.questions is not None else 0
+
 
     # Build DB correct_option_ids set for server-side answer validation
     correct_option_ids = set()

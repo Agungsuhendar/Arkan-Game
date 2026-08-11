@@ -137,11 +137,12 @@ class GameFinishRequest(BaseModel):
     session_token: str
     child_id: Optional[str] = None
     level_id: Optional[str] = None
-    score: int
+    score: Optional[int] = 0
     questions_correct: Optional[int] = None
     total_questions: Optional[int] = None
     time_spent_seconds: int
     category: str = "huruf"
+
 
 class GameFinishResponse(BaseModel):
     status: str
