@@ -217,6 +217,10 @@ class Story(Base):
 
 class GameSession(Base):
     __tablename__ = "game_session"
+    __table_args__ = (
+        # Partial unique index enforced at DB level via migration (not natively via ORM).
+        # Application-level enforcement is in GameRepository.create_game_session_exclusive().
+    )
 
     id = Column(String, primary_key=True, default=generate_uuid)
     child_id = Column(String, ForeignKey("child.id", ondelete="CASCADE"), nullable=False, index=True)
@@ -229,6 +233,7 @@ class GameSession(Base):
     attempts_count = Column(Integer, default=1)
 
     events = relationship("GameEvent", back_populates="session", cascade="all, delete-orphan")
+    reward = relationship("RewardLedger", back_populates="session", uselist=False, cascade="all, delete-orphan")
 
 class GameEvent(Base):
     __tablename__ = "game_event"
@@ -238,12 +243,29 @@ class GameEvent(Base):
 
     id = Column(String, primary_key=True, default=generate_uuid)
     session_id = Column(String, ForeignKey("game_session.id", ondelete="CASCADE"), nullable=False, index=True)
-    event_type = Column(String, nullable=False, index=True) # question_answered, item_collected, powerup_used, hint_used, cheat_flagged
+    event_type = Column(String, nullable=False, index=True) # question_answered, item_collected, powerup_used, hint_used, cheat_flagged, session_finished
     question_id = Column(String, nullable=True, index=True)
     event_data = Column(JSON, default={})
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     session = relationship("GameSession", back_populates="events")
 
+class RewardLedger(Base):
+    """Immutable reward audit log. Invariant: 1 completed session = exactly 1 reward ledger entry."""
+    __tablename__ = "reward_ledger"
+    __table_args__ = (
+        UniqueConstraint("session_id", name="uq_reward_ledger_session"),
+    )
 
+    id = Column(String, primary_key=True, default=generate_uuid)
+    session_id = Column(String, ForeignKey("game_session.id", ondelete="CASCADE"), nullable=False, index=True)
+    child_id = Column(String, ForeignKey("child.id", ondelete="CASCADE"), nullable=False, index=True)
+    coins = Column(Integer, nullable=False, default=0)
+    xp = Column(Integer, nullable=False, default=0)
+    stars = Column(Integer, nullable=False, default=0)
+    score = Column(Integer, nullable=False, default=0)
+    reason = Column(String, nullable=False, default="game_completion")
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    session = relationship("GameSession", back_populates="reward")
 

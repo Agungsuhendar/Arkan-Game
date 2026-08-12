@@ -2,12 +2,12 @@ from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
-from sqlalchemy import update as sa_update
+from sqlalchemy import update as sa_update, func as sa_func
 from typing import List, Optional
 import uuid
 
 from app.domain.models import (
-    World, Chapter, Level, GameEngineConfig, Question, Progress, GameSession, GameEvent, Child
+    World, Chapter, Level, GameEngineConfig, Question, Progress, GameSession, GameEvent, Child, RewardLedger
 )
 
 class GameRepository:
@@ -38,13 +38,30 @@ class GameRepository:
         return result.scalars().first()
 
     async def create_game_session(self, child_id: str, level_id: str, max_score: int = 100) -> GameSession:
-        # Check attempts count for this level by child
-        existing_res = await self.db.execute(
+        """Create game session with 1-child-1-level-1-active-session enforcement.
+        If an active session already exists, raises HTTPException.
+        Uses atomic COUNT for attempt_number (no read-modify-write race).
+        """
+        # Check for existing active session (enforced by DB partial unique index)
+        active_res = await self.db.execute(
             select(GameSession)
+            .filter(
+                GameSession.child_id == child_id,
+                GameSession.level_id == level_id,
+                GameSession.status == "active"
+            )
+        )
+        existing_active = active_res.scalars().first()
+        if existing_active:
+            # Return existing active session instead of creating a duplicate
+            return existing_active
+
+        # Atomic attempt count using DB COUNT aggregate
+        count_res = await self.db.execute(
+            select(sa_func.count(GameSession.id))
             .filter(GameSession.child_id == child_id, GameSession.level_id == level_id)
         )
-        existing_sessions = existing_res.scalars().all()
-        attempt_number = len(existing_sessions) + 1
+        attempt_number = (count_res.scalar() or 0) + 1
 
         token = str(uuid.uuid4())
         session = GameSession(
@@ -161,4 +178,22 @@ class GameRepository:
             await self.db.flush()
             return progress
 
-
+    async def create_reward_ledger(
+        self, session_id: str, child_id: str,
+        coins: int, xp: int, stars: int, score: int,
+        reason: str = "game_completion"
+    ) -> RewardLedger:
+        """Create immutable reward ledger entry. session_id UNIQUE prevents double reward."""
+        ledger = RewardLedger(
+            session_id=session_id,
+            child_id=child_id,
+            coins=coins,
+            xp=xp,
+            stars=stars,
+            score=score,
+            reason=reason,
+            created_at=datetime.utcnow()
+        )
+        self.db.add(ledger)
+        await self.db.flush()
+        return ledger

@@ -90,8 +90,28 @@ class GameService:
                 detail="Akses ditolak. Anda tidak memiliki hak untuk mencatat event sesi ini."
             )
 
-        # Sanitize data
+        # Sanitize: strip any client-controlled correctness fields
         sanitized_data = {k: v for k, v in event_data.items() if k not in ("is_correct", "correct")}
+
+        # Typed Event Validation — enforce schema per event_type
+        from app.domain.schemas import QuestionAnsweredEvent, HintUsedEvent, ItemCollectedEvent, PowerupUsedEvent
+        EVENT_VALIDATORS = {
+            "question_answered": QuestionAnsweredEvent,
+            "hint_used": HintUsedEvent,
+            "item_collected": ItemCollectedEvent,
+            "powerup_used": PowerupUsedEvent,
+        }
+        validator = EVENT_VALIDATORS.get(event_type)
+        if validator:
+            try:
+                validated = validator(**sanitized_data)
+                sanitized_data = validated.model_dump()
+            except Exception as e:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Data event '{event_type}' tidak valid: {str(e)}"
+                )
+
         question_id = None
 
         if event_type == "question_answered":
@@ -265,6 +285,17 @@ class GameService:
             session.child_id, coins_earned, xp_earned
         )
 
+        # Immutable RewardLedger: session_id UNIQUE prevents double reward at DB level
+        await self.game_repo.create_reward_ledger(
+            session_id=session.id,
+            child_id=session.child_id,
+            coins=coins_earned,
+            xp=xp_earned,
+            stars=val_result.verified_stars,
+            score=val_result.verified_score,
+            reason="game_completion"
+        )
+
         logger.info("game.session.completed", extra={
             "event": "game.session.completed",
             "session_id": session.id,
@@ -285,4 +316,3 @@ class GameService:
             new_total_coins=updated_child.coins if updated_child else coins_earned,
             new_total_xp=updated_child.xp if updated_child else xp_earned
         )
-
