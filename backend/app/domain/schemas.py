@@ -128,19 +128,27 @@ class GameStartResponse(BaseModel):
     min_time_seconds: int
     level: LevelSchema
 
+# Typed Event Schemas (strict validation, no generic Dict)
+class QuestionAnsweredEvent(BaseModel):
+    question_id: str
+    option_id: str
+
+class HintUsedEvent(BaseModel):
+    question_id: str
+
+class ItemCollectedEvent(BaseModel):
+    item_id: str
+
+class PowerupUsedEvent(BaseModel):
+    powerup_id: str
+
 class GameEventRequest(BaseModel):
     session_token: str
-    event_type: str  # question_answered, item_collected, powerup_used, hint_used, cheat_flagged
+    event_type: str  # question_answered, item_collected, powerup_used, hint_used
     event_data: Dict[str, Any] = {}
 
 class GameFinishRequest(BaseModel):
     session_token: str
-    child_id: Optional[str] = None
-    level_id: Optional[str] = None
-    score: Optional[int] = 0
-    questions_correct: Optional[int] = None
-    total_questions: Optional[int] = None
-    time_spent_seconds: int
     category: str = "huruf"
 
 

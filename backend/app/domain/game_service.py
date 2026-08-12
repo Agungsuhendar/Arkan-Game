@@ -8,6 +8,9 @@ from app.domain.schemas import GameStartRequest, GameStartResponse, GameFinishRe
 from app.repositories.game_repository import GameRepository
 from app.repositories.user_repository import UserRepository
 from app.domain.game_integrity_service import GameIntegrityService
+from app.infrastructure.logging_config import get_logger
+
+logger = get_logger("game.service")
 
 class GameService:
     def __init__(self, db: AsyncSession):
@@ -40,6 +43,13 @@ class GameService:
             level_id=level.id,
             max_score=max_score
         )
+
+        logger.info("game.session.started", extra={
+            "event": "game.session.started",
+            "session_id": session.id,
+            "child_id": child.id,
+            "level_id": level.id
+        })
 
         return GameStartResponse(
             status="started",
@@ -127,6 +137,13 @@ class GameService:
             event_data=sanitized_data,
             question_id=question_id
         )
+        logger.info("game.event.recorded", extra={
+            "event": "game.event.recorded",
+            "session_id": session.id,
+            "child_id": session.child_id,
+            "event_type": event_type
+        })
+
         return {"status": "recorded", "event_type": event_type}
 
     async def finish_session(
@@ -135,12 +152,13 @@ class GameService:
         category: str,
         current_parent: Parent
     ) -> GameFinishResponse:
-        session = await self.game_repo.get_session_by_token(session_token)
+        # SELECT FOR UPDATE — row-level lock prevents concurrent finish race condition
+        session = await self.game_repo.get_session_by_token_for_update(session_token)
         if not session:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Token sesi game tidak ditemukan.")
 
-        # Idempotency & Replay Protection Check
-        if session.status == "completed":
+        # Idempotency & Replay Protection (under row lock, only 1 request can pass)
+        if session.status != "active":
             child = await self.user_repo.get_child_by_id(session.child_id)
             return GameFinishResponse(
                 status="already_completed",
@@ -191,12 +209,47 @@ class GameService:
                 "cheat_flagged",
                 {"reason": val_result.rejection_reason, "server_duration": val_result.server_duration_seconds}
             )
+            logger.warning("game.integrity.failed", extra={
+                "event": "game.integrity.failed",
+                "session_id": session.id,
+                "child_id": session.child_id,
+                "reason": val_result.rejection_reason
+            })
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=val_result.rejection_reason
             )
 
-        # Transactional Atomic Update for Rewards & Progress
+        # Atomic state transition: active → completed (returns False if already transitioned)
+        was_completed = await self.game_repo.atomic_complete_session(session.id)
+        if not was_completed:
+            # Another concurrent request already completed this session
+            child = await self.user_repo.get_child_by_id(session.child_id)
+            return GameFinishResponse(
+                status="already_completed",
+                session_token=session.session_token,
+                stars_awarded=0,
+                score_verified=0,
+                coins_earned=0,
+                xp_earned=0,
+                new_total_coins=child.coins if child else 0,
+                new_total_xp=child.xp if child else 0
+            )
+
+        # Log session_finished event (event sourcing completeness)
+        await self.game_repo.log_game_event(
+            session.id,
+            "session_finished",
+            {
+                "verified_score": val_result.verified_score,
+                "verified_stars": val_result.verified_stars,
+                "server_duration": val_result.server_duration_seconds,
+                "questions_count": questions_count,
+                "correct_count": val_result.verified_score // 100 if val_result.verified_score > 0 else 0
+            }
+        )
+
+        # Atomic reward calculation & distribution (no read-modify-write race)
         coins_earned = level.reward_coins * val_result.verified_stars
         xp_earned = level.reward_xp * val_result.verified_stars
 
@@ -208,10 +261,19 @@ class GameService:
             time_spent=val_result.server_duration_seconds,
             category=category
         )
-        updated_child = await self.user_repo.update_child_rewards(session.child_id, coins_earned, xp_earned)
+        updated_child = await self.game_repo.atomic_update_child_rewards(
+            session.child_id, coins_earned, xp_earned
+        )
 
-        # Mark Session Completed
-        await self.game_repo.complete_session(session)
+        logger.info("game.session.completed", extra={
+            "event": "game.session.completed",
+            "session_id": session.id,
+            "child_id": session.child_id,
+            "score": val_result.verified_score,
+            "stars": val_result.verified_stars,
+            "coins": coins_earned,
+            "xp": xp_earned
+        })
 
         return GameFinishResponse(
             status="success",
@@ -223,3 +285,4 @@ class GameService:
             new_total_coins=updated_child.coins if updated_child else coins_earned,
             new_total_xp=updated_child.xp if updated_child else xp_earned
         )
+

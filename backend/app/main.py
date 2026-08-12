@@ -35,6 +35,10 @@ app.include_router(ai.router, prefix="/api/v1")
 
 @app.on_event("startup")
 async def startup_event():
+    # Initialize structured JSON logging
+    from app.infrastructure.logging_config import setup_logging
+    setup_logging(level="INFO")
+
     # Database schema management is delegated to Alembic migrations (alembic upgrade head).
     # Seed initial game worlds and engines if empty or missing
     async with AsyncSessionLocal() as session:
@@ -130,4 +134,23 @@ async def root():
     if settings.ENVIRONMENT != "production" or settings.ENABLE_DOCS:
         response["docs"] = "/docs"
     return response
+
+@app.get("/api/v1/health")
+async def health_check():
+    """Health check endpoint with database connectivity verification."""
+    db_status = "ok"
+    try:
+        async with AsyncSessionLocal() as session:
+            from sqlalchemy import text
+            await session.execute(text("SELECT 1"))
+    except Exception as e:
+        db_status = f"error: {str(e)}"
+
+    return {
+        "status": "healthy" if db_status == "ok" else "unhealthy",
+        "database": db_status,
+        "environment": settings.ENVIRONMENT,
+        "version": "1.0.0"
+    }
+
 

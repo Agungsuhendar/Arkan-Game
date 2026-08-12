@@ -2,11 +2,12 @@ from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
+from sqlalchemy import update as sa_update
 from typing import List, Optional
 import uuid
 
 from app.domain.models import (
-    World, Chapter, Level, GameEngineConfig, Question, Progress, GameSession, GameEvent
+    World, Chapter, Level, GameEngineConfig, Question, Progress, GameSession, GameEvent, Child
 )
 
 class GameRepository:
@@ -67,6 +68,16 @@ class GameRepository:
         )
         return result.scalars().first()
 
+    async def get_session_by_token_for_update(self, session_token: str) -> Optional[GameSession]:
+        """SELECT FOR UPDATE — acquires row-level lock to prevent concurrent finish race condition."""
+        result = await self.db.execute(
+            select(GameSession)
+            .options(selectinload(GameSession.events))
+            .filter(GameSession.session_token == session_token)
+            .with_for_update()
+        )
+        return result.scalars().first()
+
     async def log_game_event(
         self,
         session_id: str,
@@ -85,16 +96,41 @@ class GameRepository:
         await self.db.flush()
         return event
 
-
     async def invalidate_session(self, session: GameSession) -> None:
         session.status = "invalidated"
         session.end_time = datetime.utcnow()
         await self.db.flush()
 
+    async def atomic_complete_session(self, session_id: str) -> bool:
+        """Atomic state transition: active → completed. Returns False if already completed (idempotent)."""
+        result = await self.db.execute(
+            sa_update(GameSession)
+            .where(GameSession.id == session_id, GameSession.status == "active")
+            .values(status="completed", end_time=datetime.utcnow())
+        )
+        await self.db.flush()
+        return result.rowcount > 0
+
     async def complete_session(self, session: GameSession) -> None:
         session.status = "completed"
         session.end_time = datetime.utcnow()
         await self.db.flush()
+
+    async def atomic_update_child_rewards(self, child_id: str, coins_delta: int, xp_delta: int) -> Optional[Child]:
+        """Atomic SQL UPDATE: SET coins = coins + delta, xp = xp + delta (no read-modify-write race)."""
+        await self.db.execute(
+            sa_update(Child)
+            .where(Child.id == child_id)
+            .values(
+                coins=Child.coins + coins_delta,
+                xp=Child.xp + xp_delta,
+                level=1 + ((Child.xp + xp_delta) / 100)
+            )
+        )
+        await self.db.flush()
+        # Re-read updated child
+        result = await self.db.execute(select(Child).filter(Child.id == child_id))
+        return result.scalars().first()
 
     async def upsert_progress(
         self, child_id: str, level_id: str, stars: int, score: int, time_spent: int, category: str
@@ -124,4 +160,5 @@ class GameRepository:
             self.db.add(progress)
             await self.db.flush()
             return progress
+
 
